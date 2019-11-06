@@ -13,6 +13,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "@mdi/font": "^4.5.95",
     "@types/vuelidate": "^0.7.8",
     "core-js": "^3.3.2",
     "js-aprs-engine": "git://github.com/KD0NKS/js-aprs-engine.git#2019-11-02_SaveSettings",

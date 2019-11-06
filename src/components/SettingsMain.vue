@@ -44,74 +44,33 @@
                             </v-layout>
 
                             <v-layout row wrap>
-                                <v-flex xs12 md6>
+                                <v-flex xs12>
                                     <v-select 
-                                        :items="aprsSymbols"
-                                        v-model="stationInfo.symbol"
-                                        label="Station Symbol"
-                                        item-text="name"
-                                        item-value="key"
-                                        max-height="auto"
-                                        clearable
-                                        @input="updateSymbol(`${stationInfo.symbol}`)"
-                                        >
-                                    </v-select>
-
-                                    <!--
-                                <v-select 
-                                        :items="aprsSymbols"
-                                        v-model="stationInfo.symbol"
-                                        label="Station Symbol"
-                                        item-text="name"
-                                        item-value="key"
-                                        max-height="auto"
-                                        :clearable=true
-                                        @blur="updateSymbol(`${stationInfo.symbol}`)"
-                                        @change="updateSymbol(`${stationInfo.symbol}`)"
-                                        >
-                                    <template slot="selection" slot-scope="data">
-                                        <v-chip
-                                                :input-value="data.selected"
-                                                :key="JSON.stringify(data.item)"
-                                                :close=true
-                                                :label=true
-                                                :outlined=true
-                                                :clearable=true
-                                                @input="data.parent.selectItem(data.item)"
-                                                >
-                                            <v-avatar>
-                                                <img :src="getImgUrl(data.item.value)">
-                                            </v-avatar>
-                                            {{ data.item.name }}
-                                        </v-chip>
-                                    </template>
-                                    <template slot="item" slot-scope="data">
-                                        <v-list-item-avatar :tile=true>
-                                            <img :src="getImgUrl(data.item.value)">
-                                        </v-list-item-avatar>
-                                        <v-list-item-content>
-                                            <v-list-item-title v-html="data.item.name"></v-list-item-title>
-                                        </v-list-item-content>
-                                    </template>
-                                </v-select>
-                                -->
-                                </v-flex>
-                            </v-layout>
-
-                            <v-layout>
-                                <v-select
-                                        :items="aprsSymbolOverlays"
-                                        v-model="stationInfo.symbolOverlay"
-                                        item-text="name"
-                                        item-value = "key"
-                                        label="Symbol Overlay"
-                                        :disabled="!isOverlayEnabled"
-                                        :clearable=true
-                                        @blur="updateOverlay(`${stationInfo.symbolOverlay}`)"
-                                        @change="updateOverlay(`${stationInfo.symbolOverlay}`)"
-                                        >
-                                    <template slot="item" slot-scope="data">
-                                        <template>
+                                            :items="aprsSymbols"
+                                            v-model="stationInfo.symbol"
+                                            label="Station Symbol"
+                                            item-text="name"
+                                            item-value="key"
+                                            max-height="auto"
+                                            :clearable=true
+                                            @blur="updateSymbol(`${stationInfo.symbol}`)"
+                                            @change="updateSymbol(`${stationInfo.symbol}`)"
+                                            >
+                                        <template slot="selection" slot-scope="data">
+                                            <v-chip
+                                                    :input-value="data.selected"
+                                                    :key="JSON.stringify(data.item)"
+                                                    :label=true
+                                                    :outlined=true
+                                                    @input="data.parent.selectItem(data.item)"
+                                                    >
+                                                <v-avatar>
+                                                    <img :src="getImgUrl(data.item.value)">
+                                                </v-avatar>
+                                                {{ data.item.name }}
+                                            </v-chip>
+                                        </template>
+                                        <template slot="item" slot-scope="data">
                                             <v-list-item-avatar :tile=true>
                                                 <img :src="getImgUrl(data.item.value)">
                                             </v-list-item-avatar>
@@ -119,22 +78,50 @@
                                                 <v-list-item-title v-html="data.item.name"></v-list-item-title>
                                             </v-list-item-content>
                                         </template>
-                                    </template>
-                                </v-select>
+                                    </v-select>
+                                </v-flex>
                             </v-layout>
-
-    <v-layout row wrap>
-        <v-flex xs12 md6>
-            <v-select
-                v-model="model"
-                :items="items"
-                label="Label"
-                clearable
-                >
-            </v-select>
-        </v-flex>
-    </v-layout>
-    <i class="v-icon notranslate v-icon--link mdi mdi-close theme--light"></i>
+                            <v-layout row wrap>
+                                <v-flex xs12>
+                                    <v-select
+                                            :items="aprsSymbolOverlays"
+                                            v-model="stationInfo.symbolOverlay"
+                                            label="Symbol Overlay"
+                                            item-text="name"
+                                            item-value = "key"
+                                            max-height="auto"
+                                            :disabled="!isOverlayEnabled"
+                                            :clearable=true
+                                            @blur="updateOverlay(`${stationInfo.symbolOverlay}`)"
+                                            @change="updateOverlay(`${stationInfo.symbolOverlay}`)"
+                                            >
+                                        <template slot="selection" slot-scope="data">
+                                            <v-chip
+                                                    :input-value="data.selected"
+                                                    :key="JSON.stringify(data.item)"
+                                                    :label=true
+                                                    :outlined=true
+                                                    @input="data.parent.selectItem(data.item)"
+                                                    >
+                                                <v-avatar>
+                                                    <img :src="getImgUrl(data.item.value)">
+                                                </v-avatar>
+                                                {{ data.item.name }}
+                                            </v-chip>
+                                        </template>
+                                        <template slot="item" slot-scope="data">
+                                            <template>
+                                                <v-list-item-avatar :tile=true>
+                                                    <img :src="getImgUrl(data.item.value)">
+                                                </v-list-item-avatar>
+                                                <v-list-item-content>
+                                                    <v-list-item-title v-html="data.item.name"></v-list-item-title>
+                                                </v-list-item-content>
+                                            </template>
+                                        </template>
+                                    </v-select>
+                                </v-flex>
+                            </v-layout>
                         </v-container>
 
                         <v-btn color="success" class="mr-4" type="submit" :disabled="!isStationSettingsValid" form="station-settings-form">Save</v-btn>
