@@ -9,7 +9,7 @@
                     >
                 <v-container>
                     <v-layout row wrap>
-                        <v-flex xs12 md8>
+                        <v-flex xs12 md8 class="px-2">
                             <v-text-field
                                     v-model="stationInfo.callsign"
                                     label="Callsign"
@@ -17,7 +17,7 @@
                                     >
                             </v-text-field>
                         </v-flex>
-                        <v-flex xs12 md4>
+                        <v-flex xs12 md4 class="px-2">
                             <v-text-field v-model="stationInfo.ssid"
                                     label="ssid"
                                     >
@@ -26,7 +26,7 @@
                     </v-layout>
                     
                     <v-layout row wrap>
-                        <v-flex xs12>
+                        <v-flex xs12 class="px-2">
                             <v-text-field v-model="stationInfo.passcode"
                                     label="Passcode"
                                     :rules="[rules.required]">
@@ -35,7 +35,7 @@
                     </v-layout>
 
                     <v-layout row wrap>
-                        <v-flex xs12>
+                        <v-flex xs12 class="px-2">
                             <v-select 
                                     :items="aprsSymbols"
                                     v-model="stationInfo.symbol"
@@ -72,8 +72,9 @@
                             </v-select>
                         </v-flex>
                     </v-layout>
+                    
                     <v-layout row wrap>
-                        <v-flex xs12>
+                        <v-flex xs12 class="px-2">
                             <v-select
                                     :items="aprsSymbolOverlays"
                                     v-model="stationInfo.symbolOverlay"
@@ -113,10 +114,14 @@
                             </v-select>
                         </v-flex>
                     </v-layout>
-                </v-container>
 
-                <v-btn color="success" class="mr-4" type="submit" :disabled="!isStationSettingsValid" form="station-settings-form">Save</v-btn>
-                <v-btn color="error" class="mr-4" @click="resetStationInfo">Reset</v-btn>
+                    <v-layout row wrap>
+                        <v-flex xs12 class="px-2">
+                            <v-btn color="success" class="mr-4" type="submit" :disabled="!isStationSettingsValid" form="station-settings-form">Save</v-btn>
+                            <v-btn color="error" class="mr-4" @click="resetStationInfo">Reset</v-btn>
+                        </v-flex>
+                    </v-layout>
+                </v-container>
             </v-form>
         </v-expansion-panel-content>
     </v-expansion-panel>
@@ -131,8 +136,6 @@
     export default {
         data: () => ({
             isStationSettingsValid: true
-            , items: ['Foo', 'Bar', 'Fizz', 'Buzz']
-            , model: 'Foo'
             , stationInfo: {
                 callsign: store.state.stationSettings.callsign
                 , passcode: store.state.stationSettings.passcode
