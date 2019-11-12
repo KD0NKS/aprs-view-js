@@ -128,11 +128,11 @@
 </template>
 
 <script lang="ts">
-    import { APRSSymbol, APRSSymbolService, StationSettings, StringUtil } from 'js-aprs-engine';
+    import { APRSSymbolService, StationSettings, StringUtil } from 'js-aprs-engine';
     import store from '../../store';
     
     let symbolSvc = new APRSSymbolService();
-
+    
     export default {
         data: () => ({
             isStationSettingsValid: true
@@ -170,11 +170,7 @@
                 return require('js-aprs-engine/dist/' + url);
             }, saveStationInfo() {
                 if(this.isStationSettingsValid) {
-                    store.commit('setStationSettings', {
-                        callsign: this.stationInfo.callsign
-                        , passcode: this.stationInfo.passcode
-                        , ssid: this.stationInfo.ssid
-                    });
+                    store.commit('setStationSettings', this.stationInfo);
                 }
             }
             , resetStationInfo() {

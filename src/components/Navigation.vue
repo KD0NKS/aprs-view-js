@@ -46,10 +46,12 @@
 </template>
 
 <script>
+    import { StationSettings } from 'js-aprs-engine';
+
     export default {
         computed: {
             callsign() {
-                return this.$store.state.stationSettings.callsign;
+                return StationSettings.callsign;
             }
         }
         , data() {
