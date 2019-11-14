@@ -1,3 +1,4 @@
+import { ConnectionManager } from 'js-aprs-engine';
 import Vue from 'vue';
 import Vuelidate from 'vuelidate';
 import Vuetify from 'vuetify'
@@ -10,6 +11,7 @@ Vue.use(Vuelidate);
 Vue.use(Vuetify);
 
 const vuetifyOptions = {}
+ConnectionManager.appId = 'aprs-view-js v1.0.0'
 
 new Vue({
   router,

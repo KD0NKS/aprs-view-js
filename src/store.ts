@@ -1,4 +1,4 @@
-import { StationSettings } from 'js-aprs-engine';
+import { ConnectionManager, IConnection, StationSettings } from 'js-aprs-engine';
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { IStationSettings } from 'js-aprs-engine';
@@ -24,8 +24,11 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        getStationSettings({ state, commit }) {
+        getStationSettings({ commit }) {
             commit('setStationSettings', StationSettings);
+        },
+        addConnection({ dispatch }, connection: IConnection) {
+            ConnectionManager.addConnection(connection);
         }
     },
     getters: {

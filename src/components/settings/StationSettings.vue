@@ -117,8 +117,8 @@
 
                     <v-layout row wrap>
                         <v-flex xs12 class="px-2">
-                            <v-btn color="success" class="mr-4" type="submit" :disabled="!isStationSettingsValid" form="station-settings-form">Save</v-btn>
-                            <v-btn color="error" class="mr-4" @click="resetStationInfo">Reset</v-btn>
+                            <v-btn color="primary" class="mr-4" type="submit" :disabled="!isStationSettingsValid" form="station-settings-form">Save</v-btn>
+                            <v-btn color="normal" class="mr-4" @click="resetStationInfo">Reset</v-btn>
                         </v-flex>
                     </v-layout>
                 </v-container>
