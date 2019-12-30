@@ -5,6 +5,7 @@ import Vuetify from 'vuetify'
 import App from './App.vue';
 import router from './router';
 import store from './store';
+import ActionTypes from './ActionTypes';
 
 Vue.config.productionTip = false;
 Vue.use(Vuelidate);
@@ -19,6 +20,10 @@ new Vue({
   vuetify: new Vuetify(vuetifyOptions),
   render: (h) => h(App),
   created() {
-      this.$store.dispatch('getStationSettings')
+    this.$store.dispatch(ActionTypes.INIT_STATION_SETTINGS)
+    
+    ConnectionManager.on('data', (data) => {
+      this.$store.dispatch(ActionTypes.ADD_PACKET, data);
+    });
   }
 }).$mount('#app');

@@ -63,7 +63,8 @@
                     , { title: 'Map', icon: 'map', action: '/map' }
                     , { title: 'Messages', icon: 'message', action: "/messages" }
                     */
-                    { title: 'Settings', icon: 'settings', action: "/settings" }
+                    { title: 'Output', icon: 'mdi-console-line', action: "/output" }
+                    , { title: 'Settings', icon: 'settings', action: "/settings" }
                     , { title: 'About', icon: 'info', action: "/about" }
                 ]
                 , mini: true

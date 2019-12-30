@@ -3,15 +3,19 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { IStationSettings } from 'js-aprs-engine';
 import { StationSettingsViewModel } from './models/StationSettingsViewModel';
+import ActionTypes from './ActionTypes';
+import MutationTypes from './MutationTypes';
+import GetterTypes from './GetterTypes';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
-        stationSettings: new StationSettingsViewModel()
+        aprsData: []
+        ,stationSettings: new StationSettingsViewModel()
     },
     mutations: {
-        setStationSettings(state, settings: IStationSettings) {
+        [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
             state.stationSettings = settings;
 
             StationSettings.callsign = state.stationSettings.callsign;
@@ -24,15 +28,25 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        getStationSettings({ commit }) {
-            commit('setStationSettings', StationSettings);
+        [ActionTypes.INIT_STATION_SETTINGS]({ commit }) {
+            commit(MutationTypes.SET_STATION_SETTINGS, StationSettings);
         },
-        addConnection({ dispatch }, connection: IConnection) {
+        [ActionTypes.ADD_CONNECTION]({ state }, connection: IConnection) {
             ConnectionManager.addConnection(connection);
+        },
+        [ActionTypes.ADD_PACKET]({ state }, packet: String) {
+            state.aprsData.push(packet);
+            window.console.log(packet);
         }
     },
     getters: {
-        StationSettings(state) {
+        [GetterTypes.CONNECTION_MANAGER]() {
+            return ConnectionManager;
+        }
+        , [GetterTypes.DATA_CONNECTIONS](state) {
+            return ConnectionManager.getConnections().values();
+        }
+        , [GetterTypes.STATION_SETTINGS](state) {
             return state.stationSettings;
         }
     }

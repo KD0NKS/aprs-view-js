@@ -20,9 +20,9 @@
                             <v-select
                                 :items="connectionTypeOptions"
                                 item-text="name"
-                                item-value = "id"
+                                item-value="id"
                                 v-model="connection.connectionType"
-                                :disabled=true
+                                :readonly=true
                                 >
                             </v-select>
                         </v-flex>
@@ -47,6 +47,13 @@
                         </v-flex>
                     </v-layout>
                     <v-layout row wrap>
+                        <v-text-field
+                            label="Filter"
+                            v-model="connection.filter"
+                            >
+                        </v-text-field>
+                    </v-layout>
+                    <v-layout row wrap>
                         <v-flex xs12 class="px-2">
                             <v-switch v-model="connection.isEnabled" label="Enabled"></v-switch>
                             <v-btn color="primary" class="mr-4" type="submit" :disabled="!isValid" form="isConnectionForm">Save</v-btn>
@@ -67,7 +74,7 @@
         data: () => ({
             connection: {
                 name: 'Default'
-                , connectionType: ConnectionTypes.IS_SOCKET
+                , connectionType: 'IS_SOCKET'
                 , uri: 'rotate.aprs2.net'
                 , port: '14580'
                 , isEnabled: false
@@ -75,7 +82,7 @@
             }
             , isValid: false
             , rules: {
-                required: value => !!value || 'Required.',
+                required: value => !!value || 'Required.'
             }
         })
         , created() {
@@ -87,12 +94,10 @@
             connectionTypeOptions() {
                 let map = [];
 
-                for(var type in ConnectionTypes) {
-                    const t = ConnectionTypes[type];
-
-                    map.push({ id: t, name: t.description });
-                }
-
+                Object.keys(ConnectionTypes).forEach((k) => {
+                    map.push({ id: k, name: ConnectionTypes[k].description });
+                });
+                
                 return map;
             }
         }
@@ -102,7 +107,18 @@
             }
             , saveConnectionInfo() {
                 if(this.isValid) {
-                    store.dispatch('addConnection', { connection: this.connection });
+                    var ct = ConnectionTypes[this.connection.connectionType];
+                    
+                    var c = {
+                        name: 'Default'
+                        , connectionType: ct
+                        , host: this.connection.uri
+                        , port: this.connection.port
+                        , isEnabled: this.connection.isEnabled
+                        , filter: this.connection.filter
+                    };
+
+                    store.dispatch('addConnection', c);
                 }
             }
         }

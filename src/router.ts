@@ -15,27 +15,31 @@ export default new Router({
             // route level code-splitting
             // this generates a separate chunk (about.[hash].js) for this route
             // which is lazy-loaded when the route is visited.
-            , component: () => import(/* webpackChunkName: "about" */ './views/About.vue'),
+            , component: () => import(/* webpackChunkName: "main" */ './views/About.vue')
         }
         , {
             path: '/dashboard'
             , name: 'dasbhoard'
-            , component: () => import(/* webpackChunkName: "about" */ './views/Dashboard.vue')
+            , component: () => import(/* webpackChunkName: "main" */ './views/Dashboard.vue')
         }
         , {
             path: '/map'
             , name: 'map'
-            , component: () => import(/* webpackChunkName: "about" */ './views/Map.vue')
+            , component: () => import(/* webpackChunkName: "main" */ './views/Map.vue')
         }
         , {
             path: '/messages'
             , name: 'messages'
-            , component: () => import(/* webpackChunkName: "about" */ './views/Messages.vue')
+            , component: () => import(/* webpackChunkName: "main" */ './views/Messages.vue')
         }
         , {
+            path: '/output'
+            , name: 'Console'
+            , component: () => import(/* webpackChunkName: "main" */ './views/Output.vue')
+        }, {
             path: '/settings'
             , name: 'settings'
-            , component: () => import(/* webpackChunkName: "about" */ './views/Settings.vue')
+            , component: () => import(/* webpackChunkName: "main" */ './views/Settings.vue')
         }
     ],
 });

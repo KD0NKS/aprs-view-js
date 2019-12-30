@@ -5,13 +5,12 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from 'vue-property-decorator';
+    //import { Component, Vue } from 'vue-property-decorator';
     import AboutAPRSViewJS from '@/components/AboutAPRSViewJS.vue';
 
-    @Component({
+    export default {
         components: {
-            AboutAPRSViewJS,
+            AboutAPRSViewJS
         }
-    })
-    export default class About extends Vue {}
+    }
 </script>

@@ -128,7 +128,8 @@
 </template>
 
 <script lang="ts">
-    import { APRSSymbolService, StationSettings, StringUtil } from 'js-aprs-engine';
+    import { APRSSymbolService, StringUtil } from 'js-aprs-engine';
+    import MutationTypes from '../../MutationTypes';
     import store from '../../store';
     
     let symbolSvc = new APRSSymbolService();
@@ -149,7 +150,7 @@
         , created() {
             // load settings here
             //https://jsfiddle.net/awolf2904/3rabkzsn/1/
-            store.dispatch('getStationSettings');
+            //store.dispatch('getStationSettings');
         }
         , computed: {
             aprsSymbols() {
@@ -170,7 +171,7 @@
                 return require('js-aprs-engine/dist/' + url);
             }, saveStationInfo() {
                 if(this.isStationSettingsValid) {
-                    store.commit('setStationSettings', this.stationInfo);
+                    store.commit(MutationTypes.SET_STATION_SETTINGS, this.stationInfo);
                 }
             }
             , resetStationInfo() {

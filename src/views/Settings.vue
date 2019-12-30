@@ -14,5 +14,5 @@
         }
     })
     
-    export default class Settings extends Vue {}
+    export default class Settings extends Vue { }
 </script>
