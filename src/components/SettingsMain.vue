@@ -9,19 +9,19 @@
                 :focusable="true"
                 :value=[0]>
             <StationSettings></StationSettings>
-            <ConnectionSettings></ConnectionSettings>
+            <ConnectionList></ConnectionList>
         </v-expansion-panels>
     </div>
 </template>
 
 <script lang="ts">
     //import { Component, Vue } from 'vue-property-decorator';
-    import ConnectionSettings from '@/components/settings/ConnectionSettings.vue';
+    import ConnectionList from '@/components/settings/ConnectionList.vue';
     import StationSettings from '@/components/settings/StationSettings.vue';
 
     export default {
         components: {
-            ConnectionSettings
+            ConnectionList
             , StationSettings
         }
     }

@@ -129,8 +129,8 @@
 
 <script lang="ts">
     import { APRSSymbolService, StringUtil } from 'js-aprs-engine';
-    import MutationTypes from '../../MutationTypes';
-    import store from '../../store';
+    import MutationTypes from '@/MutationTypes';
+    import store from '@/store';
     
     let symbolSvc = new APRSSymbolService();
     

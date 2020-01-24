@@ -12,6 +12,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state: {
         aprsData: []
+        , aprsPackets: []
         ,stationSettings: new StationSettingsViewModel()
     },
     mutations: {
@@ -34,9 +35,11 @@ export default new Vuex.Store({
         [ActionTypes.ADD_CONNECTION]({ state }, connection: IConnection) {
             ConnectionManager.addConnection(connection);
         },
-        [ActionTypes.ADD_PACKET]({ state }, packet: String) {
+        [ActionTypes.ADD_DATA]({ state }, packet: String) {
             state.aprsData.push(packet);
-            window.console.log(packet);
+        },
+        [ActionTypes.ADD_PACKET]({ state }, packet: String) {
+            state.aprsPackets.push(packet);
         }
     },
     getters: {

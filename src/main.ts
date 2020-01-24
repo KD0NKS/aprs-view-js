@@ -1,11 +1,11 @@
-import { ConnectionManager } from 'js-aprs-engine';
+import ActionTypes from './ActionTypes';
+import App from './App.vue';
+import { ConnectionManager, DataEventTypes } from 'js-aprs-engine';
+import router from './router';
+import store from './store';
 import Vue from 'vue';
 import Vuelidate from 'vuelidate';
 import Vuetify from 'vuetify'
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import ActionTypes from './ActionTypes';
 
 Vue.config.productionTip = false;
 Vue.use(Vuelidate);
@@ -22,8 +22,12 @@ new Vue({
   created() {
     this.$store.dispatch(ActionTypes.INIT_STATION_SETTINGS)
     
-    ConnectionManager.on('data', (data) => {
-      this.$store.dispatch(ActionTypes.ADD_PACKET, data);
+    ConnectionManager.on(DataEventTypes.DATA, (data) => {
+      this.$store.dispatch(ActionTypes.ADD_DATA, data);
+    });
+
+    ConnectionManager.on(DataEventTypes.PACKET, (packet) => {
+      this.$store.dispatch(ActionTypes.ADD_PACKET, packet)
     });
   }
 }).$mount('#app');
