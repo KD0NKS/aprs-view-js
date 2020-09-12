@@ -109,16 +109,19 @@ export default {
     methods: {
         resetConnectionInfo() {},
         saveConnectionInfo() {
-            if (this.isValid) {
-                var ct = ConnectionTypes[this.connection.connectionType];
+            if(this.isValid) {
+                var test = Object.assign({}, this.connection);
+
+
+                var ct = ConnectionTypes[test.connectionType];
 
                 var c = {
-                    name: this.connection.name,
+                    name: test.name,
                     connectionType: ct,
-                    host: this.connection.uri,
-                    port: this.connection.port,
-                    isEnabled: this.connection.isEnabled,
-                    filter: this.connection.filter
+                    host: test.uri,
+                    port: test.port,
+                    isEnabled: test.isEnabled,
+                    filter: test.filter
                 };
 
                 store.dispatch(ActionTypes.ADD_CONNECTION, c);
