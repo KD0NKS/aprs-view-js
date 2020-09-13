@@ -12,4 +12,21 @@ As APRS software is very complex and I'm starting the UI 100% from scratch, ther
 If you would like to contribute, please feel free to fork the repo and add pull requests!
 
 ## Suggestions?
-Please feel free to create an issue.
+Please feel free to create a feature request in the issues.
+
+## Building
+Clone the project.
+Install dependencies.
+```
+npm install
+```
+
+Build the project.
+```
+npm run electron:build
+```
+
+Run it.
+```
+npm run electron:serve
+```
