@@ -4,30 +4,27 @@
             :mini-variant.sync="mini"
             permanent
             app>
+        <v-list>
+            <v-list-item :class="mini && 'px-2'">
+                <v-list-item-avatar>
+                    <v-img
+                            :src="require('../assets/radio-tower.png')"
+                            class="my-3"
+                            contain>
+                    </v-img>
+                </v-list-item-avatar>
 
-        <v-list-item>
-            <v-list-item-avatar>
-                <v-img
-                        :src="require('../assets/radio-tower.png')"
-                        class="my-3"
-                        contain>
-                </v-img>
-            </v-list-item-avatar>
+                <v-list-item-content>
+                    <v-list-item-title>{{ callsign }}</v-list-item-title>
+                </v-list-item-content>
 
-            <v-list-item-content>
-                <v-list-item-title>{{ callsign }}</v-list-item-title>
-            </v-list-item-content>
+                <v-list-item-action>
+                    <v-btn text icon @click.stop="mini = !mini">
+                        <v-icon>chevron_left</v-icon>
+                    </v-btn>
+                </v-list-item-action>
+            </v-list-item>
 
-            <v-list-item-action>
-                <v-btn text icon @click.stop="mini = !mini">
-                    <v-icon>chevron_left</v-icon>
-                </v-btn>
-            </v-list-item-action>
-        </v-list-item>
-
-        <v-divider></v-divider>
-
-        <v-list dense>
             <v-list-item
                     v-for="item in items"
                     :key="item.title"
@@ -51,6 +48,10 @@
     export default {
         computed: {
             callsign() {
+                if(StationSettings.ssid != null) {
+                    return `${StationSettings.callsign}-${StationSettings.ssid}`;
+                }
+
                 return StationSettings.callsign;
             }
         }
