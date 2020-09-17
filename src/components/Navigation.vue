@@ -25,19 +25,42 @@
                 </v-list-item-action>
             </v-list-item>
 
-            <v-list-item
-                    v-for="item in items"
-                    :key="item.title"
-                    :to="item.action"
-                    >
-                <v-list-item-action>
-                    <v-icon>{{ item.icon }}</v-icon>
-                </v-list-item-action>
+            <div v-for="item in items" :key="item.title">
+                <v-list-item
+                        v-if="!item.subLinks"
+                        :key="item.title"
+                        :to="item.action"
+                        >
+                    <v-list-item-action>
+                        <v-icon>{{ item.icon }}</v-icon>
+                    </v-list-item-action>
 
-                <v-list-item-content>
-                    <v-list-item-title>{{ item.title }}</v-list-item-title>
-                </v-list-item-content>
-            </v-list-item>
+                    <v-list-item-content>
+                        <v-list-item-title>{{ item.title }}</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+
+                <v-list-group
+                        v-else
+                        :key="item.title"
+                        no-action
+                        :prepend-icon="item.icon"
+                        :value="false">
+                    <template v-slot:activator>
+                        <v-list-item-title>{{ item.title }}</v-list-item-title>
+                    </template>
+
+                    <v-list-item
+                            v-for="sublink in item.subLinks"
+                            :key="sublink.title"
+                            :to="sublink.action"
+                            >
+                        <v-list-item-content>
+                            <v-list-item-title>{{ sublink.title }}</v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-list-group>
+            </div>
         </v-list>
     </v-navigation-drawer>
 </template>
@@ -65,7 +88,12 @@
                     , { title: 'Messages', icon: 'message', action: "/messages" }
                     */
                     { title: 'Output', icon: 'mdi-console-line', action: "/output" }
-                    , { title: 'Settings', icon: 'settings', action: "/settings" }
+                    , { title: 'Settings', icon: 'settings'
+                        , subLinks: [
+                            { title: 'Station', action: '/stationSettings' }
+                            , { title: 'Connections', action: '/connectionSettings' }
+                        ] 
+                    }
                     , { title: 'About', icon: 'info', action: "/about" }
                 ]
                 , mini: true

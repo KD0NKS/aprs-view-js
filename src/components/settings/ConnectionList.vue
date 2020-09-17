@@ -112,7 +112,6 @@ export default {
             if(this.isValid) {
                 var test = Object.assign({}, this.connection);
 
-
                 var ct = ConnectionTypes[test.connectionType];
 
                 var c = {

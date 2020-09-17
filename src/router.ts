@@ -37,9 +37,13 @@ export default new Router({
             , name: 'Console'
             , component: () => import(/* webpackChunkName: "main" */ './views/Output.vue')
         }, {
-            path: '/settings'
-            , name: 'settings'
-            , component: () => import(/* webpackChunkName: "main" */ './views/Settings.vue')
+            path: '/connectionSettings'
+            , name: 'connectionSettings'
+            , component: () => import(/* webpackChunkName: "main" */ './views/settings/ConnectionSettings.vue')
+        },{
+            path: '/stationSettings'
+            , name: 'stationSettings'
+            , component: () => import(/* webpackChunkName: "main" */ './views/settings/StationSettings.vue')
         }
     ],
 });
