@@ -139,11 +139,11 @@
         data: () => ({
             isStationSettingsValid: true
             , stationInfo: {
-                callsign: store.state.stationSettings.callsign
-                , passcode: store.state.stationSettings.passcode
-                , ssid: store.state.stationSettings.ssid
-                , symbol: store.state.stationSettings.symbol
-                , symbolOverlay: store.state.stationSettings.symbol
+                callsign: store.state.stationSettings?.callsign
+                , passcode: store.state.stationSettings?.passcode
+                , ssid: store.state.stationSettings?.ssid
+                , symbol: store.state.stationSettings?.symbol
+                , symbolOverlay: store.state.stationSettings?.symbol
             }, rules: {
                 required: value => !!value || 'Required.',
             }

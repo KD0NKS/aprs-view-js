@@ -8,7 +8,7 @@
             <v-list-item :class="mini && 'px-2'">
                 <v-list-item-avatar>
                     <v-img
-                            :src="require('../assets/radio-tower.png')"
+                            :src="icon"
                             class="my-3"
                             contain>
                     </v-img>
@@ -65,17 +65,29 @@
     </v-navigation-drawer>
 </template>
 
-<script>
-    import { StationSettings } from 'js-aprs-engine';
+<script lang="ts">
+    import { APRSSymbolService } from 'js-aprs-engine';
+    import store from '@/store';
+    let symbolSvc = new APRSSymbolService();
 
     export default {
         computed: {
             callsign() {
-                if(StationSettings.ssid != null) {
-                    return `${StationSettings.callsign}-${StationSettings.ssid}`;
+                if(store.state.stationSettings.ssid) {
+                    return `${store.state.stationSettings.callsign}-${store.state.stationSettings.ssid}`;
                 }
 
-                return StationSettings.callsign;
+                return store.state.stationSettings.callsign;
+            },
+            icon() {
+                if(!store.state.stationSettings.symbol) {
+                    return require('../assets/radio-tower.png');
+                } else {
+                    return this.getImgUrl(symbolSvc.GetSymbolByKey(store.state.stationSettings.symbol).value);
+                }
+            },
+            symbol() {
+                return store.state.stationSettings.symbol;
             }
         }
         , data() {
@@ -97,6 +109,12 @@
                     , { title: 'About', icon: 'info', action: "/about" }
                 ]
                 , mini: true
+            }
+        }
+        , methods: {
+            getImgUrl(url: string) {
+                // TODO: This will be incorrect once js-aprs-engine is a full blown npm module
+                return require('js-aprs-engine/dist/' + url);
             }
         }
     }
