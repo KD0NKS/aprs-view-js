@@ -74,7 +74,7 @@ import ConnectionItem from "@/components/settings/ConnectionItem";
 export default {
     data: () => ({
         connection: {
-            name: "Default",
+            name: `Default`,
             connectionType: "IS_SOCKET",
             uri: "rotate.aprs2.net",
             port: "14580",
@@ -84,8 +84,7 @@ export default {
         isValid: false,
         rules: {
             required: value => !!value || "Required."
-        },
-        connections: ConnectionManager.getConnections()
+        }
     }),
     created() {
         // load settings here
@@ -104,6 +103,8 @@ export default {
             });
 
             return map;
+        }, connections() {
+            return state.ConnectionManager.Connections
         }
     },
     methods: {
