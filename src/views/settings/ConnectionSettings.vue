@@ -5,14 +5,12 @@
         </div>
 
         <v-expansion-panels v-for="(item, name) in connections" :key="name">
-            <ConnectionItem :item="item"></ConnectionItem>
+            <ConnectionItem :item="item" v-on:enableConnection="enableConnection"></ConnectionItem>
         </v-expansion-panels>
     </div>
 </template>
 
 <script type="ts">
-import store from "@/store";
-import ActionTypes from '@/ActionTypes';
 import { ConnectionManager } from "js-aprs-engine";
 import ConnectionItem from "@/components/settings/ConnectionItem";
 
@@ -28,14 +26,17 @@ export default {
     }
     , methods: {
         addConnection() {
-            store.dispatch(ActionTypes.ADD_CONNECTION, {
+            ConnectionManager.addConnection({
                 name: "Default",
                 connectionType: "IS_SOCKET",
-                uri: "rotate.aprs2.net",
+                host: "rotate.aprs2.net",
                 port: "14580",
                 isEnabled: false,
                 filter: "r/39.00/-91.00/1000"
             })
+        }, enableConnection(event) {
+            console.log('test');
+            console.log(event);
         }
     }
 }

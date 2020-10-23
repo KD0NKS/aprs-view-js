@@ -66,28 +66,27 @@
 </template>
 
 <script lang="ts">
-    import { APRSSymbolService } from 'js-aprs-engine';
-    import store from '@/store';
+    import { APRSSymbolService, StationSettings } from 'js-aprs-engine';
     let symbolSvc = new APRSSymbolService();
 
     export default {
         computed: {
             callsign() {
-                if(store.state.stationSettings.ssid) {
-                    return `${store.state.stationSettings.callsign}-${store.state.stationSettings.ssid}`;
+                if(StationSettings.ssid) {
+                    return `${StationSettings.callsign}-${StationSettings.ssid}`;
                 }
 
-                return store.state.stationSettings.callsign;
+                return StationSettings.callsign;
             },
             icon() {
-                if(!store.state.stationSettings.symbol) {
+                if(!StationSettings.symbol) {
                     return require('../assets/radio-tower.png');
                 } else {
-                    return this.getImgUrl(symbolSvc.GetSymbolByKey(store.state.stationSettings.symbol).value);
+                    return this.getImgUrl(symbolSvc.GetSymbolByKey(StationSettings.symbol).value);
                 }
             },
             symbol() {
-                return store.state.stationSettings.symbol;
+                return StationSettings.symbol;
             }
         }
         , data() {

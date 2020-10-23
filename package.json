@@ -16,7 +16,6 @@
     "@mdi/font": "^5.5.55",
     "@types/vuelidate": "^0.7.13",
     "core-js": "^3.6.5",
-    "js-aprs-engine": "git://github.com/KD0NKS/js-aprs-engine.git#2019-11-02_SaveSettings",
     "material-design-icons-iconfont": "^6.1.0",
     "vue": "^2.6.12",
     "vue-class-component": "^7.2.5",
