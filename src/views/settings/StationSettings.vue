@@ -139,6 +139,7 @@
         data: () => ({
             isStationSettingsValid: true
             , stationInfo: {
+                // TODO: Make mutation file for settings and set these one at a time.
                 callsign: store.state.stationSettings?.callsign
                 , passcode: store.state.stationSettings?.passcode
                 , ssid: store.state.stationSettings?.ssid

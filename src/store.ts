@@ -12,6 +12,7 @@ export default new Vuex.Store({
     state: {
         aprsData: []
         , aprsPackets: []
+        , connectionManager: null
         , stationSettings: null
     },
     mutations: {
@@ -25,20 +26,19 @@ export default new Vuex.Store({
             Vue.set(state.stationSettings, 'ssid', settings.ssid);
             Vue.set(state.stationSettings, 'symbol', settings.symbol);
             Vue.set(state.stationSettings, 'symbolOverlay', settings.symbolOverlay);
-        },
-        saveSSID(state, ssid: string) {
-            state.stationSettings.ssid = ssid;
-        },
-        saveSymbol(state, symbol: string) {
-            state.stationSettings.symbol = symbol;
+        }, [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
+            state.connectionManager.addConnection(connection);
+        }, [MutationTypes.INIT_CONNECTION_MANAGER](state) {
+            state.connectionManager = ConnectionManager;
         }
     },
     actions: {
         [ActionTypes.INIT_STATION_SETTINGS]({ commit }) {
             commit(MutationTypes.SET_STATION_SETTINGS, StationSettings);
+            commit(MutationTypes.INIT_CONNECTION_MANAGER);
         },
-        [ActionTypes.ADD_CONNECTION]({ state }, connection: IConnection) {
-            ConnectionManager.addConnection(connection);
+        [ActionTypes.ADD_CONNECTION]({ commit }, connection: IConnection) {
+            commit(MutationTypes.ADD_CONNECTION, connection);
         },
         [ActionTypes.ADD_DATA]({ state }, packet: String) {
             state.aprsData.push(packet);
@@ -48,13 +48,7 @@ export default new Vuex.Store({
         }
     },
     getters: {
-        [GetterTypes.CONNECTION_MANAGER]() {
-            return ConnectionManager;
-        }
-        , [GetterTypes.DATA_CONNECTIONS](state) {
-            return ConnectionManager.getConnections().values();
-        }
-        , [GetterTypes.STATION_SETTINGS](state) {
+        [GetterTypes.STATION_SETTINGS](state) {
             return state.stationSettings;
         }
     }
