@@ -66,10 +66,11 @@
 </template>
 
 <script type="ts">
-import store from "@/store";
-import { ConnectionTypes, ConnectionManager } from "js-aprs-engine";
 import ActionTypes from "@/ActionTypes";
 import ConnectionItem from "@/components/settings/ConnectionItem";
+import { ConnectionManager } from "@/connection-settings/ConnectionManager";
+import ConnectionTypes from '@/enums/ConnectionTypes'
+import store from "@/store";
 
 export default {
     data: () => ({

@@ -6,18 +6,19 @@
             app>
         <v-list>
             <v-list-item :class="mini && 'px-2'">
-                <v-list-item-avatar>
+                <v-list-item-avatar tile>
                     <v-img
-                            :src="icon"
-                            class="my-3"
-                            contain>
+                        :key="symbol.key"
+                        :src="symbol.value"
+                        class="my-3"
+                        contain>
                     </v-img>
                 </v-list-item-avatar>
 
                 <v-list-item-content>
                     <v-list-item-title>{{ callsign }}</v-list-item-title>
                 </v-list-item-content>
-
+                
                 <v-list-item-action>
                     <v-btn text icon @click.stop="mini = !mini">
                         <v-icon>chevron_left</v-icon>
@@ -66,54 +67,52 @@
 </template>
 
 <script lang="ts">
-    import { APRSSymbolService, StationSettings } from 'js-aprs-engine';
-    let symbolSvc = new APRSSymbolService();
+    import APRSSymbol from '@/models/APRSSymbol'
+    import { APRSSymbolService } from '@/symbols/APRSSymbolService'
+    import Component from 'vue-class-component'
+    import store from '@/store'
+    import Vue from 'vue';
 
-    export default {
-        computed: {
-            callsign() {
-                if(StationSettings.ssid) {
-                    return `${StationSettings.callsign}-${StationSettings.ssid}`;
-                }
+    @Component({})
+    export default class Navigation extends Vue {
+        test!: string
 
-                return StationSettings.callsign;
-            },
-            icon() {
-                if(!StationSettings.symbol) {
-                    return require('../assets/radio-tower.png');
-                } else {
-                    return this.getImgUrl(symbolSvc.GetSymbolByKey(StationSettings.symbol).value);
-                }
-            },
-            symbol() {
-                return StationSettings.symbol;
+        private symbolSvc: APRSSymbolService = new APRSSymbolService()
+        private drawer: boolean = true
+        private items = [
+            /*
+            { title: 'Dashboard', icon: 'dashboard', action: "/" }
+            , { title: 'Map', icon: 'map', action: '/map' }
+            , { title: 'Messages', icon: 'message', action: "/messages" }
+            */
+            { title: 'Output', icon: 'mdi-console-line', action: "/output" }
+            , { title: 'Settings', icon: 'settings'
+                , subLinks: [
+                    { title: 'Station', action: '/stationSettings' }
+                    , { title: 'Connections', action: '/connectionSettings' }
+                ] 
             }
-        }
-        , data() {
-            return {
-                drawer: true
-                , items: [
-                    /*
-                    { title: 'Dashboard', icon: 'dashboard', action: "/" }
-                    , { title: 'Map', icon: 'map', action: '/map' }
-                    , { title: 'Messages', icon: 'message', action: "/messages" }
-                    */
-                    { title: 'Output', icon: 'mdi-console-line', action: "/output" }
-                    , { title: 'Settings', icon: 'settings'
-                        , subLinks: [
-                            { title: 'Station', action: '/stationSettings' }
-                            , { title: 'Connections', action: '/connectionSettings' }
-                        ] 
-                    }
-                    , { title: 'About', icon: 'info', action: "/about" }
-                ]
-                , mini: true
+            , { title: 'About', icon: 'info', action: "/about" }
+        ]
+        private mini: boolean = true
+
+        private get callsign() {
+            if(store.state.stationSettings.ssid) {
+                return `${store.state.stationSettings.callsign}-${store.state.stationSettings.ssid}`
             }
+            
+            return store.state.stationSettings.callsign
         }
-        , methods: {
-            getImgUrl(url: string) {
-                // TODO: This will be incorrect once js-aprs-engine is a full blown npm module
-                return require('js-aprs-engine/dist/' + url);
+
+        private get symbol() {
+            if(!store.state.stationSettings.symbol) {
+                return new APRSSymbol({
+                    key: "logo"
+                    , value: require('@/assets/radio-tower.png')
+                    , name: "Radio Tower"
+                    })
+            } else {
+                return this.symbolSvc.GetSymbolByKey(store.state.stationSettings.symbol)
             }
         }
     }

@@ -21,12 +21,6 @@
     "paths": {
       "@/*": [
         "src/*"
-      ],
-      "linked-module-name": [
-        "node_modules/js-aprs-engine/"
-      ],
-      "linked-module-name/*": [
-        "node_modules/js-aprs-engine/*"
       ]
     },
     "lib": [

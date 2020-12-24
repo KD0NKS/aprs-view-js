@@ -1,6 +1,7 @@
 import ActionTypes from './ActionTypes';
 import App from './App.vue';
-import { ConnectionManager, DataEventTypes } from 'js-aprs-engine';
+import DataEventTypes from '@/enums/DataEventTypes';
+import { ConnectionManager } from '@/connection-settings/ConnectionManager'
 import router from './router';
 import store from './store';
 import Vue from 'vue';

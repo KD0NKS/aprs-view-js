@@ -11,7 +11,7 @@
 </template>
 
 <script type="ts">
-import { ConnectionManager } from "js-aprs-engine";
+import { ConnectionManager } from "@/connection-settings/ConnectionManager";
 import ConnectionItem from "@/components/settings/ConnectionItem";
 
 export default {
