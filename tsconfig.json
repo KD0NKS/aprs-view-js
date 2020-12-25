@@ -16,7 +16,8 @@
     "noImplicitAny": false,
     "declaration": true,
     "types": [
-      "webpack-env"
+      "webpack-env",
+      "vuetify"
     ],
     "paths": {
       "@/*": [

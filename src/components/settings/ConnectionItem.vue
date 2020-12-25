@@ -1,11 +1,6 @@
 <template>
     <v-expansion-panel>
-        <v-expansion-panel-header>{{ connection.name }} - {{ isConnected }}</v-expansion-panel-header>
-    </v-expansion-panel>
-
-    <!--
-    <v-expansion-panel>
-        <v-expansion-panel-header>{{ displayTitle }} - {{ isConnected }}</v-expansion-panel-header>
+        <v-expansion-panel-header>{{ connection.name }} - {{ connection.isConnected }}</v-expansion-panel-header>
         <v-expansion-panel-content>
             <v-container>
                 <v-form 
@@ -15,34 +10,32 @@
                         >
                     <v-layout row wrap>
                         <v-flex xs12 md8 class="px-2">
-                            <v-text-field label="Name" v-model="item.name" :rules="[rules.required]"></v-text-field>
+                            <v-text-field label="Name" v-model="conn.name" :rules="[rules.required]"></v-text-field>
                         </v-flex>
+
                         <v-flex xs12 md4 class="px-2">
                             <v-select
                                 :items="connectionTypeOptions"
                                 item-text="name"
                                 item-value="id"
-                                v-model="item.connectionType"
-                                :readonly="true"
+                                v-model="conn.connectionType"
+                                
                             ></v-select>
                         </v-flex>
                     </v-layout>
+
                     <v-layout row wrap>
                         <v-flex xs12 md8 class="px-2">
-                            <v-text-field label="URL" v-model="item.host" :rules="[rules.required]"></v-text-field>
+                            <v-text-field label="URL" v-model="conn.host" :rules="[rules.required]"></v-text-field>
                         </v-flex>
                         <v-flex xs12 md4 clsss="px-2">
-                            <v-text-field label="Port" v-model="item.port" type="number" :rules="[rules.required]"></v-text-field>
+                            <v-text-field label="Port" v-model="conn.port" type="number" :rules="[rules.required]"></v-text-field>
                         </v-flex>
                     </v-layout>
+
                     <v-layout row wrap>
                         <v-flex xs12 md12 class="px-2">
-                            <v-text-field label="Filter" v-model="item.filter"></v-text-field>
-                        </v-flex>
-                    </v-layout>
-                    <v-layout row wrap>
-                        <v-flex xs12 md12 class="px-2">
-                            <v-switch v-model="item.isEnabled" v-on:change="(event) => this.$emit('enableConnection', event)" label="Enabled"></v-switch>
+                            <v-text-field label="Filter" v-model="conn.filter"></v-text-field>
                         </v-flex>
                     </v-layout>
 
@@ -52,70 +45,82 @@
                             <v-btn color="normal" class="mr-4" @click="reset">Reset</v-btn>
                         </v-flex>
                     </v-layout>
+
+                    <v-layout row wrap>
+                        <v-flex xs12 md12 class="px-2">
+                            <!--<v-switch v-model="connection.isEnabled" v-on:change="(event) => this.$emit('enableConnection', event)" label="Enabled"></v-switch>-->
+                            <v-switch v-model="connection.isEnabled" label="Enabled"></v-switch>
+                        </v-flex>
+                    </v-layout>
                 </v-form>
             </v-container>
         </v-expansion-panel-content>
     </v-expansion-panel>
-    -->
 </template>
 
-<script type="ts">
-//import { ConnectionTypes } from "js-aprs-engine";
 
-export default {
-    props: ["item"]
-    , data: () => ({
-        connection: ""
+<script lang="ts">
+    import { Component, Prop, Vue } from 'vue-property-decorator'
+    import { Connection } from '@/models/Connection'
+    import { ConnectionProps } from '@/models/ConnectionProps'
+    import { ConnectionTypes } from '@/enums/ConnectionTypes'
+    //import store from '@/store'
+
+    @Component({
+        props: ['connection']
     })
-    , created() {
-        this.connection = this.item
-    }
-    , computed: {
-        isConnected() {
-            if(this.item.connection !== null && this.item.connection !== undefined) {
-                return this.item.connection.isConnected();
-            }
+    export default class ConnectionItem extends Vue {
+        @Prop()
+        private connection: Connection
 
-            return false;
-        }
-    }
-}
-    /*
-    props: ["item"],
-    data: () => ({
-        isEditing: false
-        , isValid: true
-        , rules: {
-            required: value => !!value || 'Required.'
-        }
-        , connection: this.item
-        , originalName: ""
-    })
-    , created() {
-        this.originalName = this.item.name;
-    }
-    , computed: {
-        isNew() {
-            return false;
-        },
-        displayTitle() {
-            return this.isNew ? "New Connection" : this.originalName;
-        },
-        isConnected() {
-            if(this.item.connection !== null && this.item.connection !== undefined) {
-                return this.item.connection.isConnected();
-            }
+        private conn: ConnectionProps = new ConnectionProps()
 
-            return false;
+        private isValid: boolean = false
+        private rules = { required: value => !!value || "Required." }
+
+        private created() {
+            this.conn.id = this.connection.id
+            
+            this.reset()
         }
-        , connectionTypeOptions() { // populates the conneciton types menu
-            let map = [];
+
+        private get connectionTypeOptions() {
+            let map = []
 
             Object.keys(ConnectionTypes).forEach(k => {
-                map.push({ id: k, name: ConnectionTypes[k].description });
+                map.push({ id: k, name: ConnectionTypes[k] });
             });
 
-            return map;
+            return map
+        }
+
+        private reset(): void {
+            Vue.set(this.conn, 'name', this.connection.name)
+            Vue.set(this.conn, 'connectionType', this.connection.connectionType)
+            Vue.set(this.conn, 'host', this.connection.host)
+            Vue.set(this.conn, 'port', this.connection.port)
+            Vue.set(this.conn, 'filter', this.connection.filter)
+        }
+
+        private save(): void {
+            if(this.isValid === true) {
+                this.connection.name = this.conn.name
+                this.connection.connectionType = this.conn.connectionType
+                this.connection.host = this.conn.host
+                this.connection.port = this.conn.port
+                this.connection.filter = this.conn.filter
+            }
+        }
+    }
+
+/*
+  , computed: {
+        isConnected() {
+            if(this.item.connection !== null && this.item.connection !== undefined) {
+                return this.item.connection.isConnected();
+            }
+
+            return false;
         }
     },
     methods: {

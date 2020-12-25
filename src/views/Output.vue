@@ -1,7 +1,7 @@
 <!-- This window outputs raw packets, not 1 line per parsed packet. -->
 
 <template>
-    <div class="output" justify="space-around">
+    <div class="output" style="padding: 10px">
         <div class="text-xs-center mb-3">
             <h1>Output</h1>
         </div>

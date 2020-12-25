@@ -68,15 +68,13 @@
 
 <script lang="ts">
     import APRSSymbol from '@/models/APRSSymbol'
-    import { APRSSymbolService } from '@/symbols/APRSSymbolService'
+    import { APRSSymbolService } from '@/services/APRSSymbolService'
     import Component from 'vue-class-component'
     import store from '@/store'
     import Vue from 'vue';
 
     @Component({})
     export default class Navigation extends Vue {
-        test!: string
-
         private symbolSvc: APRSSymbolService = new APRSSymbolService()
         private drawer: boolean = true
         private items = [

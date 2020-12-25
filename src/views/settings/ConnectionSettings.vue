@@ -5,14 +5,15 @@
         </div>
 
         <v-expansion-panels v-for="(item, name) in connections" :key="name">
-            <ConnectionItem :item="item" v-on:enableConnection="enableConnection"></ConnectionItem>
+            <ConnectionItem :connection="item" v-on:enableConnection="enableConnection"></ConnectionItem>
         </v-expansion-panels>
     </div>
 </template>
 
 <script type="ts">
-import { ConnectionManager } from "@/connection-settings/ConnectionManager";
 import ConnectionItem from "@/components/settings/ConnectionItem";
+import store from '@/store'
+import { Connection } from '@/models/Connection';
 
 export default {
     data: () => ({})
@@ -21,22 +22,22 @@ export default {
     }
     , computed: {
         connections() {
-            return ConnectionManager.getConnections();
+            return store.state.connectionService.getConnections();
         }
     }
     , methods: {
         addConnection() {
-            ConnectionManager.addConnection({
+            store.state.connectionService.addConnection(new Connection({
                 name: "Default",
-                connectionType: "IS_SOCKET",
+                connectionType: 'IS_SOCKET',
                 host: "rotate.aprs2.net",
-                port: "14580",
+                port: 14580,
                 isEnabled: false,
                 filter: "r/39.00/-91.00/1000"
-            })
+            }))
         }, enableConnection(event) {
-            console.log('test');
-            console.log(event);
+            console.log('test')
+            console.log(event)
         }
     }
 }

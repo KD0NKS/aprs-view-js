@@ -1,14 +1,13 @@
 import { Socket } from "net";
 
-export default interface IConnection {
+export interface IConnection {
     // Required
-    name: string;
-    connectionType: Symbol
-    connection: Socket;
-    isEnabled: boolean;
+    id: string
+    name: string
+    connectionType: string
 
     // IS Socket specific
-    host?: string;
-    port?: number;
-    filter?: string;
+    host?: string
+    port?: number
+    filter?: string
 }

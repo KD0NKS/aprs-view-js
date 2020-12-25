@@ -129,7 +129,7 @@
 </template>
 
 <script lang="ts">
-    import { APRSSymbolService } from '@/symbols/APRSSymbolService'
+    import { APRSSymbolService } from '@/services/APRSSymbolService'
     import MutationTypes from '@/MutationTypes'
     import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
     import store from '@/store'
