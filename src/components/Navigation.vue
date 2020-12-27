@@ -80,10 +80,10 @@
         private items = [
             /*
             { title: 'Dashboard', icon: 'dashboard', action: "/" }
-            , { title: 'Map', icon: 'map', action: '/map' }
             , { title: 'Messages', icon: 'message', action: "/messages" }
             */
-            { title: 'Output', icon: 'mdi-console-line', action: "/output" }
+            { title: 'Map', icon: 'map', action: '/map' }
+            , { title: 'Output', icon: 'mdi-console-line', action: "/output" }
             , { title: 'Settings', icon: 'settings'
                 , subLinks: [
                     { title: 'Station', action: '/stationSettings' }
