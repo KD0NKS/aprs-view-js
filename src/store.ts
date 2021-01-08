@@ -7,14 +7,16 @@ import MutationTypes from './MutationTypes'
 import { StationSettings } from '@/models/StationSettings'
 import Vue from 'vue';
 import Vuex from 'vuex';
+import { aprsPacket, aprsParser } from 'js-aprs-fap';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
         aprsData: []
-        , aprsPackets: []
+        , aprsPackets: new Array<aprsPacket>()
         , connectionService: new ConnectionService()
+        , parser: new aprsParser()
         , stationSettings: new StationSettings()
     },
     mutations: {
@@ -35,10 +37,11 @@ export default new Vuex.Store({
         [ActionTypes.ADD_CONNECTION]({ commit }, connection: IConnection) {
             commit(MutationTypes.ADD_CONNECTION, connection)
         },
-        [ActionTypes.ADD_DATA]({ state }, packet: String) {
+        [ActionTypes.ADD_DATA]({ state }, packet: string) {
             state.aprsData.push(packet)
         },
-        [ActionTypes.ADD_PACKET]({ state }, packet: String) {
+        [ActionTypes.ADD_PACKET]({ state }, packet: aprsPacket) {
+            console.log(state.aprsPackets.length)
             state.aprsPackets.push(packet)
         }
     },
