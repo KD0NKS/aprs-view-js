@@ -30,3 +30,6 @@ Run it.
 ```
 npm run electron:serve
 ```
+
+# TODO
+RxDB - node-websql adapter
