@@ -34,3 +34,29 @@ Run it.
 ```
 npm run electron:serve
 ```
+
+TODO:
+* UI
+    * Fix side menu min width when not full screen
+    * Restore to size, screen and location on start
+* Maps
+    * Make maps a plugin
+    * Trails
+    * Rotated markers
+    * Options
+        * Number of points for a map
+        * Layers
+            * Default
+            * User configured
+            * Pluggable?
+        * Weather station data layers
+        * Radar
+        * NWS watches/warnings
+        * Show trails
+        * Restore location and zoom level when switching screens
+    * Heat maps on zoom out (aprs.fi)
+* Redundant packet filtering
+* Messaging
+* TNC
+    * User defined commands
+    * KISS

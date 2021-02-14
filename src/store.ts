@@ -41,7 +41,6 @@ export default new Vuex.Store({
             state.aprsData.push(packet)
         },
         [ActionTypes.ADD_PACKET]({ state }, packet: aprsPacket) {
-            console.log(state.aprsPackets.length)
             state.aprsPackets.push(packet)
         }
     },

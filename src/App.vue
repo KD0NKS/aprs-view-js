@@ -10,10 +10,12 @@
 <script>
     import Navigation from "./components/Navigation";
     //import Router from "./router";
-    
     import 'vuetify/dist/vuetify.min.css';
     import 'material-design-icons-iconfont/dist/material-design-icons.css'
     import '@mdi/font/css/materialdesignicons.css'
+    
+    // TODO: modularize me
+    import "leaflet/dist/leaflet.css"
 
     export default {
         name: "App",
