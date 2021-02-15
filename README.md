@@ -55,6 +55,8 @@ TODO:
         * Show trails
         * Restore location and zoom level when switching screens
     * Heat maps on zoom out (aprs.fi)
+    * Remove old position reports
+    * Clear all reports
 * Redundant packet filtering
 * Messaging
 * TNC

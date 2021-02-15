@@ -1,8 +1,8 @@
-import * as crypto from "crypto";
-import { IConnection } from "./IConnection";
-import { ISSocket } from "js-aprs-is";
-import { Socket } from "net";
-import store from "@/store";
+import * as crypto from "crypto"
+import { IConnection } from "./IConnection"
+import { ISSocket } from "js-aprs-is"
+import { Socket } from "net"
+import store from "@/store"
 
 /**
  * @property { string } name Name of the connection
