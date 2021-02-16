@@ -5,7 +5,10 @@ interface IAPRSSymbolService {
     symbols: APRSSymbol[];
     overlays: APRSSymbol[];
 
-    GetAPRSSymbol(symbolCode: string, symbolTableId?: string): any;
+    GetAPRSSymbol(symbolCode: string, symbolTableId?: string): APRSSymbol
+    GetOverlays(): APRSSymbol[]
+    GetSymbols(): APRSSymbol[]
+    GetSymbolByKey(key?: string): APRSSymbol
 }
 
 /**
@@ -18,7 +21,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
     // TODO: allow user to define their own default?
     private readonly CROSSHAIR = new APRSSymbol({
         key: ''
-        , value: '@/assets/symbols/Crosshair.gif'
+        , value: require('@/assets/symbols/Crosshair.gif')
         , name: "Crosshair"
     });
 
@@ -113,7 +116,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
             , new APRSSymbol({ key: '/z'    , value: require('@/assets/symbols/PrimaryTable/TBD.gif'                        ) , name: "TBD"                           })
             , new APRSSymbol({ key: '/|'    , value: require('@/assets/symbols/PrimaryTable/TNCStreamSwitch.gif'            ) , name: "TNC Strem Switch"              })
             , new APRSSymbol({ key: '/~'    , value: require('@/assets/symbols/PrimaryTable/TNCStreamSwitch1.gif'           ) , name: "TNC Strem Switch"              })
-            
+
             // BEGIN ALTERNATE TABLE
             , new APRSSymbol({ key: '!'     , value: require('@/assets/symbols/AlternateTable/Emergency.gif'                ) , name: "Emergency"             , isAllowOverlay: true })
             , new APRSSymbol({ key: '#'     , value: require('@/assets/symbols/AlternateTable/Digipeater.gif'               ) , name: "Digipeater"            , isAllowOverlay: true })
@@ -297,7 +300,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
     }
 
     private GetOverlay(symbolTableId: string): APRSSymbol {
-        if(!StringUtil.IsNullOrWhiteSpace(symbolTableId) && symbolTableId !== '/') {
+        if(!StringUtil.IsNullOrWhiteSpace(symbolTableId) && symbolTableId != '/') {
             const retVal = this.overlays.filter(function(c) {
                 return c.key == symbolTableId
             });
@@ -315,17 +318,21 @@ export class APRSSymbolService implements IAPRSSymbolService {
      * @param symbolCode string - optional
      */
     public GetAPRSSymbol(symbolCode: string, symbolTableId?: string): any {
-        let retVal: any
+        const retVal: any = {}
         //var key = ''
 
-        // lets try to make sure we only get 1 result here
-        if(!StringUtil.IsNullOrWhiteSpace(symbolTableId) && symbolTableId === '/') {
-            retVal['symbol'] = this.GetSymbolByKey(symbolTableId + symbolCode)
-        } else {
-            retVal['symbol'] = this.GetSymbolByKey(symbolCode)
+        if(StringUtil.IsNullOrWhiteSpace(symbolCode) && StringUtil.IsNullOrWhiteSpace(symbolTableId)) {
+            retVal['symbol'] = this.CROSSHAIR
+            return retVal
         }
 
-        retVal['overlay'] = this.GetOverlay(symbolTableId)
+        // lets try to make sure we only get 1 result here
+        if(!StringUtil.IsNullOrWhiteSpace(symbolTableId) && symbolTableId == '/') {
+            retVal['symbol'] = this.GetSymbolByKey(`${symbolTableId}${symbolCode}`)
+        } else {
+            retVal['symbol'] = this.GetSymbolByKey(symbolCode)
+            retVal['overlay'] = this.GetOverlay(symbolTableId)
+        }
 
         return retVal
     }

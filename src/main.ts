@@ -14,17 +14,17 @@ Vue.use(Vuetify);
 const vuetifyOptions = {}
 
 new Vue({
-  router,
-  store,
-  vuetify: new Vuetify(vuetifyOptions),
-  render: (h) => h(App),
-  created() {
-    this.$store.state.connectionService.on(DataEventTypes.DATA, (data) => {
-      this.$store.dispatch(ActionTypes.ADD_DATA, data);
-    });
+    router,
+    store,
+    vuetify: new Vuetify(vuetifyOptions),
+    render: (h) => h(App),
+    created() {
+        this.$store.state.connectionService.on(DataEventTypes.DATA, (data) => {
+            this.$store.dispatch(ActionTypes.ADD_DATA, data);
+        });
 
-    this.$store.state.connectionService.on(DataEventTypes.PACKET, (packet) => {
-      this.$store.dispatch(ActionTypes.ADD_PACKET, packet)
-    });
-  }
+        this.$store.state.connectionService.on(DataEventTypes.PACKET, (packet) => {
+            this.$store.dispatch(ActionTypes.ADD_PACKET, packet)
+        });
+    }
 }).$mount('#app');

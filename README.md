@@ -37,14 +37,13 @@ npm run electron:serve
 
 TODO:
 * UI
-    * Fix side menu min width when not full screen
     * Restore to size, screen and location on start
 * Maps
     * Make maps a plugin
     * Trails
     * Rotated markers
     * Options
-        * Number of points for a map
+        * Number of points for a map?
         * Layers
             * Default
             * User configured

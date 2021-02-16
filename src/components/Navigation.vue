@@ -2,6 +2,7 @@
     <v-navigation-drawer
             v-model="drawer"
             :mini-variant.sync="mini"
+            :mini-variant-width="60"
             permanent
             app>
         <v-list>

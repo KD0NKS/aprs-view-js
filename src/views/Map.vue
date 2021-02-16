@@ -9,25 +9,28 @@
                 :attribution="attribution"
                 />
                 <!-- :token -->
-        
-        <l-circle-marker
-            v-for="l in locations"
-            :key="l.callsign"
-            :lat-lng="l[0].latLng"
-            />
+
+        <l-marker
+                v-for="l in locations"
+                :key="l.callsign"
+                :lat-lng="l[0].latLng"
+                :icon="l[0].icon"
+                >
+        </l-marker>
     </l-map>
 </template>
 
 
 
 <script lang="ts">
-    
+
     import { Component, Vue } from 'vue-property-decorator'
-    import { LMap, LTileLayer, LMarker, LCircleMarker } from 'vue2-leaflet'
+    import { LMap, LTileLayer, LMarker, LCircleMarker, LIcon } from 'vue2-leaflet'
     import { mapState } from 'vuex'
     import { aprsPacket } from 'js-aprs-fap'
-    import { latLng } from 'leaflet'
+    import { icon, latLng } from 'leaflet'
     import StringUtil from '@/utils/StringUtil'
+    import { APRSSymbolService } from '@/services/APRSSymbolService'
     import { ConnectionService } from '@/services/ConnectionService'
 
     import 'leaflet/dist/leaflet.css'
@@ -47,21 +50,32 @@
             , LTileLayer
             , LMarker
             , LCircleMarker
-
+            , LIcon
         }
     })
     export default class Map extends Vue {
         private aprsPackets!: Array<aprsPacket>
         private connectionService!: ConnectionService
         public locations = {}
+        private symbolService: APRSSymbolService
 
         // base layer properties - only 1
         private attribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attribution">CARTO</a>'
         private center = [39, -94]
         private url = 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}.png'
-        
+
         // map properties
         private zoom = 12
+
+        // icon properties
+        //private iconSize = [ 16 x 16 ]
+
+        constructor() {
+            super()
+
+            this.symbolService =
+            new APRSSymbolService()
+        }
 
         mounted() {
             this.connectionService.on('packet', (p) => {
@@ -74,24 +88,42 @@
         }
 
         private addPacket(packet: aprsPacket) {
-            if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign) 
+            if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
                     && packet.latitude && packet.latitude != null && packet.latitude != undefined
                     && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
                 if(this.locations[packet.sourceCallsign]) {
                     this.locations[packet.sourceCallsign].unshift(
-                        {
-                            callsign: packet.sourceCallsign
-                            , latLng: [ packet.latitude, packet.longitude ]
-                        }
+                        this.getLocationData(packet)
                     )
                 } else {
+                    // programatically set the property on the locations object to be reactive
                     this.$set(this.locations, packet.sourceCallsign, [
-                        {
-                            callsign: packet.sourceCallsign
-                            , latLng: latLng(packet.latitude, packet.longitude)
-                        }
+                        this.getLocationData(packet)
                     ])
                 }
+            }
+        }
+
+        // used by addPacket as a consolidated location to generate a new set of data required to display a station location
+        private getLocationData(packet: aprsPacket) {
+            try {
+                const symbol = this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
+
+                const test = icon({
+                    iconUrl: `${symbol['symbol'].value}`
+                    , shadowUrl: `${symbol['overlay']?.value}`
+                    , iconSize: [ 16, 16 ]
+                })
+
+                return {
+                        callsign: packet.sourceCallsign
+                        , latLng: latLng(packet.latitude, packet.longitude)
+                        , symbolCode: packet.symbolcode
+                        , symbolTable: packet.symboltable
+                        , icon: test
+                    }
+            } catch(err) {
+                return
             }
         }
     }
