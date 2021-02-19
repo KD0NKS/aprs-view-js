@@ -39,6 +39,7 @@ TODO:
 * UI
     * Restore to size, screen and location on start
 * Maps
+    * Can station markers be simplified to use sprites?  Would there be a performance impact?
     * Make maps a plugin
     * Trails
     * Rotated markers
@@ -56,8 +57,20 @@ TODO:
     * Heat maps on zoom out (aprs.fi)
     * Remove old position reports
     * Clear all reports
+    * BUGS:
+        * Repeater icons may have multiple locations with the same callsign
 * Redundant packet filtering
 * Messaging
 * TNC
     * User defined commands
     * KISS
+* Optimizations
+    * Bacon/Kefir?
+
+# Copyright Info
+## Symbols
+* Most symbols are derived from https://github.com/hessu/aprs-symbols
+* Primary Table
+    * Train engine - https://iconscout.com/icon/locomotive-engine-railway-steam-train-emoj-symbol
+* Overlays
+    * All are original

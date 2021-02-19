@@ -73,8 +73,7 @@
         constructor() {
             super()
 
-            this.symbolService =
-            new APRSSymbolService()
+            this.symbolService = new APRSSymbolService()
         }
 
         mounted() {
@@ -91,16 +90,12 @@
             if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
                     && packet.latitude && packet.latitude != null && packet.latitude != undefined
                     && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
-                if(this.locations[packet.sourceCallsign]) {
-                    this.locations[packet.sourceCallsign].unshift(
-                        this.getLocationData(packet)
-                    )
-                } else {
-                    // programatically set the property on the locations object to be reactive
-                    this.$set(this.locations, packet.sourceCallsign, [
-                        this.getLocationData(packet)
-                    ])
-                }
+
+                // programatically set the property on the locations object to be reactive
+                this.$set(this.locations, packet.sourceCallsign, [
+                    this.getLocationData(packet)
+                ])
+
             }
         }
 
@@ -109,19 +104,31 @@
             try {
                 const symbol = this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
 
-                const test = icon({
-                    iconUrl: `${symbol['symbol'].value}`
-                    , shadowUrl: `${symbol['overlay']?.value}`
-                    , iconSize: [ 16, 16 ]
-                })
+                // due to leaflet icon is a keyword
+                let tempIcon = null
+
+                if(!symbol['overlay']) {
+                    tempIcon = icon({
+                        iconUrl: `${symbol['symbol'].value}`
+                        , iconSize: [ 24, 24 ]
+                    })
+                } else {
+                    // the alt table icon is the shadow so the overlay is on top of it
+                    tempIcon = icon({
+                        iconUrl: `${symbol['overlay']?.value}`
+                        , shadowUrl: `${symbol['symbol'].value}`
+                        , iconSize: [ 24, 24 ]
+                        , shadowSize: [ 24, 24 ]
+                    })
+                }
 
                 return {
-                        callsign: packet.sourceCallsign
-                        , latLng: latLng(packet.latitude, packet.longitude)
-                        , symbolCode: packet.symbolcode
-                        , symbolTable: packet.symboltable
-                        , icon: test
-                    }
+                    callsign: packet.sourceCallsign
+                    , latLng: latLng(packet.latitude, packet.longitude)
+                    , symbolCode: packet.symbolcode
+                    , symbolTable: packet.symboltable
+                    , icon: tempIcon
+                }
             } catch(err) {
                 return
             }
