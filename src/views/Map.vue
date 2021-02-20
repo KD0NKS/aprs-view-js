@@ -56,7 +56,7 @@
     export default class Map extends Vue {
         private aprsPackets!: Array<aprsPacket>
         private connectionService!: ConnectionService
-        public locations = {}
+        public locations = {}   // Is there a better key/value pair mapping?
         private symbolService: APRSSymbolService
 
         // base layer properties - only 1
