@@ -4,7 +4,7 @@
             <h1>Station Settings</h1>
         </div>
 
-        <v-form 
+        <v-form
                 @submit.prevent="saveStationInfo"
                 id="station-settings-form"
                 v-model="isStationSettingsValid"
@@ -26,7 +26,7 @@
                         </v-text-field>
                     </v-flex>
                 </v-layout>
-                
+
                 <v-layout row wrap>
                     <v-flex xs12 class="px-2">
                         <v-text-field v-model="stationInfo.passcode"
@@ -38,7 +38,7 @@
 
                 <v-layout row wrap>
                     <v-flex xs12 class="px-2">
-                        <v-select 
+                        <v-select
                                 :items="aprsSymbols"
                                 v-model="stationInfo.symbol"
                                 label="Station Symbol"
@@ -134,9 +134,9 @@
     import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
     import store from '@/store'
     import StringUtil from '@/utils/StringUtil'
-    
-    let symbolSvc = new APRSSymbolService();
-    
+
+    const symbolSvc = new APRSSymbolService();
+
     export default {
         data: () => ({
             isStationSettingsValid: true
@@ -185,7 +185,7 @@
                 // Dropdowns are being special and set this as a string, not an actual null/undefined value.
                 this.stationInfo.symbol = (key === 'undefined') ? undefined : key
 
-                let symbol = this.stationInfo.symbol ? symbolSvc.GetSymbolByKey(this.stationInfo.symbol) : null
+                const symbol = this.stationInfo.symbol ? symbolSvc.GetSymbolByKey(this.stationInfo.symbol) : null
 
                 if(symbol == null || symbol.isAllowOverlay === false) {
                     this.stationInfo.symbolOverlay = undefined

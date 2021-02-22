@@ -1,19 +1,20 @@
-import ActionTypes from './ActionTypes'
-import { ConnectionService } from '@/services/ConnectionService';
-import GetterTypes from './GetterTypes'
+import ActionTypes from '../ActionTypes'
+import { ConnectionService } from '@/services/ConnectionService'
+import GetterTypes from '../GetterTypes'
 import { IConnection } from '@/models/IConnection'
 import IStationSettings from '@/models/IStationSettings'
-import MutationTypes from './MutationTypes'
+import MutationTypes from '../MutationTypes'
 import { StationSettings } from '@/models/StationSettings'
 import Vue from 'vue';
 import Vuex from 'vuex';
 
-Vue.use(Vuex);
+Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        aprsData: []
-        , aprsPackets: []
+        aprsData: new Array<string>()
+        , aprsPackets: new Array<string>()
+        , database: null
         , connectionService: new ConnectionService()
         , stationSettings: new StationSettings()
     },
@@ -35,10 +36,10 @@ export default new Vuex.Store({
         [ActionTypes.ADD_CONNECTION]({ commit }, connection: IConnection) {
             commit(MutationTypes.ADD_CONNECTION, connection)
         },
-        [ActionTypes.ADD_DATA]({ state }, packet: String) {
+        [ActionTypes.ADD_DATA]({ state }, packet: string) {
             state.aprsData.push(packet)
         },
-        [ActionTypes.ADD_PACKET]({ state }, packet: String) {
+        [ActionTypes.ADD_PACKET]({ state }, packet: string) {
             state.aprsPackets.push(packet)
         }
     },
@@ -47,4 +48,4 @@ export default new Vuex.Store({
             return state.stationSettings
         }
     }
-});
+})
