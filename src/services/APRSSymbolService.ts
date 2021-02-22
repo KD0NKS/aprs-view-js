@@ -8,7 +8,6 @@ interface IAPRSSymbolService {
     GetAPRSSymbol(symbolCode: string, symbolTableId?: string): APRSSymbol
     GetOverlays(): APRSSymbol[]
     GetSymbols(): APRSSymbol[]
-    GetSymbolByKey(key?: string): APRSSymbol
 }
 
 /**
@@ -353,11 +352,12 @@ export class APRSSymbolService implements IAPRSSymbolService {
     }
 
     /**
+     * NOTE: This should not be public as it does not find the overlay
      * @param key String - Table symbol + Symbol Code
      *
      * @returns APRSSymbol - If not found, it will return a crosshair symbol
      */
-    public GetSymbolByKey(key?: string): APRSSymbol {
+    private GetSymbolByKey(key?: string): APRSSymbol {
         let retVal = this.symbols.find(x => x.key == key)
 
         if(retVal == null) {
