@@ -1,26 +1,27 @@
 import leveldown from 'leveldown'
-import path from 'path'
+//import path from 'path'
 import {
     createRxDatabase,
     RxDatabase,
-    RxCollection,
-    RxJsonSchema,
-    RxDocument,
+    //RxCollection,
+    //RxJsonSchema,
+    //RxDocument,
     addRxPlugin,
 } from 'rxdb'
 import StrinUtil from '@/utils/StringUtil'
 
 export default class Database {
     private _appDataPath = ''
+    private _db: RxDatabase
 
     /**
-     * 
-     * @param appPath - Path to the 
+     *
+     * @param appPath - Path to the
      */
     constructor(appPath: string) {
         if(StrinUtil.IsNullOrWhiteSpace(appPath))
-            throw Error('Parameter appPath cannot be null or epmpty.')
-        
+            throw Error('Parameter appPath cannot be null or empty.')
+
         addRxPlugin(require('pouchdb-adapter-leveldb'))
 
         this._appDataPath = appPath;
@@ -29,11 +30,9 @@ export default class Database {
     }
 
     private async CreateDatabase() {
-        const db = await createRxDatabase({
-            name: 'stationSettings'
+        this._db = await createRxDatabase({
+            name: 'aprsview-db'
             , adapter: leveldown
         })
-
-        console.dir(db)
     }
 }
