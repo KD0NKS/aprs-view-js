@@ -15,7 +15,7 @@
   "dependencies": {
     "@mdi/font": "^5.9.55",
     "@types/vuelidate": "^0.7.13",
-    "core-js": "^3.6.5",
+    "core-js": "^3.9.0",
     "js-aprs-fap": "^1.0.1",
     "js-aprs-is": "^1.0.4",
     "leveldown": "^5.6.0",
@@ -35,12 +35,12 @@
     "@types/electron-devtools-installer": "^2.2.0",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-router": "~4.5.0",
-    "@vue/cli-plugin-typescript": "~4.5.0",
-    "@vue/cli-plugin-vuex": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
+    "@vue/cli-plugin-babel": "~4.5.11",
+    "@vue/cli-plugin-eslint": "~4.5.11",
+    "@vue/cli-plugin-router": "~4.5.11",
+    "@vue/cli-plugin-typescript": "~4.5.11",
+    "@vue/cli-plugin-vuex": "~4.5.11",
+    "@vue/cli-service": "~4.5.11",
     "@vue/eslint-config-typescript": "^5.0.2",
     "electron": "^11.3.0",
     "electron-devtools-installer": "^3.1.1",
@@ -51,7 +51,7 @@
     "typescript": "~4.1.5",
     "vue-cli-plugin-electron-builder": "~2.0.0-rc.6",
     "vue-cli-plugin-vuetify": "~2.1.0",
-    "vue-template-compiler": "^2.6.11",
+    "vue-template-compiler": "^2.6.12",
     "vuetify-loader": "^1.7.2"
   }
 }
