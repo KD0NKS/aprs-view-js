@@ -1,22 +1,26 @@
 import ActionTypes from '../ActionTypes'
 import { ConnectionService } from '@/services/ConnectionService'
 import GetterTypes from '../GetterTypes'
+import Store from 'electron-store'
 import { IConnection } from '@/models/IConnection'
 import IStationSettings from '@/models/IStationSettings'
 import MutationTypes from '../MutationTypes'
-import { StationSettings } from '@/models/StationSettings'
 import Vue from 'vue';
 import Vuex from 'vuex';
+import { StationSettingsMapper } from '@/utils/mappers'
+import { StationSettings } from '@/models/StationSettings'
 
 Vue.use(Vuex)
+
+const persistentStorage = new Store()
+console.log(persistentStorage.get('connections'))
 
 export default new Vuex.Store({
     state: {
         aprsData: new Array<string>()
         , aprsPackets: new Array<string>()
-        , database: null
         , connectionService: new ConnectionService()
-        , stationSettings: new StationSettings()
+        , stationSettings: StationSettingsMapper.ObjectToStationSettings(persistentStorage.get('stationSettings')) || new StationSettings()
     },
     mutations: {
         [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
@@ -28,6 +32,8 @@ export default new Vuex.Store({
             Vue.set(state.stationSettings, 'symbolOverlay', settings.symbolOverlay)
 
             this.state.connectionService.ChangeEvent()
+
+            persistentStorage.set('stationSettings', state.stationSettings)
         }, [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
             state.connectionService.addConnection(connection)
         }

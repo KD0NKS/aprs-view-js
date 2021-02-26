@@ -18,7 +18,7 @@
                 <v-list-item-content>
                     <v-list-item-title>{{ callsign }}</v-list-item-title>
                 </v-list-item-content>
-                
+
                 <v-list-item-action>
                     <v-btn text icon @click.stop="mini = !mini">
                         <v-icon>chevron_left</v-icon>
@@ -71,12 +71,13 @@
     import { APRSSymbolService } from '@/services/APRSSymbolService'
     import Component from 'vue-class-component'
     import store from '@/store'
-    import Vue from 'vue';
+    import Vue from 'vue'
+    import StringUtil from '@/utils/StringUtil'
 
     @Component({})
     export default class Navigation extends Vue {
         private symbolSvc: APRSSymbolService = new APRSSymbolService()
-        private drawer: boolean = true
+        private drawer = true
         private items = [
             /*
             { title: 'Dashboard', icon: 'dashboard', action: "/" }
@@ -88,22 +89,22 @@
                 , subLinks: [
                     { title: 'Station', action: '/stationSettings' }
                     , { title: 'Connections', action: '/connectionSettings' }
-                ] 
+                ]
             }
             , { title: 'About', icon: 'info', action: "/about" }
         ]
-        private mini: boolean = true
+        private mini = true
 
-        private get callsign() {
-            if(store.state.stationSettings.ssid) {
-                return `${store.state.stationSettings.callsign}-${store.state.stationSettings.ssid}`
+        private get callsign(): string {
+            if(!StringUtil.IsNullOrWhiteSpace(store.state?.stationSettings?.ssid)) {
+                return `${store?.state?.stationSettings?.callsign}-${store.state.stationSettings.ssid}`
             }
-            
-            return store.state.stationSettings.callsign
+
+            return store?.state?.stationSettings?.callsign ?? ''
         }
 
-        private get symbol() {
-            if(!store.state.stationSettings.symbol) {
+        private get symbol(): APRSSymbol {
+            if(StringUtil.IsNullOrWhiteSpace(store?.state?.stationSettings?.symbol)) {
                 return new APRSSymbol({
                     key: "logo"
                     , value: require('@/assets/radio-tower.png')

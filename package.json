@@ -16,6 +16,7 @@
     "@mdi/font": "^5.9.55",
     "@types/vuelidate": "^0.7.13",
     "core-js": "^3.9.0",
+    "electron-store": "^7.0.2",
     "js-aprs-fap": "^1.0.1",
     "js-aprs-is": "^1.0.4",
     "leveldown": "^5.6.0",

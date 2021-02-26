@@ -6,7 +6,6 @@ import store from './store'
 import Vue from 'vue'
 //import Vuelidate from 'vuelidate'
 import vuetify from './plugins/vuetify'
-import { remote } from 'electron'
 
 const vuetifyOptions = {}
 
@@ -18,10 +17,10 @@ new Vue({
     created() {
         this.$store.state.connectionService.on(DataEventTypes.DATA, (data) => {
             this.$store.dispatch(ActionTypes.ADD_DATA, data);
-        });
+        })
 
         this.$store.state.connectionService.on(DataEventTypes.PACKET, (packet) => {
             this.$store.dispatch(ActionTypes.ADD_PACKET, packet)
-        });
+        })
     }
 }).$mount('#app');

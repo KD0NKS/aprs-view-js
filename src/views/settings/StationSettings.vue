@@ -183,7 +183,7 @@
             }
             , updateSymbol(key: string) {
                 // Dropdowns are being special and set this as a string, not an actual null/undefined value.
-                this.stationInfo.symbol = (key === 'undefined') ? undefined : key
+                this.stationInfo.symbol = StringUtil.IsNullOrWhiteSpace(key) ? undefined : key
 
                 const symbol = this.stationInfo.symbol ? symbolSvc.GetSymbolByKey(this.stationInfo.symbol) : null
 
