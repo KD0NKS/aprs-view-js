@@ -16,7 +16,6 @@
     "noImplicitAny": false,
     "declaration": true,
     "types": [
-      "rxdb",
       "webpack-env",
       "vuetify"
     ],

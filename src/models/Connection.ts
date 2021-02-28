@@ -4,6 +4,7 @@ import { ISSocket } from "js-aprs-is";
 import { Socket } from "net";
 import store from "@/store";
 
+// TODO: Decouple from Vue/Vuex
 /**
  * @property { string } name Name of the connection
  * @property { Socket } connection The actual connection reading APRS data

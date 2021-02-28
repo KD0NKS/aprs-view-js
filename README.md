@@ -16,20 +16,19 @@ Please feel free to create a feature request in the issues.
 
 ## Building
 Clone the project.
+
+Because of Vue, you must use yarn to install dependencies, otherwise you will have depdencency issues.
 Install dependencies.
 ```
-npm install
+yarn install
 ```
 
 Build the project.
 ```
-npm run electron:build
+yarn run electron:build
 ```
 
 Run it.
 ```
-npm run electron:serve
+yarn run electron:serve
 ```
-
-# TODO
-RxDB - node-websql adapter

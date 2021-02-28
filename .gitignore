@@ -22,7 +22,9 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-#Electron-builder output
+# Electron-builder output
 /dist_electron
 
+# Lock files
 package-lock.json
+yarn.lock
