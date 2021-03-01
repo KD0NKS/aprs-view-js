@@ -4,6 +4,7 @@ import { ISSocket } from "js-aprs-is"
 import { Socket } from "net"
 import store from "@/store"
 
+// TODO: Decouple from Vue/Vuex
 /**
  * @property { string } name Name of the connection
  * @property { Socket } connection The actual connection reading APRS data
@@ -20,8 +21,8 @@ export class Connection implements IConnection {
     public filter?: string = null
 
     private _connection: Socket
-    private _isConnected: boolean = false
-    private _isEnabled: boolean = false
+    private _isConnected = false
+    private _isEnabled = false
     private DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout']
     private CONNECT_EVENTS: string[] = ['connect']
 
@@ -61,7 +62,7 @@ export class Connection implements IConnection {
                     c.host = this.host
                     c.port = this.port
                     c.filter = this.filter
-                    
+
                     c.connect()
                 }
             }

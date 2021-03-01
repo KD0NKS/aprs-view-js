@@ -2,11 +2,7 @@
 
 APRS is a registered trademark Bob Bruninga, WB4APR.
 
-## Descritpion
-This is intended to be a fairly lightweight, cross platform, grapical APRS client.
-
-## Status
-As APRS software is very complex and I'm starting the UI 100% from scratch.  I am currently working to design a decent interface given certain limitations of the framework being used.
+This is intended to be a fairly lightweight, cross platform, grapical APRS client.  Currently, this is a read-only client.  The only ability it has to send data is a login packet to the server.  There are certain packets that cannot be handled by the client, which is a limitation of the js-aprs-fap library.
 
 ## Features
 * Ability to connect to either an aprsc or Jav-APRS-IS server.
@@ -20,19 +16,21 @@ Please feel free to create a feature request in the issues.
 
 ## Building
 Clone the project.
+
+Because of Vue, you must use yarn to install dependencies, otherwise you will have depdencency issues.
 Install dependencies.
 ```
-npm install
+yarn install
 ```
 
 Build the project.
 ```
-npm run electron:build
+yarn run electron:build
 ```
 
 Run it.
 ```
-npm run electron:serve
+yarn run electron:serve
 ```
 
 TODO:

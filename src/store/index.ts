@@ -1,23 +1,27 @@
-import ActionTypes from './ActionTypes'
-import { ConnectionService } from '@/services/ConnectionService';
-import GetterTypes from './GetterTypes'
+import ActionTypes from '../ActionTypes'
+import { ConnectionService } from '@/services/ConnectionService'
+import GetterTypes from '../GetterTypes'
+import Store from 'electron-store'
 import { IConnection } from '@/models/IConnection'
 import IStationSettings from '@/models/IStationSettings'
-import MutationTypes from './MutationTypes'
-import { StationSettings } from '@/models/StationSettings'
+import MutationTypes from '../MutationTypes'
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { aprsPacket, aprsParser } from 'js-aprs-fap';
+import { StationSettingsMapper } from '@/utils/mappers'
+import { StationSettings } from '@/models/StationSettings'
+import { aprsPacket, aprsParser } from 'js-aprs-fap'
 
-Vue.use(Vuex);
+Vue.use(Vuex)
+
+const persistentStorage = new Store()
+console.log(persistentStorage.get('connections'))
 
 export default new Vuex.Store({
     state: {
         aprsData: []
         , aprsPackets: new Array<aprsPacket>()
         , connectionService: new ConnectionService()
-        , parser: new aprsParser()
-        , stationSettings: new StationSettings()
+        , stationSettings: StationSettingsMapper.ObjectToStationSettings(persistentStorage.get('stationSettings')) || new StationSettings()
     },
     mutations: {
         [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
@@ -29,6 +33,8 @@ export default new Vuex.Store({
             Vue.set(state.stationSettings, 'symbolOverlay', settings.symbolOverlay)
 
             this.state.connectionService.ChangeEvent()
+
+            persistentStorage.set('stationSettings', state.stationSettings)
         }, [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
             state.connectionService.addConnection(connection)
         }
@@ -49,4 +55,5 @@ export default new Vuex.Store({
             return state.stationSettings
         }
     }
-});
+})
+

@@ -14,6 +14,7 @@
 import ConnectionItem from "@/components/settings/ConnectionItem";
 import store from '@/store'
 import { Connection } from '@/models/Connection';
+import ActionTypes from '@/ActionTypes';
 
 export default {
     data: () => ({})
@@ -27,7 +28,7 @@ export default {
     }
     , methods: {
         addConnection() {
-            store.state.connectionService.addConnection(new Connection({
+            store.dispatch(ActionTypes.ADD_CONNECTION, new Connection({
                 name: "Default",
                 connectionType: 'IS_SOCKET',
                 host: "rotate.aprs2.net",

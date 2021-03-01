@@ -6,7 +6,9 @@ interface IAPRSSymbolService {
     overlays: APRSSymbol[];
 
     GetAPRSSymbol(symbolCode: string, symbolTableId?: string): APRSSymbol
+    GetOverlay(symbolTableId: string): APRSSymbol
     GetOverlays(): APRSSymbol[]
+    GetSymbolByKey(key?: string): APRSSymbol
     GetSymbols(): APRSSymbol[]
 }
 
@@ -305,7 +307,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
         ]
     }
 
-    private GetOverlay(symbolTableId: string): APRSSymbol {
+    public GetOverlay(symbolTableId: string): APRSSymbol {
         if(!StringUtil.IsNullOrWhiteSpace(symbolTableId) && symbolTableId != '/') {
             const retVal = this.overlays.filter(function(c) {
                 return c.key == symbolTableId
@@ -357,7 +359,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
      *
      * @returns APRSSymbol - If not found, it will return a crosshair symbol
      */
-    private GetSymbolByKey(key?: string): APRSSymbol {
+    public GetSymbolByKey(key?: string): APRSSymbol {
         let retVal = this.symbols.find(x => x.key == key)
 
         if(retVal == null) {

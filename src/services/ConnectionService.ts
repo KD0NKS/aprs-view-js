@@ -11,16 +11,21 @@ import store from '@/store'
 /**
  * Singleton
  * Listens to StationSettings
+ * TODO: Refactor to decouple this from Vue/Vuex
  */
 export class ConnectionService extends EventEmitter { //implements IObserver {
-    private _appId = 'js-aprs-view 1.0.0';
+    private _appId = 'js-aprs-view 1.0.0';  // TODO: Read this from the config
     private _connections: Connection[] = new Array<Connection>()
     //private _settings = StationSettings;
     private _parser = new aprsParser()
 
     // TODO: Need an app version here too
-    public constructor() {
+    public constructor(connections?: Array<IConnection>) {
         super()
+
+        if(connections) {
+            connections.forEach(x => this.addConnection(x))
+        }
 
         //this._settings.RegisterObserver(this);
     }

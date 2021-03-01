@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "tsc": "./node_modules/.bin/tsc",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
@@ -15,60 +16,44 @@
   "dependencies": {
     "@mdi/font": "^5.9.55",
     "@types/vuelidate": "^0.7.13",
-    "core-js": "^3.8.1",
+    "core-js": "^3.9.0",
+    "electron-store": "^7.0.2",
     "js-aprs-fap": "^1.0.1",
     "js-aprs-is": "^1.0.4",
     "leaflet": "^1.7.1",
     "material-design-icons-iconfont": "^6.1.0",
+    "roboto-fontface": "*",
     "vue": "^2.6.12",
     "vue-class-component": "^7.2.6",
     "vue-property-decorator": "^9.1.2",
     "vue-router": "^3.5.1",
     "vue2-leaflet": "^2.6.0",
     "vuelidate": "^0.7.6",
-    "vuetify": "^2.4.4",
+    "vuetify": "^2.4.5",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.11.0",
-    "@typescript-eslint/parser": "^4.11.0",
-    "@vue/cli-plugin-babel": "^4.5.6",
-    "@vue/cli-plugin-eslint": "^4.5.6",
-    "@vue/cli-plugin-typescript": "^4.5.6",
-    "@vue/cli-service": "^4.5.6",
-    "@vue/devtools": "^5.3.3",
+    "@types/electron-devtools-installer": "^2.2.0",
+    "@typescript-eslint/eslint-plugin": "^4.15.2",
+    "@typescript-eslint/parser": "^4.15.2",
+    "@vue/cli-plugin-babel": "~4.5.11",
+    "@vue/cli-plugin-eslint": "~4.5.11",
+    "@vue/cli-plugin-router": "~4.5.11",
+    "@vue/cli-plugin-typescript": "~4.5.11",
+    "@vue/cli-plugin-vuex": "~4.5.11",
+    "@vue/cli-service": "~4.5.11",
     "@vue/eslint-config-typescript": "^7.0.0",
-    "babel-eslint": "^10.1.0",
-    "electron": "^11.2.3",
-    "electron-builder": "^22.9.1",
-    "eslint": "^7.9.0",
-    "eslint-plugin-vue": "^7.1.0",
-    "typescript": "~4.1.5",
-    "vue-cli-plugin-electron-builder": "^1.4.6",
-    "vue-template-compiler": "^2.6.12"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended",
-      "@vue/typescript"
-    ],
-    "rules": {},
-    "parserOptions": {
-      "parser": "@typescript-eslint/parser"
-    }
-  },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {}
-    }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions"
-  ]
+    "electron": "^11.3.0",
+    "electron-devtools-installer": "^3.1.1",
+    "eslint": "^7.20.0",
+    "eslint-plugin-vue": "^7.6.0",
+    "sass": "^1.32.8",
+    "sass-loader": "^10.1.1",
+    "typescript": "^4.2.0",
+    "vue-cli-plugin-electron-builder": "~2.0.0-rc.6",
+    "vue-cli-plugin-vuetify": "~2.1.0",
+    "vue-template-compiler": "^2.6.12",
+    "vuetify-loader": "^1.7.2"
+  }
 }
+
