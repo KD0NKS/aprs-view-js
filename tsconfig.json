@@ -7,7 +7,7 @@
     "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "allowJs": false,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "dist",
@@ -16,17 +16,12 @@
     "noImplicitAny": false,
     "declaration": true,
     "types": [
-      "webpack-env"
+      "webpack-env",
+      "vuetify"
     ],
     "paths": {
       "@/*": [
         "src/*"
-      ],
-      "linked-module-name": [
-        "node_modules/js-aprs-engine/"
-      ],
-      "linked-module-name/*": [
-        "node_modules/js-aprs-engine/*"
       ]
     },
     "lib": [

@@ -6,11 +6,12 @@
             app>
         <v-list>
             <v-list-item :class="mini && 'px-2'">
-                <v-list-item-avatar>
+                <v-list-item-avatar tile>
                     <v-img
-                            :src="icon"
-                            class="my-3"
-                            contain>
+                        :key="symbol.key"
+                        :src="symbol.value"
+                        class="my-3"
+                        contain>
                     </v-img>
                 </v-list-item-avatar>
 
@@ -66,55 +67,51 @@
 </template>
 
 <script lang="ts">
-    import { APRSSymbolService } from 'js-aprs-engine';
-    import store from '@/store';
-    let symbolSvc = new APRSSymbolService();
+    import APRSSymbol from '@/models/APRSSymbol'
+    import { APRSSymbolService } from '@/services/APRSSymbolService'
+    import Component from 'vue-class-component'
+    import store from '@/store'
+    import Vue from 'vue'
+    import StringUtil from '@/utils/StringUtil'
 
-    export default {
-        computed: {
-            callsign() {
-                if(store.state.stationSettings.ssid) {
-                    return `${store.state.stationSettings.callsign}-${store.state.stationSettings.ssid}`;
-                }
-
-                return store.state.stationSettings.callsign;
-            },
-            icon() {
-                if(!store.state.stationSettings.symbol) {
-                    return require('../assets/radio-tower.png');
-                } else {
-                    return this.getImgUrl(symbolSvc.GetSymbolByKey(store.state.stationSettings.symbol).value);
-                }
-            },
-            symbol() {
-                return store.state.stationSettings.symbol;
-            }
-        }
-        , data() {
-            return {
-                drawer: true
-                , items: [
-                    /*
-                    { title: 'Dashboard', icon: 'dashboard', action: "/" }
-                    , { title: 'Map', icon: 'map', action: '/map' }
-                    , { title: 'Messages', icon: 'message', action: "/messages" }
-                    */
-                    { title: 'Output', icon: 'mdi-console-line', action: "/output" }
-                    , { title: 'Settings', icon: 'settings'
-                        , subLinks: [
-                            { title: 'Station', action: '/stationSettings' }
-                            , { title: 'Connections', action: '/connectionSettings' }
-                        ] 
-                    }
-                    , { title: 'About', icon: 'info', action: "/about" }
+    @Component({})
+    export default class Navigation extends Vue {
+        private symbolSvc: APRSSymbolService = new APRSSymbolService()
+        private drawer = true
+        private items = [
+            /*
+            { title: 'Dashboard', icon: 'dashboard', action: "/" }
+            , { title: 'Map', icon: 'map', action: '/map' }
+            , { title: 'Messages', icon: 'message', action: "/messages" }
+            */
+            { title: 'Output', icon: 'mdi-console-line', action: "/output" }
+            , { title: 'Settings', icon: 'settings'
+                , subLinks: [
+                    { title: 'Station', action: '/stationSettings' }
+                    , { title: 'Connections', action: '/connectionSettings' }
                 ]
-                , mini: true
             }
+            , { title: 'About', icon: 'info', action: "/about" }
+        ]
+        private mini = true
+
+        private get callsign(): string {
+            if(!StringUtil.IsNullOrWhiteSpace(store.state?.stationSettings?.ssid)) {
+                return `${store?.state?.stationSettings?.callsign}-${store.state.stationSettings.ssid}`
+            }
+
+            return store?.state?.stationSettings?.callsign ?? ''
         }
-        , methods: {
-            getImgUrl(url: string) {
-                // TODO: This will be incorrect once js-aprs-engine is a full blown npm module
-                return require('js-aprs-engine/dist/' + url);
+
+        private get symbol(): APRSSymbol {
+            if(StringUtil.IsNullOrWhiteSpace(store?.state?.stationSettings?.symbol)) {
+                return new APRSSymbol({
+                    key: "logo"
+                    , value: require('@/assets/radio-tower.png')
+                    , name: "Radio Tower"
+                    })
+            } else {
+                return this.symbolSvc.GetSymbolByKey(store.state.stationSettings.symbol)
             }
         }
     }

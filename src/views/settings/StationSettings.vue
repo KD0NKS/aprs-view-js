@@ -4,7 +4,7 @@
             <h1>Station Settings</h1>
         </div>
 
-        <v-form 
+        <v-form
                 @submit.prevent="saveStationInfo"
                 id="station-settings-form"
                 v-model="isStationSettingsValid"
@@ -26,7 +26,7 @@
                         </v-text-field>
                     </v-flex>
                 </v-layout>
-                
+
                 <v-layout row wrap>
                     <v-flex xs12 class="px-2">
                         <v-text-field v-model="stationInfo.passcode"
@@ -38,7 +38,7 @@
 
                 <v-layout row wrap>
                     <v-flex xs12 class="px-2">
-                        <v-select 
+                        <v-select
                                 :items="aprsSymbols"
                                 v-model="stationInfo.symbol"
                                 label="Station Symbol"
@@ -57,15 +57,15 @@
                                         :outlined=true
                                         @input="data.parent.selectItem(data.item)"
                                         >
-                                    <v-avatar>
-                                        <img :src="getImgUrl(data.item.value)">
+                                    <v-avatar tile>
+                                        <img :src="data.item.value">
                                     </v-avatar>
                                     {{ data.item.name }}
                                 </v-chip>
                             </template>
                             <template slot="item" slot-scope="data">
                                 <v-list-item-avatar :tile=true>
-                                    <img :src="getImgUrl(data.item.value)">
+                                    <img :src="data.item.value">
                                 </v-list-item-avatar>
                                 <v-list-item-content>
                                     <v-list-item-title v-html="data.item.name"></v-list-item-title>
@@ -74,7 +74,7 @@
                         </v-select>
                     </v-flex>
                 </v-layout>
-                
+
                 <v-layout row wrap>
                     <v-flex xs12 class="px-2">
                         <v-select
@@ -98,7 +98,7 @@
                                         @input="data.parent.selectItem(data.item)"
                                         >
                                     <v-avatar>
-                                        <img :src="getImgUrl(data.item.value)">
+                                        <img :src="data.item.value">
                                     </v-avatar>
                                     {{ data.item.name }}
                                 </v-chip>
@@ -106,7 +106,7 @@
                             <template slot="item" slot-scope="data">
                                 <template>
                                     <v-list-item-avatar :tile=true>
-                                        <img :src="getImgUrl(data.item.value)">
+                                        <img :src="data.item.value">
                                     </v-list-item-avatar>
                                     <v-list-item-content>
                                         <v-list-item-title v-html="data.item.name"></v-list-item-title>
@@ -129,30 +129,31 @@
 </template>
 
 <script lang="ts">
-    import { APRSSymbolService, StringUtil } from 'js-aprs-engine';
-    import MutationTypes from '@/MutationTypes';
-    import store from '@/store';
-    
-    let symbolSvc = new APRSSymbolService();
-    
+    import { APRSSymbolService } from '@/services/APRSSymbolService'
+    import MutationTypes from '@/MutationTypes'
+    import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
+    import store from '@/store'
+    import StringUtil from '@/utils/StringUtil'
+
+    const symbolSvc = new APRSSymbolService();
+
     export default {
         data: () => ({
             isStationSettingsValid: true
-            , stationInfo: {
-                // TODO: Make mutation file for settings and set these one at a time.
-                callsign: store.state.stationSettings?.callsign
-                , passcode: store.state.stationSettings?.passcode
-                , ssid: store.state.stationSettings?.ssid
-                , symbol: store.state.stationSettings?.symbol
-                , symbolOverlay: store.state.stationSettings?.symbol
-            }, rules: {
+            , stationInfo: new StationSettingsModel()
+            , rules: {
                 required: value => !!value || 'Required.',
             }
         })
         , created() {
             // load settings here
             //https://jsfiddle.net/awolf2904/3rabkzsn/1/
-            //store.dispatch('getStationSettings');
+            this.stationInfo.callsign = store.state.stationSettings.callsign
+            this.stationInfo.callsign = store.state.stationSettings.callsign
+            this.stationInfo.passcode = store.state.stationSettings.passcode
+            this.stationInfo.ssid = store.state.stationSettings.ssid
+            this.stationInfo.symbol = store.state.stationSettings.symbol
+            this.stationInfo.symbolOverlay = store.state.stationSettings.symbolOverlay
         }
         , computed: {
             aprsSymbols() {
@@ -168,33 +169,30 @@
             }
         }
         , methods: {
-            getImgUrl(url: string) {
-                // TODO: This will be incorrect once js-aprs-engine is a full blown npm module
-                return require('js-aprs-engine/dist/' + url);
-            }, saveStationInfo() {
+            saveStationInfo() {
                 if(this.isStationSettingsValid) {
-                    store.commit(MutationTypes.SET_STATION_SETTINGS, this.stationInfo);
+                    store.commit(MutationTypes.SET_STATION_SETTINGS, this.stationInfo)
                 }
             }
             , resetStationInfo() {
-                this.stationInfo.callsign = store.state.stationSettings.callsign;
-                this.stationInfo.passcode = store.state.stationSettings.passcode;
+                this.stationInfo.callsign = store.state.stationSettings.callsign
+                this.stationInfo.passcode = store.state.stationSettings.passcode
                 this.stationInfo.ssid = store.state.stationSettings.ssid;
                 this.stationInfo.symbol = store.state.stationSettings.symbol;
-                this.stationInfo.symbolOverlay = store.state.stationSettings.symbolOverlay;
+                this.stationInfo.symbolOverlay = store.state.stationSettings.symbolOverlay
             }
             , updateSymbol(key: string) {
                 // Dropdowns are being special and set this as a string, not an actual null/undefined value.
-                this.stationInfo.symbol = (key === 'undefined') ? undefined : key
+                this.stationInfo.symbol = StringUtil.IsNullOrWhiteSpace(key) ? undefined : key
 
-                let symbol = this.stationInfo.symbol ? symbolSvc.GetSymbolByKey(this.stationInfo.symbol) : null;
+                const symbol = this.stationInfo.symbol ? symbolSvc.GetSymbolByKey(this.stationInfo.symbol) : null
 
                 if(symbol == null || symbol.isAllowOverlay === false) {
-                    this.stationInfo.symbolOverlay = undefined;
+                    this.stationInfo.symbolOverlay = undefined
                 }
             }
             , updateOverlay(key: string) {
-                this.stationInfo.symbolOverlay = key;
+                this.stationInfo.symbolOverlay = key
             }
         }
     }

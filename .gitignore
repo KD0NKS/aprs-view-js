@@ -1,6 +1,5 @@
 .DS_Store
 node_modules
-/dist
 /coverage
 .nyc_output/
 
@@ -12,6 +11,7 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Editor directories and files
 .idea
@@ -22,7 +22,9 @@ yarn-error.log*
 *.sln
 *.sw?
 
-#Electron-builder output
+# Electron-builder output
 /dist_electron
 
+# Lock files
 package-lock.json
+yarn.lock
