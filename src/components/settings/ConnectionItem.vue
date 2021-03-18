@@ -1,9 +1,9 @@
 <template>
     <v-expansion-panel>
-        <v-expansion-panel-header>{{ connection.name }} - {{ connection.isConnected }}</v-expansion-panel-header>
+        <v-expansion-panel-header>{{ connection.name }}</v-expansion-panel-header>
         <v-expansion-panel-content>
             <v-container>
-                <v-form 
+                <v-form
                         id="connection-settings-form"
                         @submit.prevent="save"
                         v-model="isValid"
@@ -19,7 +19,7 @@
                                 item-text="name"
                                 item-value="id"
                                 v-model="conn.connectionType"
-                                
+
                             ></v-select>
                         </v-flex>
                     </v-layout>
@@ -80,7 +80,7 @@
 
         private created() {
             this.conn.id = this.connection.id
-            
+
             this.reset()
         }
 
@@ -104,11 +104,7 @@
 
         private save(): void {
             if(this.isValid === true) {
-                this.connection.name = this.conn.name
-                this.connection.connectionType = this.conn.connectionType
-                this.connection.host = this.conn.host
-                this.connection.port = this.conn.port
-                this.connection.filter = this.conn.filter
+                this.$emit('saveConnection', this.conn)
             }
         }
     }

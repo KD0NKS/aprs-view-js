@@ -9,6 +9,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { StationSettingsMapper } from '@/utils/mappers'
 import { StationSettings } from '@/models/StationSettings'
+import { ConnectionProps } from '@/models/ConnectionProps'
 
 Vue.use(Vuex)
 
@@ -23,7 +24,18 @@ export default new Vuex.Store({
         , stationSettings: StationSettingsMapper.ObjectToStationSettings(persistentStorage.get('stationSettings')) || new StationSettings()
     },
     mutations: {
-        [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
+        [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionProps) {
+            const connection = state.connectionService.getConnection(connectionProps.id)
+
+            if(connection) {
+                connection.name = connectionProps.name
+                connection.connectionType = connectionProps.connectionType
+                connection.host = connectionProps.host
+                connection.port = connectionProps.port
+                connection.filter = connectionProps.filter
+            }
+        }
+        , [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
             // state.stationSettings.propname = settings.propname doesn't work here
             Vue.set(state.stationSettings, 'callsign', settings.callsign)
             Vue.set(state.stationSettings, 'passcode', settings.passcode)
