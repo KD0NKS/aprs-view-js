@@ -22,7 +22,11 @@ export default new Vuex.Store({
         , stationSettings: new StationSettings()
     },
     mutations: {
-        [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
+        [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
+            state.connectionService.deleteConnection(connectionId)
+            persistentStorage.delete(`connections.${connectionId}`)
+        }
+        , [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
             const connection = state.connectionService.getConnection(connectionProps.id)
 
             if(connection) {
@@ -48,12 +52,12 @@ export default new Vuex.Store({
             persistentStorage.set('stationSettings', state.stationSettings)
         }, [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
             state.connectionService.addConnection(connection)
+            persistentStorage.set(`connections.${connection.id}`, connection)
         }
     },
     actions: {
         [ActionTypes.ADD_CONNECTION]({ commit }, connection: IConnection) {
             commit(MutationTypes.ADD_CONNECTION, connection)
-            persistentStorage.set(`connections.${connection.id}`, connection)
         },
         [ActionTypes.ADD_DATA]({ state }, packet: string) {
             state.aprsData.push(packet)

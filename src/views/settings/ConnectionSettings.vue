@@ -6,6 +6,7 @@
 
         <v-expansion-panels v-for="(item, name) in connections" :key="name">
             <ConnectionItem :connection="item"
+                    v-on:deleteConnection="deleteConnection"
                     v-on:enableConnection="enableConnection"
                     v-on:saveConnection="saveConnection"
                     >
@@ -19,7 +20,6 @@
     import ConnectionItem from "@/components/settings/ConnectionItem.vue"
     import store from '@/store'
     import { Connection } from '@/models/Connection'
-    import { IConnection } from '@/models/IConnection'
     import ActionTypes from '@/ActionTypes'
     import MutationTypes from '@/MutationTypes'
     import { ConnectionViewModel } from '@/models/ConnectionViewModel'
@@ -41,6 +41,10 @@
                 , isEnabled: false
                 , filter: "r/39.00/-91.00/1000"
             }))
+        }
+
+        deleteConnection(connectionId) {
+            store.commit(MutationTypes.DELETE_CONNECTION, connectionId)
         }
 
         enableConnection(event) {
