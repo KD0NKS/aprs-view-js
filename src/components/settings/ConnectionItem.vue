@@ -62,7 +62,7 @@
 <script lang="ts">
     import { Component, Prop, Vue } from 'vue-property-decorator'
     import { Connection } from '@/models/Connection'
-    import { ConnectionProps } from '@/models/ConnectionProps'
+    import { ConnectionViewModel } from '@/models/ConnectionViewModel'
     import { ConnectionTypes } from '@/enums/ConnectionTypes'
     //import store from '@/store'
 
@@ -73,7 +73,7 @@
         @Prop()
         private connection: Connection
 
-        private conn: ConnectionProps = new ConnectionProps()
+        private conn: ConnectionViewModel = new ConnectionViewModel()
 
         private isValid: boolean = false
         private rules = { required: value => !!value || "Required." }
