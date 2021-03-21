@@ -18,7 +18,7 @@
 
 <script lang="ts">
     import { mapState } from 'vuex';
-    
+
     export default {
         computed: mapState(['aprsData'])
     }
