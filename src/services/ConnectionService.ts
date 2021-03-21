@@ -24,7 +24,7 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
 
     public set appId(value: string) {
         this._appId = value
-        //this.ChangeEvent()
+        this.ChangeEvent()
     }
 
     public get appId(): string {
