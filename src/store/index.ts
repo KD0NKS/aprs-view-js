@@ -7,24 +7,26 @@ import IStationSettings from '@/models/IStationSettings'
 import MutationTypes from '../MutationTypes'
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { StationSettingsMapper } from '@/utils/mappers'
 import { StationSettings } from '@/models/StationSettings'
-import { ConnectionProps } from '@/models/ConnectionProps'
+import { ConnectionViewModel } from '@/models/ConnectionViewModel'
 
 Vue.use(Vuex)
 
-const persistentStorage = new Store()
-console.log(persistentStorage.get('connections'))
+const persistentStorage = new Store();
 
 export default new Vuex.Store({
     state: {
         aprsData: new Array<string>()
         , aprsPackets: new Array<string>()
         , connectionService: new ConnectionService()
-        , stationSettings: StationSettingsMapper.ObjectToStationSettings(persistentStorage.get('stationSettings')) || new StationSettings()
+        , stationSettings: new StationSettings()
     },
     mutations: {
-        [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionProps) {
+        [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
+            state.connectionService.deleteConnection(connectionId)
+            persistentStorage.delete(`connections.${connectionId}`)
+        }
+        , [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
             const connection = state.connectionService.getConnection(connectionProps.id)
 
             if(connection) {
@@ -33,6 +35,8 @@ export default new Vuex.Store({
                 connection.host = connectionProps.host
                 connection.port = connectionProps.port
                 connection.filter = connectionProps.filter
+
+                persistentStorage.set(`connections.${connectionProps.id}`, connectionProps)
             }
         }
         , [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
@@ -48,6 +52,7 @@ export default new Vuex.Store({
             persistentStorage.set('stationSettings', state.stationSettings)
         }, [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
             state.connectionService.addConnection(connection)
+            persistentStorage.set(`connections.${connection.id}`, connection)
         }
     },
     actions: {

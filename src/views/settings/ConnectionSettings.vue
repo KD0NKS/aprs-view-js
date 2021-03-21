@@ -6,6 +6,7 @@
 
         <v-expansion-panels v-for="(item, name) in connections" :key="name">
             <ConnectionItem :connection="item"
+                    v-on:deleteConnection="deleteConnection"
                     v-on:enableConnection="enableConnection"
                     v-on:saveConnection="saveConnection"
                     >
@@ -19,10 +20,9 @@
     import ConnectionItem from "@/components/settings/ConnectionItem.vue"
     import store from '@/store'
     import { Connection } from '@/models/Connection'
-    import { IConnection } from '@/models/IConnection'
     import ActionTypes from '@/ActionTypes'
     import MutationTypes from '@/MutationTypes'
-    import { ConnectionProps } from '@/models/ConnectionProps'
+    import { ConnectionViewModel } from '@/models/ConnectionViewModel'
 
     @Component({
         components: { ConnectionItem }
@@ -43,12 +43,16 @@
             }))
         }
 
+        deleteConnection(connectionId) {
+            store.commit(MutationTypes.DELETE_CONNECTION, connectionId)
+        }
+
         enableConnection(event) {
             console.log('test')
             console.log(event)
         }
 
-        saveConnection(connection: ConnectionProps) {
+        saveConnection(connection: ConnectionViewModel) {
             this.$store.commit(MutationTypes.SAVE_CONNECTION, connection)
         }
     }

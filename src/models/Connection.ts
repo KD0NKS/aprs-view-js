@@ -29,16 +29,19 @@ export class Connection implements IConnection {
     constructor(connection?: Partial<Connection>) {
         this.id = crypto.randomBytes(16).toString('hex')
 
-        Object.assign(this, connection)
+        if(connection)
+            Object.assign(this, connection)
 
+        // TODO: Fix the references to state here.  This should be decoupled from Vue
         if(!connection.connection && connection.connectionType == 'IS_SOCKET') {
-            this.connection = new ISSocket(
+            this._connection = new ISSocket(
                 this.host
                 , this.port
                 , store.state.stationSettings.callsign
                 , store.state.stationSettings.passcode
                 , this.filter
-                , store.state.connectionService.appId)
+                , store.state.connectionService.appId
+            )
         }
     }
 

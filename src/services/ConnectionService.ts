@@ -9,8 +9,6 @@ import store from '@/store'
 //import { StationSettings } from '@/settings/StationSettings';
 
 /**
- * Singleton
- * Listens to StationSettings
  * TODO: Refactor to decouple this from Vue/Vuex
  */
 export class ConnectionService extends EventEmitter { //implements IObserver {
@@ -19,15 +17,9 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
     //private _settings = StationSettings;
     private _parser = new aprsParser()
 
-    // TODO: Need an app version here too
-    public constructor(connections?: Array<IConnection>) {
+    // TODO: Need to get an app version here too
+    public constructor() {
         super()
-
-        if(connections) {
-            connections.forEach(x => this.addConnection(x))
-        }
-
-        //this._settings.RegisterObserver(this);
     }
 
     public set appId(value: string) {
@@ -42,6 +34,8 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
     public addConnection(setting: IConnection) {
         if(setting !== null) {
             const conn: Connection = setting as Connection
+
+            this._connections.push(conn)
 
             if(conn.connectionType == 'IS_SOCKET') {
                 // todo validation before creation
@@ -75,9 +69,12 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
                     (conn.connection as ISSocket).connect()
                 }
             }
-
-            this._connections.push(conn)
         }
+    }
+
+    public deleteConnection(id: string): void {
+        const index = this._connections.map(_ => { return _.id }).indexOf(id)
+        this._connections.splice(index, 1)
     }
 
     public getConnection(id: string): Connection {
@@ -88,17 +85,22 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
         return this._connections
     }
 
+    // TODO: Should this be a listener.  Making this listen to station settings creates a loop dependency,
+    // which begs the question, should they all be part of the same class?  Currently there is no station settings service.
+    // Currently vuex only supports subscribing to all actions with an if statement inside for filtering.
+    // Method is currently used by store to push change events.
     public ChangeEvent(): void {
         this._connections
             .filter((x) => { return x.connection.constructor.name == 'ISSocket' })
             .map(conn => {
                 const c = conn.connection as ISSocket
 
-                c.callsign = this.getCallsign
+                c.callsign = store.state.stationSettings.callsign
                 c.passcode = store.state.stationSettings.passcode
                 c.appId = this.appId
 
-                c.sendLine(c.userLogin)
+                if (conn.isEnabled)
+                    c.sendLine(c.userLogin)
             });
     }
 

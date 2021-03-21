@@ -43,6 +43,7 @@
                         <v-flex xs12 class="px-2">
                             <v-btn color="primary" class="mr-4" type="submit" :disabled="!isValid" form="connection-settings-form">Save</v-btn>
                             <v-btn color="normal" class="mr-4" @click="reset">Reset</v-btn>
+                            <v-btn color="error" class="mr-4" @click="deleteConnection">Delete</v-btn>
                         </v-flex>
                     </v-layout>
 
@@ -62,7 +63,7 @@
 <script lang="ts">
     import { Component, Prop, Vue } from 'vue-property-decorator'
     import { Connection } from '@/models/Connection'
-    import { ConnectionProps } from '@/models/ConnectionProps'
+    import { ConnectionViewModel } from '@/models/ConnectionViewModel'
     import { ConnectionTypes } from '@/enums/ConnectionTypes'
     //import store from '@/store'
 
@@ -73,7 +74,7 @@
         @Prop()
         private connection: Connection
 
-        private conn: ConnectionProps = new ConnectionProps()
+        private conn: ConnectionViewModel = new ConnectionViewModel()
 
         private isValid: boolean = false
         private rules = { required: value => !!value || "Required." }
@@ -88,10 +89,14 @@
             let map = []
 
             Object.keys(ConnectionTypes).forEach(k => {
-                map.push({ id: k, name: ConnectionTypes[k] });
+                map.push({ id: k, name: ConnectionTypes[k] })
             });
 
             return map
+        }
+
+        private deleteConnection(): void {
+            this.$emit('deleteConnection', this.conn.id)
         }
 
         private reset(): void {
