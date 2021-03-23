@@ -14,9 +14,6 @@
     import 'material-design-icons-iconfont/dist/material-design-icons.css'
     import '@mdi/font/css/materialdesignicons.css'
 
-    // TODO: modularize me
-    import "leaflet/dist/leaflet.css"
-
     export default Vue.extend({
         name: "App",
         components: {

@@ -41,7 +41,7 @@ TODO:
     * Make maps a plugin
     * Trails
     * Rotated markers
-    * Overlay orientation [ center, lower left, lower right ] to improve recognizability on some symbols
+    * Shadow orientation [ center, lower left, lower right ] to improve recognizability on some symbols
     * Options
         * Number of points for a map?
         * Layers
@@ -64,7 +64,7 @@ TODO:
         * Realtime framework - https://github.com/perliedman/leaflet-realtime
         * Leaflet plugins - https://github.com/shramov/leaflet-plugins
         * Context menu - [outdated] https://github.com/aratcliffe/Leaflet.contextmenu
-
+    * Overlays - https://vue2-leaflet.netlify.app/components/LImageOverlay.html#demo
     * BUGS:
         * Repeater icons may have multiple locations with the same callsign
 * Redundant packet filtering
