@@ -1,6 +1,6 @@
 import { StationSettings } from "@/models/StationSettings"
 
-export default class StationSettingsMapper {
+export class StationSettingsMapper {
     public static ObjectToStationSettings(obj: any): StationSettings {
         const retVal = new StationSettings()
 

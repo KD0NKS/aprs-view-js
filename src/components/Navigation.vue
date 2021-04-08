@@ -73,7 +73,7 @@
     import Component from 'vue-class-component'
     import store from '@/store'
     import Vue from 'vue'
-    import StringUtil from '@/utils/StringUtil'
+    import { StringUtil } from '@/utils'
 
     @Component({})
     export default class Navigation extends Vue {

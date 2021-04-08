@@ -1,5 +1,5 @@
-import ConnectionSettingsMapper from './ConnectionSettingsMapper'
-import StationSettingsMapper from './StationSettingsMapper'
+import { ConnectionSettingsMapper } from './ConnectionSettingsMapper'
+import { StationSettingsMapper } from './StationSettingsMapper'
 
 export {
     ConnectionSettingsMapper

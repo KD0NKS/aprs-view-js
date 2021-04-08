@@ -7,4 +7,5 @@ export default class APRSSymbol {
     public key: string
     public value: any  // Yeah, yeah, yeah, it's an image...
     public isAllowOverlay: boolean = false
+    public isRotatable: boolean = false
 }

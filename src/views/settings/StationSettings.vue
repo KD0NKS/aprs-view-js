@@ -133,7 +133,7 @@
     import MutationTypes from '@/MutationTypes'
     import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
     import store from '@/store'
-    import StringUtil from '@/utils/StringUtil'
+    import { StringUtil } from '@/utils'
 
     const symbolSvc = new APRSSymbolService();
 

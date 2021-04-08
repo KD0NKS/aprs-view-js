@@ -1,6 +1,6 @@
 import { ConnectionViewModel } from "@/models/ConnectionViewModel"
 
-export default class ConnectionSettingsMapper {
+export class ConnectionSettingsMapper {
     public static ObjectToConnectionSettings(obj: any): ConnectionViewModel {
         const retVal = new ConnectionViewModel()
 
