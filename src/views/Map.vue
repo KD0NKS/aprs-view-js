@@ -17,7 +17,6 @@
     import VectorSource from 'ol/source/Vector'
     import { Style, Fill, Stroke, Text } from 'ol/style'
     import Icon from 'ol/style/Icon'
-    import { composeCssTransform as CSSTransform } from 'ol/transform'
     import { APRSSymbolService, ConnectionService } from '@/services'
     import { NumberUtil, StringUtil } from '@/utils'
     import { Component, Vue } from 'vue-property-decorator'
@@ -106,7 +105,6 @@
                     const existingFeature = this.vectorSource.get(packet.sourceCallsign)
                     if(existingFeature) {
                         this.vectorSource.removeFeature(existingFeature)
-
                     }
 
                     this.vectorSource.addFeature(feature)
@@ -128,14 +126,13 @@
             const retVal = new Array<Style>()
 
             let course = 0
-            let iconTransform = null
+            let scaleX = 1 // -1 will flip the image: https://github.com/openlayers/openlayers/pull/11037
 
             if(packet.course && symbol.isRotatable == true) {
-                if(packet.course <= 180) {
-                    course = NumberUtil.degToRad(packet.course - 90)
-                } else {
-                    course = NumberUtil.degToRad(packet.course - 270)
-                    iconTransform = CSSTransform(270, 0, 0, 0, 0, 270, 0)
+                course = NumberUtil.degToRad(packet.course - 90)
+
+                if(packet.course > 180) {
+                    scaleX = -1
                 }
             }
 
@@ -144,10 +141,8 @@
                 image: new Icon({
                     src: symbol.value
                     , rotation: course
-                    //, transform: iconTransform
-                    // todo: size: 24 x 24
-                    // todo: transform: https://openlayers.org/en/latest/apidoc/module-ol_transform.html#~Transform
-                    //, size: [ 24, 24 ]
+                    , scale: [ 1, scaleX ]  // determines whether or not to flip the icon keeping a 1:1 scale
+                    , size: [ 24, 24 ]
                 })
                 , text: new Text({
                     text: packet.sourceCallsign
@@ -163,7 +158,6 @@
                     , font: 'bold 12px/1 Verdana'
                     , textAlign: 'left'
                 })
-                , zIndex: 0
             })
 
             retVal.push(shadowStyle)
@@ -180,7 +174,8 @@
                             color: 'black'
                             , width: 2
                         })
-                        , font: 'normal 14px/1 Verdana'
+                        , font: 'normal 16px/1 Verdana'
+                        , textAlign: 'center'
                     })
                 })
 
