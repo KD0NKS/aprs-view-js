@@ -1,5 +1,6 @@
 enum GetterTypes {
-    STATION_SETTINGS = 'StationSettings'
+    GET_PACKET = 'getPacket'
+    , STATION_SETTINGS = 'StationSettings'
 }
 
 export default GetterTypes;

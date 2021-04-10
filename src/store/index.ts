@@ -68,6 +68,9 @@ export default new Vuex.Store({
         }
     },
     getters: {
+        [GetterTypes.GET_PACKET]: state => id => {
+            return state.aprsPackets.find((packet) => packet.id == id)
+        },
         [GetterTypes.STATION_SETTINGS](state) {
             return state.stationSettings
         }

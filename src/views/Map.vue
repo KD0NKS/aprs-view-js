@@ -1,5 +1,8 @@
 <template>
     <div id="map">
+        <v-dialog id="stationInfoDialog" justify="center" scrollable max-width="50%" v-model="isShowStationInfo">
+            <StationFeatureCard :packet='stationInfoPacket' />
+        </v-dialog>
     </div>
 </template>
 
@@ -22,13 +25,18 @@
     import { Component, Vue } from 'vue-property-decorator'
     import { mapState } from 'vuex'
     import APRSSymbol from '@/models/APRSSymbol'
+    import GetterTypes from '@/GetterTypes'
+    import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
 
     /**
      * Note: only 1 base layer is allowed
      * TODO: aprspacket to computed, reduce, and filtered:  mapState(['aprsPackets'])
      */
     @Component({
-        computed: {
+        components: {
+            StationFeatureCard
+        }
+        , computed: {
             ...mapState({
                 aprsPackets: 'aprsPackets'
                 , connectionService: 'connectionService'
@@ -40,6 +48,8 @@
         private connectionService!: ConnectionService
         private symbolService: APRSSymbolService
         private vectorSource: VectorSource
+        private isShowStationInfo: boolean = false
+        private stationInfoPacket: string = ''
 
         constructor() {
             super()
@@ -74,6 +84,20 @@
                 })
             })
 
+            // display popup on click
+            map.on('click', async (evt) => {
+                var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+                    return feature
+                })
+
+                if(feature) {
+                    let pkt = await this.$store.getters[GetterTypes.GET_PACKET](feature.get('name'))
+
+                    this.stationInfoPacket = pkt
+                    this.isShowStationInfo = true
+                }
+            })
+
             this.connectionService.on('packet', async (p) => {
                 this.addPacket(p)
             })
@@ -94,7 +118,7 @@
                         && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
                     const feature = new Feature({
                         geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
-                        , name: packet.sourceCallsign
+                        , name: packet.id
                     })
 
                     feature.setId(packet.sourceCallsign)
@@ -102,7 +126,7 @@
                     const styles = this.generateIcon(packet)
                     feature.setStyle(styles)
 
-                    const existingFeature = this.vectorSource.get(packet.sourceCallsign)
+                    const existingFeature = this.vectorSource.getFeatures().find(f => f.getId() == packet.sourceCallsign)
                     if(existingFeature) {
                         this.vectorSource.removeFeature(existingFeature)
                     }
@@ -135,7 +159,6 @@
                     scaleX = -1
                 }
             }
-
 
             const shadowStyle = new Style({
                 image: new Icon({

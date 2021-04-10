@@ -10,6 +10,7 @@ import vuetify from './plugins/vuetify'
 import { ConnectionSettingsMapper, StationSettingsMapper } from '@/utils/mappers'
 import MutationTypes from './MutationTypes'
 import { Connection } from './models/Connection'
+import { aprsPacket } from 'js-aprs-fap'
 
 const persistentStorage = new Store();
 
@@ -21,6 +22,9 @@ new Vue({
     created() {
         // Load station settings.
         const stationSettings = StationSettingsMapper.ObjectToStationSettings(persistentStorage.get('stationSettings'))
+        const MAX_DATA = 2000
+        const MAX_PACKET_TTL = 30
+
         this.$store.commit(MutationTypes.SET_STATION_SETTINGS, stationSettings)
 
         // Load connections.
@@ -34,12 +38,17 @@ new Vue({
             this.$store.dispatch(ActionTypes.ADD_CONNECTION, conn)
         })
 
-        this.$store.state.connectionService.on(DataEventTypes.DATA, (data) => {
+        // TODO: packet service - packet settings
+
+        this.$store.state.connectionService.on(DataEventTypes.DATA, (data: string) => {
             this.$store.dispatch(ActionTypes.ADD_DATA, data);
         })
 
-        this.$store.state.connectionService.on(DataEventTypes.PACKET, (packet) => {
+        let packetCount: number = 0 // NOTE: temporary id until database is implemented
+        this.$store.state.connectionService.on(DataEventTypes.PACKET, (packet: aprsPacket) => {
+            packet.id = packetCount.toString()
             this.$store.dispatch(ActionTypes.ADD_PACKET, packet)
+            packetCount++
         })
     }
 }).$mount('#app');

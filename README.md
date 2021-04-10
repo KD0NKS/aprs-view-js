@@ -35,45 +35,46 @@ yarn run electron:serve
 
 TODO:
 * UI
-    * Restore to size, screen and location on start
-    * Output window styling? https://github.com/chinchang/screenlog.js
+    - [ ] Restore to size, screen and location on start
+    - [ ] Output window styling? https://github.com/chinchang/screenlog.js
 * Maps
-    * Make maps a plugin
-    * Trails
-    * Rotated markers
-    * Shadow orientation [ center, lower left, lower right ] to improve recognizability on some symbols
-    * Options
-        * Number of points for a map?
-        * Layers
-            * Default
-            * User configured
-            * Pluggable?
-        * Weather station data layers
-        * Radar
-        * NWS watches/warnings
-        * Show trails
-        * Restore location and zoom level when switching screens
-        * Show labels
-        * Station info panel - see aprs.fi
-    * Heat maps on zoom out (aprs.fi)
-    * Remove old position reports
-    * Clear all reports
-    * Helpful plugins
-        * Offline - [outdated] https://github.com/tbicr/OfflineMap
-        * Search - https://github.com/stefanocudini/leaflet-search
-        * Realtime framework - https://github.com/perliedman/leaflet-realtime
-        * Leaflet plugins - https://github.com/shramov/leaflet-plugins
-        * Context menu - [outdated] https://github.com/aratcliffe/Leaflet.contextmenu
-    * Overlays - https://vue2-leaflet.netlify.app/components/LImageOverlay.html#demo
-    * BUGS:
-        * Repeater icons may have multiple locations with the same callsign
-* Redundant packet filtering
-* Messaging
-* TNC
-    * User defined commands
-    * KISS
-* Optimizations
-    * Bacon/Kefir?
+    - [ ] Make maps a plugin
+    - [ ] Trails
+    - [x] Rotated markers
+    - [x] Show labels
+    - [ ] Shadow orientation [ center, lower left, lower right ] to improve recognizability on some symbols?
+    - Options
+        - [ ] Number of points for a map?
+        - [ ] Layers
+        - [ ] Default
+        - [ ] User configured
+        - [ ] Pluggable?
+        - [ ] Weather station data layers
+        - [ ] Radar
+        - [ ] NWS watches/warnings
+        - [ ] Show trails
+        - [ ] Restore location and zoom level when switching screens
+        - [ ] Show labels
+        - [ ] Station info panel - see aprs.fi
+    - [x] Heat maps on zoom out (aprs.fi)
+    - [ ] Remove old position reports
+    - [ ] Clear all reports
+    - [ ] Helpful plugins
+        - [ ] Offline - [outdated] https://github.com/tbicr/OfflineMap
+        - [ ] Search - https://github.com/stefanocudini/leaflet-search
+        - [ ] Realtime framework - https://github.com/perliedman/leaflet-realtime
+        - [ ] Leaflet plugins - https://github.com/shramov/leaflet-plugins
+        - [ ] Context menu - [outdated] https://github.com/aratcliffe/Leaflet.contextmenu
+    - [ ] Overlays - https://vue2-leaflet.netlify.app/components/LImageOverlay.html#demo
+    - BUGS:
+        - [ ] Repeater icons may have multiple locations with the same callsign
+- [ ] Redundant packet filtering
+- [ ] Messaging
+- [ ] TNC
+    - [ ] User defined commands
+    - [ ] KISS
+- Optimizations
+    - [ ] Bacon/Kefir?
 
 # Copyright Info
 ## Symbols
