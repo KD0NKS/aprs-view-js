@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import ActionTypes from './ActionTypes'
 import App from './App.vue'
 import DataEventTypes from '@/enums/DataEventTypes'
@@ -30,6 +31,7 @@ new Vue({
         const MAX_DATA = 2000
         const MAX_PACKET_TTL = 30
 
+        this.$store.commit(MutationTypes.SET_MAP_SETTINGS, mapSettings)
         this.$store.commit(MutationTypes.SET_STATION_SETTINGS, stationSettings)
 
         // Load connections.
@@ -39,7 +41,7 @@ new Vue({
             return new Connection(props)
         })
 
-        connections.forEach(conn => {
+        _.each(connections, conn => {
             this.$store.dispatch(ActionTypes.ADD_CONNECTION, conn)
         })
 

@@ -6,7 +6,7 @@ import Store from 'electron-store'
 import MutationTypes from '../MutationTypes'
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { Connection, IConnection, IStationSettings, StationSettings } from '@/models'
+import { Connection, IConnection, IMapSettings, IStationSettings, MapSettings, StationSettings } from '@/models'
 import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel } from '@/models/ConnectionViewModel'
 import { Mapper } from '@/utils/mappers'
@@ -20,23 +20,34 @@ export default new Vuex.Store({
         aprsData: []
         , aprsPackets: new Array<aprsPacket>()
         , connectionService: new ConnectionService()
+        , mapSettings: new MapSettings()
         , stationSettings: new StationSettings()
     },
     mutations: {
+        [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
+            state.connectionService.addConnection(connection)
+
+            persistentStorage.set(`connections.${connection.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
+        },
         [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
             state.connectionService.deleteConnection(connectionId)
             persistentStorage.delete(`connections.${connectionId}`)
-        }
-        , [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
+        },
+        [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
             const connection = state.connectionService.getConnection(connectionProps.id)
 
             if(connection) {
-                Mapper.CopyInto<Connection, ConnectionViewModel>(connection, connectionProps)
+                Mapper.CopyInto<ConnectionViewModel, Connection>(connectionProps, connection)
 
                 persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
             }
-        }
-        , [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
+        },
+        [MutationTypes.SET_MAP_SETTINGS](state, settings: IMapSettings) {
+            Mapper.CopyInto<IMapSettings, MapSettings>(settings, state.mapSettings)
+
+            persistentStorage.set('mapSettings', state.mapSettings)
+        },
+        [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
             // state.stationSettings.propname = settings.propname doesn't work here
             Vue.set(state.stationSettings, 'callsign', settings.callsign)
             Vue.set(state.stationSettings, 'passcode', settings.passcode)
@@ -47,10 +58,6 @@ export default new Vuex.Store({
             this.state.connectionService.ChangeEvent()
 
             persistentStorage.set('stationSettings', Mapper.Map<StationSettings>(state.stationSettings, StationSettings))
-        }, [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
-            state.connectionService.addConnection(connection)
-
-            persistentStorage.set(`connections.${connection.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
         }
     },
     actions: {
@@ -70,6 +77,9 @@ export default new Vuex.Store({
     getters: {
         [GetterTypes.GET_PACKET]: state => id => {
             return state.aprsPackets.find((packet) => packet.id == id)
+        },
+        [GetterTypes.MAP_SETTINGS](state) {
+            return state.mapSettings
         },
         [GetterTypes.STATION_SETTINGS](state) {
             return state.stationSettings

@@ -1,7 +1,7 @@
 <template>
     <div id="map">
         <v-dialog id="stationInfoDialog" justify="center" scrollable max-width="50%" v-model="isShowStationInfo">
-            <StationFeatureCard :packet='stationInfoPacket' />
+            <StationFeatureCard :packet='stationInfoPacket' v-on:close="isShowStationInfo = false" />
         </v-dialog>
         <MapContextMenu
             :contextMenu='contextMenu'
@@ -38,6 +38,7 @@
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
     import { bus } from '@/main'
     import { BusEventTypes } from '@/enums'
+    import store from '@/store'
 
     /**
      * Note: only 1 base layer is allowed
@@ -62,6 +63,7 @@
         private contextMenuX: number = 0
         private contextMenuY: number = 0
         private symbolService: APRSSymbolService
+        private vl: VectorLayer
         private vectorSource: VectorSource
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
@@ -95,14 +97,14 @@
                 target: 'map'
                 , layers: layers
                 , view: new View({
-                    center: lngLat([-94, 39])
+                    center: lngLat([-98.5795, 39.8283]) // Default to center of the US
                     , zoom: 10
                 })
             })
 
             // display popup on click
             this.map.on('singleclick', async (evt) => {
-                var feature = this.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+                var feature = this.map.forEachFeatureAtPixel(evt.pixel, (feature) => {
                     return feature
                 })
 
@@ -128,14 +130,11 @@
                 return true
             })
 
-
-
             /*
             this.vectorSource.addFeatures(this.aprsPackets.reduce((accumulator: any, currentValue: aprsPacket) => {
                 return [...accumulator, this.generateFeature(currentValue)]
             }, []))
             */
-
             this.connectionService.on('packet', async (p) => {
                 this.addPacket(p)
             })
@@ -148,7 +147,7 @@
             */
 
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
-                this.vectorSource.getFeatures().filter(f => _.indexOf(data, f.get('name')) > 0).forEach(f => this.removeFeature(f))
+                _.each(this.vectorSource.getFeatures().filter(f => _.indexOf(data, f.get('name')) > 0), f => this.removeFeature(f))
             })
 
             _.each(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (30 * 60000)),
@@ -202,6 +201,41 @@
             }
         }
 
+        private async Test(packet: aprsPacket) {
+            if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
+                    && packet.latitude && packet.latitude != null && packet.latitude != undefined
+                    && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
+
+                // programatically set the property on the locations object to be reactive
+                if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
+                        && packet.latitude && packet.latitude != null && packet.latitude != undefined
+                        && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
+                    const feature = new Feature({
+                        geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
+                        , name: packet.id
+                    })
+
+                    feature.setId(packet.sourceCallsign)
+                    feature.setProperties({
+                        name: packet.id
+                        , label: packet.sourceCallsign
+                    })
+
+                    const styles = this.generateIcon(packet)
+                    feature.setStyle(styles)
+
+                    const existingFeature = this.vectorSource.getFeatures()?.find(f => f.getId() == packet.sourceCallsign)
+                    if(existingFeature) {
+                        this.vectorSource.removeFeature(existingFeature)
+                    }
+
+                    return feature
+                }
+            }
+
+            return null
+        }
+
         private async removeFeature(feature: Feature) {
             this.vectorSource.removeFeature(feature)
         }
@@ -230,21 +264,27 @@
                     , scale: [ 1, scaleX ]  // determines whether or not to flip the icon keeping a 1:1 scale
                     , size: [ 24, 24 ]
                 })
-                , text: new Text({
-                    text: packet.sourceCallsign
-                    , fill: new Fill({
-                        color: 'black'
-                    })
-                    , stroke: new Stroke({
-                        color: 'white'
-                        , width: 4
-                    })
-                    , offsetX: 10
-                    , offsetY: -15
-                    , font: 'bold 12px/1 Verdana'
-                    , textAlign: 'left'
-                })
             })
+
+            if(store.state.mapSettings?.isShowLabels === true) {
+                shadowStyle.setText(
+                    new Text({
+                        text: packet.sourceCallsign
+                        , fill: new Fill({
+                            color: 'black'
+                        })
+                        , stroke: new Stroke({
+                            color: 'white'
+                            , width: 4
+                        })
+                        , offsetX: 10
+                        , offsetY: -15
+                        , font: 'bold 12px/1 Verdana'
+                        , textAlign: 'left'
+                        ,
+                    })
+                )
+            }
 
             retVal.push(shadowStyle)
 

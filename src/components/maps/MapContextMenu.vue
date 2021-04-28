@@ -6,13 +6,15 @@
             :position-y="positionY"
             >
         <v-card>
-            <v-list>
+            <v-list dense>
                 <v-list-item v-on:click="$emit('clearAll')">Clear all stations</v-list-item>
                 <!--
                 <v-list-item v-on:click="$emit('station-position', { x: positionX, y: positionY })">Set my station's position here</v-list-item>
                 <v-list-item></v-list-item>
                 <v-list-item>Create object here</v-list-item>
                 -->
+                <v-divider />
+                <v-list-item to="/mapSettings">Settings</v-list-item>
             </v-list>
         </v-card>
     </v-menu>

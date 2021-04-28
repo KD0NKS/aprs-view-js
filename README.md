@@ -57,6 +57,7 @@ TODO:
         - [ ] Show labels
         - [ ] Station info panel - see aprs.fi
         - [ ] User defined maps
+        - [ ] Track station/Track my station
     - [x] Heat maps on zoom out (aprs.fi)
     - [x] Remove old position reports
     - ContextMenu
@@ -72,6 +73,9 @@ TODO:
     - BUGS/ENHANCEMENTS:
         - [ ] Repeater icons may have multiple locations with the same callsign
         - [ ] Weather packets with no locations - if we know the location of the station already, update the id to get the latest when the icon is clicked
+        - [ ] Is it possible to rewrite/extend VectorSource in openlayers to accept an observable array of features? https://github.com/openlayers/openlayers/blob/main/src/ol/source/Vector.js
+            - This could lead down a rabbit hole where the entire lib needs to be rewritten
+            - Collection would likely need to be rewritten - https://github.com/openlayers/openlayers/blob/b7ccb68b02bd936373b1bd1d2f5ca445e1d286e0/src/ol/Collection.js
 - [ ] Messaging
 - [ ] TNC Support
     - [ ] User defined commands

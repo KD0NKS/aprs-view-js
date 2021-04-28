@@ -12,7 +12,7 @@ export class Mapper {
         const retVal = new ctor()
 
         if(obj) {
-            Object.keys(retVal).forEach(k => {
+            _.each(Object.keys(retVal), k => {
                 if(obj[k]) {
                     retVal[k] = obj[k]
                 } else {
@@ -24,17 +24,22 @@ export class Mapper {
         return retVal
     }
 
-    public static CopyInto<T, U>(from: T, to: U): U {
-        if(from && to && _.isObject(from) && _.isObject(to)) {
-            Object.keys(to).forEach(k => {
-                if(from[k]) {
-                    to[k] = from[k]
-                } else {
-                    to[k] = null
+    /**
+     * Copies values from objFrom to objTo only if objTo has a matching key and their types match.
+     *
+     * @param objFrom
+     * @param objTo
+     * @returns
+     */
+    public static CopyInto<T, U>(objFrom: T, objTo: U): U {
+        if(objFrom && objTo && _.isObject(objFrom) && _.isObject(objTo)) {
+            _.each(Object.keys(objTo), k => {
+                if(_.has(objFrom, k) && typeof objTo[k] == typeof objFrom[k]) {
+                    objTo[k] = objFrom[k] ?? null
                 }
             })
 
-            return to
+            return objTo
         } else {
             throw Error('Must provide two objects.')
         }
