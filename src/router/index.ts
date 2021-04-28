@@ -7,7 +7,7 @@ Vue.use(VueRouter)
 const routes: Array<RouteConfig> = [
     {
         path: '/'
-        , redirect: '/dashboard'
+        , redirect: '/stationSettings'
     }, {
         path: '/about'
         , name: 'about'
@@ -16,10 +16,11 @@ const routes: Array<RouteConfig> = [
         // which is lazy-loaded when the route is visited.
         , component: () => import(/* webpackChunkName: "main" */ '../views/About.vue')
     }, {
-        path: '/dashboard'
-        , name: 'dasbhoard'
-        , component: () => import(/* webpackChunkName: "main" */ '../views/Dashboard.vue')
-    }, {
+    //    path: '/dashboard'
+    //    , name: 'dasbhoard'
+    //    , component: () => import(/* webpackChunkName: "main" */ '../views/Dashboard.vue')
+    //}
+    //, {
         path: '/map'
         , name: 'map'
         , component: () => import(/* webpackChunkName: "main" */ '../views/Map.vue')
@@ -35,6 +36,10 @@ const routes: Array<RouteConfig> = [
         path: '/connectionSettings'
         , name: 'connectionSettings'
         , component: () => import(/* webpackChunkName: "main" */ '../views/settings/ConnectionSettings.vue')
+    }, {
+        path: '/mapSettings'
+        , name: 'mapSettings'
+        , component: () => import(/* webpackChunkName: "main" */ '../views/settings/MapSettings.vue')
     }, {
         path: '/stationSettings'
         , name: 'stationSettings'

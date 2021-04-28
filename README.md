@@ -42,7 +42,7 @@ TODO:
     - [ ] Trails
     - [x] Rotated markers
     - [x] Show labels
-    - [ ] Shadow orientation [ center, lower left, lower right ] to improve recognizability on some symbols?
+    - [ ] Properly handle objects - names, not moving stationary objects on duplicate src callsign, etc
     - Options
         - [ ] Number of points for a map?
         - [ ] Layers
@@ -56,25 +56,43 @@ TODO:
         - [ ] Restore location and zoom level when switching screens
         - [ ] Show labels
         - [ ] Station info panel - see aprs.fi
+        - [ ] User defined maps
     - [x] Heat maps on zoom out (aprs.fi)
-    - [ ] Remove old position reports
-    - [ ] Clear all reports
-    - [ ] Helpful plugins
+    - [x] Remove old position reports
+    - ContextMenu
+        - [ ] Clear all reports
+        - [ ] Set my station position
+        - [ ] Create object (low priority also requires proper handling)
+    - Helpful plugins
         - [ ] Offline - [outdated] https://github.com/tbicr/OfflineMap
         - [ ] Search - https://github.com/stefanocudini/leaflet-search
         - [ ] Realtime framework - https://github.com/perliedman/leaflet-realtime
         - [ ] Leaflet plugins - https://github.com/shramov/leaflet-plugins
-        - [ ] Context menu - [outdated] https://github.com/aratcliffe/Leaflet.contextmenu
     - [ ] Overlays - https://vue2-leaflet.netlify.app/components/LImageOverlay.html#demo
-    - BUGS:
+    - BUGS/ENHANCEMENTS:
         - [ ] Repeater icons may have multiple locations with the same callsign
-- [ ] Redundant packet filtering
+        - [ ] Weather packets with no locations - if we know the location of the station already, update the id to get the latest when the icon is clicked
 - [ ] Messaging
-- [ ] TNC
+- [ ] TNC Support
     - [ ] User defined commands
     - [ ] KISS
-- Optimizations
-    - [ ] Bacon/Kefir?
+- General app settings
+    - [ ] Imperial/metric
+    - [ ]
+- Filters
+    - [ ] Station Type
+    - [ ] Packet Type
+    - [ ] Blocked stations
+- Connection Settings
+    - [ ] Allow Transmit
+- Station Settings
+    - [ ] Transmit position interval
+    - [ ] Transmit position
+- Output Settings
+    - [ ] Foreground color
+    - [ ] Background color
+    - [ ] Font
+    - [ ] Amount of data to display
 
 # Copyright Info
 ## Symbols

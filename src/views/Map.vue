@@ -3,19 +3,27 @@
         <v-dialog id="stationInfoDialog" justify="center" scrollable max-width="50%" v-model="isShowStationInfo">
             <StationFeatureCard :packet='stationInfoPacket' />
         </v-dialog>
+        <MapContextMenu
+            :contextMenu='contextMenu'
+            :positionX="contextMenuX"
+            :positionY="contextMenuY"
+            v-on:close="closeContextMenu()"
+            v-on:clearAll="clearAllStations()"
+            />
     </div>
 </template>
 
 <script lang="ts">
     import 'ol/ol.css'
 
+    import * as _ from 'lodash'
     import { aprsPacket } from 'js-aprs-fap'
-    import { Feature, Map as OLMap, View } from 'ol'
+    import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import Point from 'ol/geom/Point'
     import { Image as ImageLayer, Heatmap as HeatmapLayer, Tile as TileLayer} from 'ol/layer'
     import BaseLayer from 'ol/layer/Base'
-    import { fromLonLat, fromLonLat as lngLat } from 'ol/proj'
     import VectorLayer from 'ol/layer/Vector'
+    import { fromLonLat, fromLonLat as lngLat } from 'ol/proj'
     import OSM from 'ol/source/OSM'
     import VectorSource from 'ol/source/Vector'
     import { Style, Fill, Stroke, Text } from 'ol/style'
@@ -24,9 +32,12 @@
     import { NumberUtil, StringUtil } from '@/utils'
     import { Component, Vue } from 'vue-property-decorator'
     import { mapState } from 'vuex'
-    import APRSSymbol from '@/models/APRSSymbol'
+    import { APRSSymbol } from '@/models'
     import GetterTypes from '@/GetterTypes'
+    import MapContextMenu from '@/components/maps/MapContextMenu.vue'
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
+    import { bus } from '@/main'
+    import { BusEventTypes } from '@/enums'
 
     /**
      * Note: only 1 base layer is allowed
@@ -34,7 +45,8 @@
      */
     @Component({
         components: {
-            StationFeatureCard
+            MapContextMenu
+            , StationFeatureCard
         }
         , computed: {
             ...mapState({
@@ -46,10 +58,14 @@
     export default class Map extends Vue {
         private aprsPackets!: Array<aprsPacket>
         private connectionService!: ConnectionService
+        private contextMenu: boolean = false
+        private contextMenuX: number = 0
+        private contextMenuY: number = 0
         private symbolService: APRSSymbolService
         private vectorSource: VectorSource
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
+        private map: OLMap
 
         constructor() {
             super()
@@ -75,7 +91,7 @@
                 })
             ]
 
-            const map = new OLMap({
+            this.map = new OLMap({
                 target: 'map'
                 , layers: layers
                 , view: new View({
@@ -85,8 +101,8 @@
             })
 
             // display popup on click
-            map.on('click', async (evt) => {
-                var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+            this.map.on('singleclick', async (evt) => {
+                var feature = this.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
                     return feature
                 })
 
@@ -98,15 +114,60 @@
                 }
             })
 
+            // Adds a right click/contextmenu listener to the map
+            this.map.addEventListener('contextmenu', (evt: MapBrowserEvent) => {
+                if(evt?.originalEvent && (evt?.originalEvent as MouseEvent).clientX) {
+                    this.contextMenuX = (evt?.originalEvent as MouseEvent).clientX
+                }
+
+                if(evt?.originalEvent && (evt?.originalEvent as MouseEvent).clientY) {
+                    this.contextMenuY = (evt?.originalEvent as MouseEvent).clientY
+                }
+
+                this.contextMenu = true
+                return true
+            })
+
+
+
+            /*
+            this.vectorSource.addFeatures(this.aprsPackets.reduce((accumulator: any, currentValue: aprsPacket) => {
+                return [...accumulator, this.generateFeature(currentValue)]
+            }, []))
+            */
+
             this.connectionService.on('packet', async (p) => {
                 this.addPacket(p)
             })
 
-            this.aprsPackets.forEach(async (p) => {
-                this.addPacket(p)
+            /*
+            _.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (30 * 60000)).forEach(async (p) => {
+                        if(new Date().getTime() - p.receivedTime < (30 * 60000))
+                            this.addPacket(p)
+                    })
+            */
+
+            bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
+                this.vectorSource.getFeatures().filter(f => _.indexOf(data, f.get('name')) > 0).forEach(f => this.removeFeature(f))
             })
+
+            _.each(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (30 * 60000)),
+                    async (p) => {
+                        if(new Date().getTime() - p.receivedTime < (30 * 60000))
+                            this.addPacket(p)
+                    })
         }
 
+        // contextMenu actions
+        private closeContextMenu(): void {
+            this.contextMenu = false
+        }
+
+        private clearAllStations(): void {
+            this.vectorSource.getFeatures().forEach(f => this.vectorSource.removeFeature(f))
+        }
+
+        // icon generation stuffz
         private async addPacket(packet: aprsPacket) {
             if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
                     && packet.latitude && packet.latitude != null && packet.latitude != undefined
@@ -122,25 +183,27 @@
                     })
 
                     feature.setId(packet.sourceCallsign)
+                    feature.setProperties({
+                        name: packet.id
+                        , label: packet.sourceCallsign
+                    })
 
                     const styles = this.generateIcon(packet)
                     feature.setStyle(styles)
 
-                    const existingFeature = this.vectorSource.getFeatures().find(f => f.getId() == packet.sourceCallsign)
+                    const existingFeature = this.vectorSource.getFeatures()?.find(f => f.getId() == packet.sourceCallsign)
                     if(existingFeature) {
                         this.vectorSource.removeFeature(existingFeature)
                     }
 
                     this.vectorSource.addFeature(feature)
-
-                    /*
-                    // programatically set the property on the locations object to be reactive
-                    this.$set(this.locations, packet.sourceCallsign, [
-                        this.getLocationData(packet)
-                    ])
-                    */
+                    //return feature
                 }
             }
+        }
+
+        private async removeFeature(feature: Feature) {
+            this.vectorSource.removeFeature(feature)
         }
 
         private generateIcon(packet: aprsPacket) {

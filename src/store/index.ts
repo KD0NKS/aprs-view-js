@@ -1,15 +1,15 @@
+import * as _ from 'lodash'
 import ActionTypes from '../ActionTypes'
-import { ConnectionService } from '@/services/ConnectionService'
+import { ConnectionService } from '@/services'
 import GetterTypes from '../GetterTypes'
 import Store from 'electron-store'
-import { IConnection } from '@/models/IConnection'
-import IStationSettings from '@/models/IStationSettings'
 import MutationTypes from '../MutationTypes'
-import Vue from 'vue';
-import Vuex from 'vuex';
-import { StationSettings } from '@/models/StationSettings'
-import { aprsPacket, aprsParser } from 'js-aprs-fap'
+import Vue from 'vue'
+import Vuex from 'vuex'
+import { Connection, IConnection, IStationSettings, StationSettings } from '@/models'
+import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel } from '@/models/ConnectionViewModel'
+import { Mapper } from '@/utils/mappers'
 
 Vue.use(Vuex)
 
@@ -31,13 +31,9 @@ export default new Vuex.Store({
             const connection = state.connectionService.getConnection(connectionProps.id)
 
             if(connection) {
-                connection.name = connectionProps.name
-                connection.connectionType = connectionProps.connectionType
-                connection.host = connectionProps.host
-                connection.port = connectionProps.port
-                connection.filter = connectionProps.filter
+                Mapper.CopyInto<Connection, ConnectionViewModel>(connection, connectionProps)
 
-                persistentStorage.set(`connections.${connectionProps.id}`, connectionProps)
+                persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
             }
         }
         , [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
@@ -50,10 +46,11 @@ export default new Vuex.Store({
 
             this.state.connectionService.ChangeEvent()
 
-            persistentStorage.set('stationSettings', state.stationSettings)
+            persistentStorage.set('stationSettings', Mapper.Map<StationSettings>(state.stationSettings, StationSettings))
         }, [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
             state.connectionService.addConnection(connection)
-            persistentStorage.set(`connections.${connection.id}`, connection)
+
+            persistentStorage.set(`connections.${connection.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
         }
     },
     actions: {
@@ -65,6 +62,9 @@ export default new Vuex.Store({
         },
         [ActionTypes.ADD_PACKET]({ state }, packet: aprsPacket) {
             state.aprsPackets.push(packet)
+        },
+        [ActionTypes.REMOVE_PACKETS]({ state }, ids: string[]) {
+            _.remove(state.aprsPackets, function(p) { return _.includes(ids, p.id) })
         }
     },
     getters: {

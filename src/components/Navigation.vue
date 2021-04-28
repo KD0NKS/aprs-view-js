@@ -68,8 +68,8 @@
 </template>
 
 <script lang="ts">
-    import APRSSymbol from '@/models/APRSSymbol'
-    import { APRSSymbolService } from '@/services/APRSSymbolService'
+    import { APRSSymbol } from '@/models'
+    import { APRSSymbolService } from '@/services'
     import Component from 'vue-class-component'
     import store from '@/store'
     import Vue from 'vue'
@@ -90,6 +90,7 @@
                 , subLinks: [
                     { title: 'Station', action: '/stationSettings' }
                     , { title: 'Connections', action: '/connectionSettings' }
+                    , { title: 'Map', action: '/mapSettings' }
                 ]
             }
             , { title: 'About', icon: 'info', action: "/about" }

@@ -1,4 +1,4 @@
-export default class APRSSymbol {
+export class APRSSymbol {
     public constructor(init?: Partial<APRSSymbol>) {
         Object.assign(this, init)
     }

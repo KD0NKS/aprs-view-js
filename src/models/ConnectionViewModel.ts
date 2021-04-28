@@ -1,5 +1,4 @@
-import { ConnectionTypes } from "@/enums/ConnectionTypes";
-import { IConnection } from "./IConnection";
+import { IConnection } from "./IConnection"
 
 export class ConnectionViewModel implements IConnection {
     public id: string = ''

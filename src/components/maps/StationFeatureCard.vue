@@ -3,7 +3,18 @@
         <v-card-title>{{ packet.sourceCallsign }}</v-card-title>
         <v-divider></v-divider>
         <v-card-text style="max-height: 50vh">
-            {{ packet.origpacket }}
+            <p>
+                {{ packet.origpacket }}
+            </p>
+            <p>
+                <label>Received Time:</label> {{ new Date(packet.receivedTime).toLocaleString() }}
+            </p>
+            <p v-if="packet.speed">
+                <label>Speed:</label> {{ packet.speed }}
+            </p>
+            <p v-if="packet.course">
+                <label>Course:</label> {{ packet.course }}&#730;
+            </p>
         </v-card-text>
     </v-card>
 </template>
