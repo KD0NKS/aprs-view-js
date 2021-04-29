@@ -44,14 +44,4 @@
             this.$emit("close")
         }
     }
-
-    /*
-    @Component({
-        props: ['packet']
-    })
-    export default class StationFeatureCard extends Vue {
-        @Prop()
-        private packet: aprsPacket
-    }
-    */
 </script>

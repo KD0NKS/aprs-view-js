@@ -31,6 +31,7 @@
                             <v-flex xs12 class="px-2">
                                 <v-text-field v-model="stationInfo.passcode"
                                         label="Passcode"
+                                        :rules="[rules.required]"
                                         >
                                 </v-text-field>
                             </v-flex>
