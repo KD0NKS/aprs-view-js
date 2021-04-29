@@ -1,4 +1,4 @@
-import IStationSettings from "./IStationSettings"
+import { IStationSettings } from "./IStationSettings"
 
 export class StationSettings implements IStationSettings {
     public callsign: string = "N0CALL"

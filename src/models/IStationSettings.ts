@@ -1,4 +1,4 @@
-export default interface IStationSettings {
+export interface IStationSettings {
     callsign: string;
     passcode: number;
     ssid: string;

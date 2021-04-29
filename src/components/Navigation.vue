@@ -2,6 +2,7 @@
     <v-navigation-drawer
             v-model="drawer"
             :mini-variant.sync="mini"
+            :mini-variant-width="60"
             permanent
             app>
         <v-list>
@@ -67,12 +68,12 @@
 </template>
 
 <script lang="ts">
-    import APRSSymbol from '@/models/APRSSymbol'
-    import { APRSSymbolService } from '@/services/APRSSymbolService'
+    import { APRSSymbol } from '@/models'
+    import { APRSSymbolService } from '@/services'
     import Component from 'vue-class-component'
     import store from '@/store'
     import Vue from 'vue'
-    import StringUtil from '@/utils/StringUtil'
+    import { StringUtil } from '@/utils'
 
     @Component({})
     export default class Navigation extends Vue {
@@ -81,14 +82,15 @@
         private items = [
             /*
             { title: 'Dashboard', icon: 'dashboard', action: "/" }
-            , { title: 'Map', icon: 'map', action: '/map' }
             , { title: 'Messages', icon: 'message', action: "/messages" }
             */
-            { title: 'Output', icon: 'mdi-console-line', action: "/output" }
+            { title: 'Map', icon: 'map', action: '/map' }
+            , { title: 'Output', icon: 'mdi-console-line', action: "/output" }
             , { title: 'Settings', icon: 'settings'
                 , subLinks: [
                     { title: 'Station', action: '/stationSettings' }
                     , { title: 'Connections', action: '/connectionSettings' }
+                    , { title: 'Map', action: '/mapSettings' }
                 ]
             }
             , { title: 'About', icon: 'info', action: "/about" }

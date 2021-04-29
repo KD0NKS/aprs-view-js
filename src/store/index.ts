@@ -1,14 +1,18 @@
+import * as _ from 'lodash'
 import ActionTypes from '../ActionTypes'
-import { ConnectionService } from '@/services/ConnectionService'
+import { bus } from '@/main'
+import { ConnectionService } from '@/services'
 import GetterTypes from '../GetterTypes'
 import Store from 'electron-store'
-import { IConnection } from '@/models/IConnection'
-import IStationSettings from '@/models/IStationSettings'
 import MutationTypes from '../MutationTypes'
-import Vue from 'vue';
-import Vuex from 'vuex';
-import { StationSettings } from '@/models/StationSettings'
+import Vue from 'vue'
+import Vuex from 'vuex'
+import { Connection, IConnection, IMapSettings, IStationSettings, MapSettings, StationSettings } from '@/models'
+import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel } from '@/models/ConnectionViewModel'
+import { Mapper } from '@/utils/mappers'
+import { stat } from 'original-fs'
+import { BusEventTypes } from '@/enums'
 
 Vue.use(Vuex)
 
@@ -16,30 +20,58 @@ const persistentStorage = new Store();
 
 export default new Vuex.Store({
     state: {
-        aprsData: new Array<string>()
-        , aprsPackets: new Array<string>()
+        aprsData: []
+        , aprsPackets: new Array<aprsPacket>()
         , connectionService: new ConnectionService()
+        , mapSettings: new MapSettings()
+        , packetTimer: null
         , stationSettings: new StationSettings()
     },
     mutations: {
+        [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
+            state.connectionService.addConnection(connection)
+
+            persistentStorage.set(`connections.${connection.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
+        },
         [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
             state.connectionService.deleteConnection(connectionId)
             persistentStorage.delete(`connections.${connectionId}`)
-        }
-        , [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
+        },
+        [MutationTypes.REMOVE_PACKETS](state, ids: string[]) {
+            _.remove(state.aprsPackets, function (p) { return _.includes(ids, p.id) })
+            bus.$emit(BusEventTypes.PACKETS_REMOVED, ids)
+        },
+        [MutationTypes.RESET_PACKET_TIMER](state, minutes) { // TODO: This is a terrible hack for now
+            // Clear the timer
+            if(state.packetTimer)
+                clearInterval(state.packetTimer)
+
+            // Remove any packets that wouldn't fit the time filtering
+            this.commit(MutationTypes.REMOVE_PACKETS, state.aprsPackets.filter(packet => (new Date().getTime() - packet.receivedTime) >= (minutes * 60000)).map(p => p.id))
+
+            // Set the interval to the new time
+            state.packetTimer = setInterval(() => {
+                this.commit(MutationTypes.REMOVE_PACKETS, state.aprsPackets.filter(packet => (new Date().getTime() - packet.receivedTime) >= (minutes * 60000)).map(p => p.id))
+            }, 60000) // 60000ms per minute
+        },
+        [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
             const connection = state.connectionService.getConnection(connectionProps.id)
 
             if(connection) {
-                connection.name = connectionProps.name
-                connection.connectionType = connectionProps.connectionType
-                connection.host = connectionProps.host
-                connection.port = connectionProps.port
-                connection.filter = connectionProps.filter
+                Mapper.CopyInto<ConnectionViewModel, Connection>(connectionProps, connection)
 
-                persistentStorage.set(`connections.${connectionProps.id}`, connectionProps)
+                persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
             }
-        }
-        , [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
+        },
+        [MutationTypes.SET_MAP_SETTINGS](state, settings: IMapSettings) {
+            if(settings.pointLifetime != state.mapSettings.pointLifetime)
+                this.commit(MutationTypes.RESET_PACKET_TIMER, settings.pointLifetime)
+
+            Mapper.CopyInto<IMapSettings, MapSettings>(settings, state.mapSettings)
+
+            persistentStorage.set('mapSettings', state.mapSettings)
+        },
+        [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
             // state.stationSettings.propname = settings.propname doesn't work here
             Vue.set(state.stationSettings, 'callsign', settings.callsign)
             Vue.set(state.stationSettings, 'passcode', settings.passcode)
@@ -49,10 +81,7 @@ export default new Vuex.Store({
 
             this.state.connectionService.ChangeEvent()
 
-            persistentStorage.set('stationSettings', state.stationSettings)
-        }, [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
-            state.connectionService.addConnection(connection)
-            persistentStorage.set(`connections.${connection.id}`, connection)
+            persistentStorage.set('stationSettings', Mapper.Map<StationSettings>(state.stationSettings, StationSettings))
         }
     },
     actions: {
@@ -62,13 +91,24 @@ export default new Vuex.Store({
         [ActionTypes.ADD_DATA]({ state }, packet: string) {
             state.aprsData.push(packet)
         },
-        [ActionTypes.ADD_PACKET]({ state }, packet: string) {
+        [ActionTypes.ADD_PACKET]({ state }, packet: aprsPacket) {
             state.aprsPackets.push(packet)
+        },
+        [ActionTypes.REMOVE_PACKETS]({ state }, ids: string[]) {
+            this.commit(MutationTypes.REMOVE_PACKETS, ids)
         }
     },
     getters: {
+        [GetterTypes.GET_PACKET]: state => id => {
+            return state.aprsPackets.find((packet) => packet.id == id)
+        },
+        [GetterTypes.MAP_SETTINGS](state) {
+            return state.mapSettings
+        },
         [GetterTypes.STATION_SETTINGS](state) {
             return state.stationSettings
         }
     }
 })
+
+
