@@ -1,48 +1,46 @@
 <template>
     <div id="mapSettings" style="padding: 10px">
-        <div class="text-xs-center mb-3">
-            <h1>Map Settings</h1>
+        <h1>Map Settings</h1>
 
-            <v-card>
-                <v-card-text>
-                    <v-form @submit.prevent="saveMapSettings"
-                            id="map-settings-form"
-                            v-model="isMapSettingsValid"
-                            >
-                        <v-container>
-                            <v-layout row wrap>
-                                <v-flex xs12 md6 class="px-2">
-                                    <v-text-field
-                                        v-model.number="mapSettings.pointLifetime"
-                                        label="Point Lifetime (in minutes)"
-                                        type="number"
-                                        :rules="[rules.positiveNum]"
-                                        >
-                                    </v-text-field>
-                                </v-flex>
-                            </v-layout>
+        <v-card>
+            <v-card-text>
+                <v-form @submit.prevent="saveMapSettings"
+                        id="map-settings-form"
+                        v-model="isMapSettingsValid"
+                        >
+                    <v-container>
+                        <v-layout row wrap>
+                            <v-flex xs12 md6 class="px-2">
+                                <v-text-field
+                                    v-model.number="mapSettings.pointLifetime"
+                                    label="Point Lifetime (in minutes)"
+                                    type="number"
+                                    :rules="[rules.positiveNum]"
+                                    >
+                                </v-text-field>
+                            </v-flex>
+                        </v-layout>
 
-                            <v-layout row wrap>
-                                <v-flex xs12 md6 class="px-2">
-                                    <v-switch
-                                        v-model="mapSettings.isShowLabels"
-                                        label="Show Labels"
-                                        >
-                                    </v-switch>
-                                </v-flex>
-                            </v-layout>
+                        <v-layout row wrap>
+                            <v-flex xs12 md6 class="px-2">
+                                <v-switch
+                                    v-model="mapSettings.isShowLabels"
+                                    label="Show Labels"
+                                    >
+                                </v-switch>
+                            </v-flex>
+                        </v-layout>
 
-                            <v-layout row wrap>
-                                <v-flex xs12 class="px-2">
-                                    <v-btn color="primary" class="mr-4" type="submit" :disabled="!isMapSettingsValid" form="map-settings-form">Save</v-btn>
-                                    <v-btn color="normal" class="mr-4" @click="resetMapSettings">Reset</v-btn>
-                                </v-flex>
-                            </v-layout>
-                        </v-container>
-                    </v-form>
-                </v-card-text>
-            </v-card>
-        </div>
+                        <v-layout row wrap>
+                            <v-flex xs12 class="px-2">
+                                <v-btn color="primary" class="mr-4" type="submit" :disabled="!isMapSettingsValid" form="map-settings-form">Save</v-btn>
+                                <v-btn color="normal" class="mr-4" @click="resetMapSettings">Reset</v-btn>
+                            </v-flex>
+                        </v-layout>
+                    </v-container>
+                </v-form>
+            </v-card-text>
+        </v-card>
     </div>
 </template>
 
