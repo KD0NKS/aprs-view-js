@@ -28,9 +28,6 @@ new Vue({
         const stationSettings = Mapper.Map<StationSettings>(persistentStorage.get('stationSettings'), StationSettings)
         const mapSettings = Mapper.Map<MapSettings>(persistentStorage.get('mapSettings'), MapSettings)
 
-        const MAX_DATA = 2000
-        const MAX_PACKET_TTL = 30
-
         this.$store.commit(MutationTypes.SET_MAP_SETTINGS, mapSettings)
         this.$store.commit(MutationTypes.SET_STATION_SETTINGS, stationSettings)
 
@@ -57,15 +54,5 @@ new Vue({
             this.$store.dispatch(ActionTypes.ADD_PACKET, packet)
             packetCount++
         })
-
-        const st = this.$store
-
-        setInterval(function () {
-            // 60000ms per minute
-            const toRemove = st.state.aprsPackets.filter(packet => (new Date().getTime() - packet.receivedTime) >= (MAX_PACKET_TTL * 60000)).map(p => p.id)
-
-            st.dispatch(ActionTypes.REMOVE_PACKETS, toRemove)
-            bus.$emit(BusEventTypes.PACKETS_REMOVED, toRemove)
-        }, 60000)
     }
 }).$mount('#app');

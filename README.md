@@ -43,9 +43,18 @@ TODO:
     - [x] Rotated markers
     - [x] Show labels
     - [ ] Properly handle objects - names, not moving stationary objects on duplicate src callsign, etc
+    - [x] Heat maps on zoom out (aprs.fi)
+    - [x] Remove old position reports
     - Options
+        - [x] Point lifetime
         - [ ] Number of points for a map?
-        - [ ] Layers
+        - Layers
+            - [ ] Layer Sources - Needs auth inputs
+            - [ ] Tile Sources - Needs auth inputs
+            - [ ] User defined maps
+            - [ ] User defined layers
+            - [ ] Radar
+            - [ ] NWS watches/warnings
         - [ ] Default
         - [ ] User configured
         - [ ] Pluggable?
@@ -53,15 +62,22 @@ TODO:
         - [ ] Radar
         - [ ] NWS watches/warnings
         - [ ] Show trails
-        - [ ] Restore location and zoom level when switching screens
-        - [ ] Show labels
+        - Location options
+            - [ ] Restore location and zoom level when switching screens
+            - [ ] Map start coordinates
+            - [ ] Map zoom level
+            - [ ] Weather station data layers - lots of data can be extracted from weather stations
+        - Labels
+            - [x] Show labels
+            - [ ] Label options
+                - Object name
+                - Callsign
+                - Weather data
         - [ ] Station info panel - see aprs.fi
         - [ ] User defined maps
         - [ ] Track station/Track my station
-    - [x] Heat maps on zoom out (aprs.fi)
-    - [x] Remove old position reports
     - ContextMenu
-        - [ ] Clear all reports
+        - [/] Clear all reports
         - [ ] Set my station position
         - [ ] Create object (low priority also requires proper handling)
     - Helpful plugins
@@ -84,6 +100,7 @@ TODO:
     - [ ] Imperial/metric
     - [ ]
 - Filters
+    - [ ] Heard by my station (no digis)
     - [ ] Station Type
     - [ ] Packet Type
     - [ ] Blocked stations

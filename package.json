@@ -1,6 +1,6 @@
 {
   "name": "aprs-view-js",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "tsc": "./node_modules/.bin/tsc",

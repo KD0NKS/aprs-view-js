@@ -1,5 +1,6 @@
 import * as _ from 'lodash'
 import ActionTypes from '../ActionTypes'
+import { bus } from '@/main'
 import { ConnectionService } from '@/services'
 import GetterTypes from '../GetterTypes'
 import Store from 'electron-store'
@@ -10,6 +11,8 @@ import { Connection, IConnection, IMapSettings, IStationSettings, MapSettings, S
 import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel } from '@/models/ConnectionViewModel'
 import { Mapper } from '@/utils/mappers'
+import { stat } from 'original-fs'
+import { BusEventTypes } from '@/enums'
 
 Vue.use(Vuex)
 
@@ -21,6 +24,7 @@ export default new Vuex.Store({
         , aprsPackets: new Array<aprsPacket>()
         , connectionService: new ConnectionService()
         , mapSettings: new MapSettings()
+        , packetTimer: null
         , stationSettings: new StationSettings()
     },
     mutations: {
@@ -33,6 +37,23 @@ export default new Vuex.Store({
             state.connectionService.deleteConnection(connectionId)
             persistentStorage.delete(`connections.${connectionId}`)
         },
+        [MutationTypes.REMOVE_PACKETS](state, ids: string[]) {
+            _.remove(state.aprsPackets, function (p) { return _.includes(ids, p.id) })
+            bus.$emit(BusEventTypes.PACKETS_REMOVED, ids)
+        },
+        [MutationTypes.RESET_PACKET_TIMER](state, minutes) { // TODO: This is a terrible hack for now
+            // Clear the timer
+            if(state.packetTimer)
+                clearInterval(state.packetTimer)
+
+            // Remove any packets that wouldn't fit the time filtering
+            this.commit(MutationTypes.REMOVE_PACKETS, state.aprsPackets.filter(packet => (new Date().getTime() - packet.receivedTime) >= (minutes * 60000)).map(p => p.id))
+
+            // Set the interval to the new time
+            state.packetTimer = setInterval(() => {
+                this.commit(MutationTypes.REMOVE_PACKETS, state.aprsPackets.filter(packet => (new Date().getTime() - packet.receivedTime) >= (minutes * 60000)).map(p => p.id))
+            }, 60000) // 60000ms per minute
+        },
         [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
             const connection = state.connectionService.getConnection(connectionProps.id)
 
@@ -43,6 +64,9 @@ export default new Vuex.Store({
             }
         },
         [MutationTypes.SET_MAP_SETTINGS](state, settings: IMapSettings) {
+            if(settings.pointLifetime != state.mapSettings.pointLifetime)
+                this.commit(MutationTypes.RESET_PACKET_TIMER, settings.pointLifetime)
+
             Mapper.CopyInto<IMapSettings, MapSettings>(settings, state.mapSettings)
 
             persistentStorage.set('mapSettings', state.mapSettings)
@@ -71,7 +95,7 @@ export default new Vuex.Store({
             state.aprsPackets.push(packet)
         },
         [ActionTypes.REMOVE_PACKETS]({ state }, ids: string[]) {
-            _.remove(state.aprsPackets, function(p) { return _.includes(ids, p.id) })
+            this.commit(MutationTypes.REMOVE_PACKETS, ids)
         }
     },
     getters: {

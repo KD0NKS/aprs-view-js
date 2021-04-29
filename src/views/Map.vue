@@ -39,6 +39,7 @@
     import { bus } from '@/main'
     import { BusEventTypes } from '@/enums'
     import store from '@/store'
+    import ActionTypes from '@/ActionTypes'
 
     /**
      * Note: only 1 base layer is allowed
@@ -163,7 +164,8 @@
         }
 
         private clearAllStations(): void {
-            this.vectorSource.getFeatures().forEach(f => this.vectorSource.removeFeature(f))
+            // Hack for a much more complex problem...
+            this.$store.dispatch(ActionTypes.REMOVE_PACKETS, this.vectorSource.getFeatures().map(f => f.get('name')))
         }
 
         // icon generation stuffz
@@ -196,7 +198,6 @@
                     }
 
                     this.vectorSource.addFeature(feature)
-                    //return feature
                 }
             }
         }

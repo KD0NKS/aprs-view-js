@@ -42,27 +42,6 @@
                     </v-form>
                 </v-card-text>
             </v-card>
-
-            <!--
-                - [ ] Map start position
-                - [ ] Open map to last position/zoom level
-                - [x] Point lifetime
-                - [ ] Layer Sources - Needs auth inputs
-                - [ ] Tile Sources - Needs auth inputs
-                - [ ] Track my station
-
-                - [ ] Number of points for a map?
-                - [ ] User defined maps
-                - [ ] User defined layers
-                - [ ] Pluggable?
-                - [ ] Weather station data layers - lots of data can be extracted from weather stations
-                - [ ] Radar
-                - [ ] NWS watches/warnings
-                - [ ] Show trails
-                - [ ] Restore location and zoom level when switching screens
-                - [ ] Show labels
-                - [ ] Label options
-            -->
         </div>
     </div>
 </template>
