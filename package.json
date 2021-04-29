@@ -17,7 +17,7 @@
     "@mdi/font": "^5.9.55",
     "@types/vuelidate": "^0.7.14",
     "core-js": "^3.9.1",
-    "electron-store": "^7.0.2",
+    "electron-store": "^8.0.0",
     "js-aprs-fap": "^1.1.1",
     "js-aprs-is": "^1.0.5",
     "lodash": "^4.17.21",
