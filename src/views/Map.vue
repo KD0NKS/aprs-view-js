@@ -77,7 +77,7 @@
             this.vectorSource = new VectorSource({})
         }
 
-        mounted() {
+        async mounted() {
             const layers: BaseLayer[] = [
                 new TileLayer({
                     source: new OSM()
@@ -190,9 +190,9 @@
                     })
 
                     const styles = this.generateIcon(packet)
-                    feature.setStyle(styles)
+                    feature.setStyle(await styles)
 
-                    const existingFeature = this.vectorSource.getFeatures()?.find(f => f.getId() == packet.sourceCallsign)
+                    const existingFeature = this.vectorSource.getFeatureById(packet.sourceCallsign)
                     if(existingFeature) {
                         this.vectorSource.removeFeature(existingFeature)
                     }
@@ -202,46 +202,11 @@
             }
         }
 
-        private async Test(packet: aprsPacket) {
-            if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
-                    && packet.latitude && packet.latitude != null && packet.latitude != undefined
-                    && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
-
-                // programatically set the property on the locations object to be reactive
-                if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
-                        && packet.latitude && packet.latitude != null && packet.latitude != undefined
-                        && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
-                    const feature = new Feature({
-                        geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
-                        , name: packet.id
-                    })
-
-                    feature.setId(packet.sourceCallsign)
-                    feature.setProperties({
-                        name: packet.id
-                        , label: packet.sourceCallsign
-                    })
-
-                    const styles = this.generateIcon(packet)
-                    feature.setStyle(styles)
-
-                    const existingFeature = this.vectorSource.getFeatures()?.find(f => f.getId() == packet.sourceCallsign)
-                    if(existingFeature) {
-                        this.vectorSource.removeFeature(existingFeature)
-                    }
-
-                    return feature
-                }
-            }
-
-            return null
-        }
-
         private async removeFeature(feature: Feature) {
             this.vectorSource.removeFeature(feature)
         }
 
-        private generateIcon(packet: aprsPacket) {
+        private async generateIcon(packet: aprsPacket) {
             const symbols = this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
             const symbol = symbols['symbol'] as APRSSymbol
             const overlay = symbols['overlay'] as APRSSymbol
