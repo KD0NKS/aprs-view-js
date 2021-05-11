@@ -13,6 +13,7 @@ import MutationTypes from '@/MutationTypes'
 import { Connection } from '@/models/Connection'
 import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel, MapSettings, StationSettings } from '@/models'
+import { SoftwareSettings } from './models/SoftwareSettings'
 
 export const bus = new Vue()
 const persistentStorage = new Store()
@@ -26,9 +27,19 @@ new Vue({
         // Load station settings.
         const stationSettings = Mapper.Map<StationSettings>(persistentStorage.get('stationSettings'), StationSettings)
         const mapSettings = Mapper.Map<MapSettings>(persistentStorage.get('mapSettings'), MapSettings)
+        const softwareSettings = Mapper.Map<SoftwareSettings>(persistentStorage.get('softwareSettings'), SoftwareSettings)
 
-        this.$store.commit(MutationTypes.SET_MAP_SETTINGS, mapSettings)
-        this.$store.commit(MutationTypes.SET_STATION_SETTINGS, stationSettings)
+        if(mapSettings) {
+            this.$store.commit(MutationTypes.SET_MAP_SETTINGS, mapSettings)
+        }
+
+        if(softwareSettings) {
+            this.$store.commit(MutationTypes.SET_SOFTWARE_SETTINGS, softwareSettings)
+        }
+
+        if(stationSettings) {
+            this.$store.commit(MutationTypes.SET_STATION_SETTINGS, stationSettings)
+        }
 
         // Load connections.
         const connections = Object.entries(persistentStorage.get('connections')).map(element => {

@@ -1,7 +1,9 @@
+import { ConversionUtil } from '@/utils/ConversionUtil'
 import { NumberUtil } from '@/utils/NumberUtil'
 import { StringUtil } from '@/utils/StringUtil'
 
 export {
-    NumberUtil
+    ConversionUtil
+    , NumberUtil
     , StringUtil
 }

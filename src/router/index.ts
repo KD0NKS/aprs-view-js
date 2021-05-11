@@ -44,6 +44,10 @@ const routes: Array<RouteConfig> = [
         path: '/stationSettings'
         , name: 'stationSettings'
         , component: () => import(/* webpackChunkName: "main" */ '../views/settings/StationSettings.vue')
+    }, {
+        path: '/applicationSettings'
+        , name: 'applicationSettings'
+        , component: () => import(/* webpackChunkName: "main" */ '../views/settings/ApplicationSettings.vue')
     }
 ]
 

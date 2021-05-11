@@ -91,6 +91,7 @@
                     { title: 'Station', action: '/stationSettings' }
                     , { title: 'Connections', action: '/connectionSettings' }
                     , { title: 'Map', action: '/mapSettings' }
+                    , { title: 'Application', action: '/applicationSettings'}
                 ]
             }
             , { title: 'About', icon: 'info', action: "/about" }

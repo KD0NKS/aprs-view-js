@@ -13,6 +13,8 @@ import { ConnectionViewModel } from '@/models/ConnectionViewModel'
 import { Mapper } from '@/utils/mappers'
 import { stat } from 'original-fs'
 import { BusEventTypes } from '@/enums'
+import { SoftwareSettings } from '@/models/SoftwareSettings'
+import { ISoftwareSettings } from '@/models/ISoftwareSettings'
 
 Vue.use(Vuex)
 
@@ -25,6 +27,7 @@ export default new Vuex.Store({
         , connectionService: new ConnectionService()
         , mapSettings: new MapSettings()
         , packetTimer: null
+        , softwareSettings: new SoftwareSettings()
         , stationSettings: new StationSettings()
     },
     mutations: {
@@ -71,6 +74,11 @@ export default new Vuex.Store({
 
             persistentStorage.set('mapSettings', state.mapSettings)
         },
+        [MutationTypes.SET_SOFTWARE_SETTINGS](state, settings: ISoftwareSettings) {
+            Mapper.CopyInto<ISoftwareSettings, SoftwareSettings>(settings, state.softwareSettings)
+
+            persistentStorage.set('softwareSettings', state.softwareSettings)
+        },
         [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
             // state.stationSettings.propname = settings.propname doesn't work here
             Vue.set(state.stationSettings, 'callsign', settings.callsign)
@@ -104,6 +112,9 @@ export default new Vuex.Store({
         },
         [GetterTypes.MAP_SETTINGS](state) {
             return state.mapSettings
+        },
+        [GetterTypes.SOFTWARE_SETTINGS](state) {
+            return state.softwareSettings
         },
         [GetterTypes.STATION_SETTINGS](state) {
             return state.stationSettings
