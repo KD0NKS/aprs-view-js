@@ -5,10 +5,12 @@
         </v-dialog>
         <MapContextMenu
             :contextMenu='contextMenu'
+            :coordinate="clickCoordinate"
             :positionX="contextMenuX"
             :positionY="contextMenuY"
             v-on:close="closeContextMenu()"
             v-on:clearAll="clearAllStations()"
+            v-on:stationPosition="coordinate => setStationCoordinates(coordinate)"
             />
     </div>
 </template>
@@ -20,10 +22,10 @@
     import { aprsPacket } from 'js-aprs-fap'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import Point from 'ol/geom/Point'
-    import { Image as ImageLayer, Heatmap as HeatmapLayer, Tile as TileLayer} from 'ol/layer'
+    import { Heatmap as HeatmapLayer, Tile as TileLayer} from 'ol/layer'
     import BaseLayer from 'ol/layer/Base'
     import VectorLayer from 'ol/layer/Vector'
-    import { fromLonLat, fromLonLat as lngLat } from 'ol/proj'
+    import { fromLonLat, toLonLat } from 'ol/proj'
     import OSM from 'ol/source/OSM'
     import VectorSource from 'ol/source/Vector'
     import { Style, Fill, Stroke, Text } from 'ol/style'
@@ -32,7 +34,7 @@
     import { NumberUtil, StringUtil } from '@/utils'
     import { Component, Vue } from 'vue-property-decorator'
     import { mapState } from 'vuex'
-    import { APRSSymbol } from '@/models'
+    import { APRSSymbol, StationSettings } from '@/models'
     import GetterTypes from '@/GetterTypes'
     import MapContextMenu from '@/components/maps/MapContextMenu.vue'
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
@@ -40,6 +42,9 @@
     import { BusEventTypes } from '@/enums'
     import store from '@/store'
     import ActionTypes from '@/ActionTypes'
+    import { Coordinate } from 'node_modules/@types/ol/coordinate'
+    import MutationTypes from '@/MutationTypes'
+    import { Mapper } from '@/utils/mappers'
 
     /**
      * Note: only 1 base layer is allowed
@@ -59,6 +64,7 @@
     })
     export default class Map extends Vue {
         private aprsPackets!: Array<aprsPacket>
+        private clickCoordinate: Coordinate = []
         private connectionService!: ConnectionService
         private contextMenu: boolean = false
         private contextMenuX: number = 0
@@ -94,11 +100,13 @@
                 })
             ]
 
+            const stationSettings = this.$store.state.stationSettings
+
             this.map = new OLMap({
                 target: 'map'
                 , layers: layers
                 , view: new View({
-                    center: lngLat([-98.5795, 39.8283]) // Default to center of the US
+                    center: fromLonLat([stationSettings.longitude, stationSettings.latitude]) // Default to center of the US
                     , zoom: 10
                 })
             })
@@ -119,6 +127,10 @@
 
             // Adds a right click/contextmenu listener to the map
             this.map.addEventListener('contextmenu', (evt: MapBrowserEvent) => {
+                if(evt?.coordinate) {
+                    this.clickCoordinate = toLonLat(evt.coordinate)
+                }
+
                 if(evt?.originalEvent && (evt?.originalEvent as MouseEvent).clientX) {
                     this.contextMenuX = (evt?.originalEvent as MouseEvent).clientX
                 }
@@ -130,6 +142,20 @@
                 this.contextMenu = true
                 return true
             })
+
+            // Add current station to map if option is enabled.
+            // Use null id
+            // No timestamp
+
+            /*
+            private async addMarker(id: string, callsign: string
+                    , latitude: number, longitude: number
+                    , symbolcode?: string, symboltable?: string
+                    , course?: number) {
+
+                return null
+            }
+            */
 
             /*
             this.vectorSource.addFeatures(this.aprsPackets.reduce((accumulator: any, currentValue: aprsPacket) => {
@@ -166,6 +192,14 @@
         private clearAllStations(): void {
             // Hack for a much more complex problem...
             this.$store.dispatch(ActionTypes.REMOVE_PACKETS, this.vectorSource.getFeatures().map(f => f.get('name')))
+        }
+
+        private setStationCoordinates(coordinate: Coordinate): void {
+            const settings = Mapper.CopyInto<StationSettings, StationSettings>(this.$store.state.stationSettings, new StationSettings())
+            settings.longitude = parseFloat(coordinate[0].toFixed(4))
+            settings.latitude = parseFloat(coordinate[1].toFixed(4))
+
+            this.$store.commit(MutationTypes.SET_STATION_SETTINGS, settings)
         }
 
         // icon generation stuffz
@@ -247,7 +281,6 @@
                         , offsetY: -15
                         , font: 'bold 12px/1 Verdana'
                         , textAlign: 'left'
-                        ,
                     })
                 )
             }

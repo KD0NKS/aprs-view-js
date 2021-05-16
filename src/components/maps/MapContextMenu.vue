@@ -8,8 +8,8 @@
         <v-card>
             <v-list dense>
                 <v-list-item v-on:click="$emit('clearAll')">Clear all stations</v-list-item>
+                <v-list-item v-on:click="$emit('stationPosition', coordinate)">Set my station's position here</v-list-item>
                 <!--
-                <v-list-item v-on:click="$emit('station-position', { x: positionX, y: positionY })">Set my station's position here</v-list-item>
                 <v-list-item></v-list-item>
                 <v-list-item>Create object here</v-list-item>
                 -->
@@ -22,13 +22,17 @@
 
 <script lang="ts">
     import { Component, Prop, Vue } from 'vue-property-decorator'
+    import { Coordinate } from 'node_modules/@types/ol/coordinate'
 
     @Component({
-        props: ['contextMenu', 'positionX', 'positionY' ]
+        props: ['contextMenu', 'coordinate', 'positionX', 'positionY' ]
     })
     export default class MapContextMenu extends Vue {
         @Prop()
         private contextMenu: boolean
+
+        @Prop()
+        private coordinate: Coordinate
 
         @Prop()
         private positionX: number

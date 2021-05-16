@@ -80,12 +80,7 @@ export default new Vuex.Store({
             persistentStorage.set('softwareSettings', state.softwareSettings)
         },
         [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
-            // state.stationSettings.propname = settings.propname doesn't work here
-            Vue.set(state.stationSettings, 'callsign', settings.callsign)
-            Vue.set(state.stationSettings, 'passcode', settings.passcode)
-            Vue.set(state.stationSettings, 'ssid', settings.ssid)
-            Vue.set(state.stationSettings, 'symbol', settings.symbol)
-            Vue.set(state.stationSettings, 'symbolOverlay', settings.symbolOverlay)
+            Mapper.CopyInto<IStationSettings, StationSettings>(settings, state.stationSettings)
 
             this.state.connectionService.ChangeEvent()
 
@@ -98,6 +93,11 @@ export default new Vuex.Store({
         },
         [ActionTypes.ADD_DATA]({ state }, packet: string) {
             state.aprsData.push(packet)
+
+            // TODO: This should probably be a setting to cache x amount of data.
+            if(state.aprsData.length > 1000) {
+                state.aprsData.slice(100)
+            }
         },
         [ActionTypes.ADD_PACKET]({ state }, packet: aprsPacket) {
             state.aprsPackets.push(packet)

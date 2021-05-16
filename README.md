@@ -95,10 +95,10 @@ TODO:
 - [ ] Messaging
 - [ ] TNC Support
     - [ ] User defined commands
-    - [ ] KISS
+    - [ ] KISS - js-aprs-tnc
 - General app settings
-    - [ ] Imperial/metric
-    - [ ]
+    - [x] Imperial/metric
+    - [x] Temperature C/F
 - Filters
     - [ ] Heard by my station (no digis)
     - [ ] Station Type
@@ -109,6 +109,15 @@ TODO:
 - Station Settings
     - [ ] Transmit position interval
     - [ ] Transmit position
+    - Station Position
+        - [x] Static
+        - [ ] GPS
+        - [ ] Show my position
+        - [ ] Ambiguity
+        - Beaconing
+            - [ ] Interval
+            - [ ] SmartBeaconing(TM)
+            - [ ] Packet format (mic-e, weather, etc)
 - Output Settings
     - [ ] Foreground color
     - [ ] Background color

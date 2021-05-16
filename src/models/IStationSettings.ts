@@ -1,7 +1,9 @@
 export interface IStationSettings {
     callsign: string
     passcode: number
-    ssid: string
+    latitude?: number
+    longitude?: number
+    ssid?: string
     symbol?: string
     symbolOverlay?: string
 }

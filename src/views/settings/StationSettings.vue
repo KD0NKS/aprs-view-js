@@ -119,6 +119,34 @@
                         </v-layout>
 
                         <v-layout row wrap>
+                            <p>
+                                <v-divider></v-divider>
+                            </p>
+                            <h3>Station Position</h3>
+                        </v-layout>
+
+                        <!-- TODO: toggle between gps and static position -->
+
+                        <v-layout row wrap>
+                            <v-flex xs12 md6 class="px-2">
+                                <!-- TODO: Validation -->
+                                <v-text-field v-model="stationInfo.latitude"
+                                        label="latitude"
+                                        type="number"
+                                        >
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 md6 class="px-2">
+                                <!-- TODO: Validation -->
+                                <v-text-field v-model="stationInfo.longitude"
+                                        label="longitude"
+                                        type="number"
+                                        >
+                                </v-text-field>
+                            </v-flex>
+                        </v-layout>
+
+                        <v-layout row wrap>
                             <v-flex xs12 class="px-2">
                                 <v-btn color="primary" class="mr-4" type="submit" :disabled="!isStationSettingsValid" form="station-settings-form">Save</v-btn>
                                 <v-btn color="normal" class="mr-4" @click="resetStationInfo">Reset</v-btn>
@@ -135,7 +163,7 @@
     import { APRSSymbolService } from '@/services/APRSSymbolService'
     import MutationTypes from '@/MutationTypes'
     import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
-    import store from '@/store'
+    //import store from '@/store'
     import { StringUtil } from '@/utils'
     import { Mapper } from '@/utils/mappers'
 
@@ -150,9 +178,14 @@
             }
         })
         , created() {
+            console.log(JSON.stringify(this.$store.state.stationSettings))
+            console.log(JSON.stringify(this.stationInfo))
+
             // load settings here
             //https://jsfiddle.net/awolf2904/3rabkzsn/1/
-            Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(store.state.stationSettings, this.stationInfo)
+            Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
+
+            console.log(JSON.stringify(this.stationInfo))
         }
         , computed: {
             aprsSymbols() {
@@ -170,11 +203,11 @@
         , methods: {
             saveStationInfo() {
                 if(this.isStationSettingsValid) {
-                    store.commit(MutationTypes.SET_STATION_SETTINGS, this.stationInfo)
+                    this.$store.commit(MutationTypes.SET_STATION_SETTINGS, this.stationInfo)
                 }
             }
             , resetStationInfo() {
-                Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(store.state.stationSettings, this.stationInfo)
+                Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
             }
             , updateSymbol(key: string) {
                 // Dropdowns are being special and set this as a string, not an actual null/undefined value.
