@@ -11,6 +11,10 @@
                         >
                     <v-container>
                         <v-layout row wrap>
+                            <h3>Station Information</h3>
+                        </v-layout>
+
+                        <v-layout row wrap>
                             <v-flex xs12 md8 class="px-2">
                                 <v-text-field
                                         v-model="stationInfo.callsign"
@@ -119,13 +123,38 @@
                         </v-layout>
 
                         <v-layout row wrap>
-                            <p>
-                                <v-divider></v-divider>
-                            </p>
-                            <h3>Station Position</h3>
+                            <v-flex xs12 md12 class="px-2">
+                                <p>
+                                    <v-divider></v-divider>
+                                </p>
+                                <h3>Station Position</h3>
+                            </v-flex>
                         </v-layout>
 
                         <!-- TODO: toggle between gps and static position -->
+
+                        <v-layout row wrap>
+                            <v-flex xs12 md6 class="px-2">
+                                <v-switch
+                                    v-model="stationInfo.isBeaconEnabled"
+                                    label="Enable Beaconing"
+                                    >
+                                </v-switch>
+                            </v-flex>
+
+                            <v-flex xs12 md6 class="px-2">
+                                <v-slider v-model="stationInfo.beaconInterval"
+                                    label="Beacon Interval"
+                                    :hint="beaconInvervalLabel"
+                                    persistent-hint
+                                    :max="30"
+                                    :min="1"
+                                    step="0.5"
+                                    >
+
+                                </v-slider>
+                            </v-flex>
+                        </v-layout>
 
                         <v-layout row wrap>
                             <v-flex xs12 md6 class="px-2">
@@ -198,6 +227,9 @@
                 return !StringUtil.IsNullOrWhiteSpace(this.stationInfo.symbol)
                         && symbolSvc.GetSymbolByKey(this.stationInfo.symbol).isAllowOverlay === true
                         ;
+            }
+            , beaconInvervalLabel(): string {
+                return `${this.stationInfo.beaconInterval}`
             }
         }
         , methods: {
