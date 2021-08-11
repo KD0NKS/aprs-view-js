@@ -45,6 +45,7 @@
     import { Coordinate } from 'node_modules/@types/ol/coordinate'
     import MutationTypes from '@/MutationTypes'
     import { Mapper } from '@/utils/mappers'
+    import Geometry from 'ol/geom/Geometry'
 
     /**
      * Note: only 1 base layer is allowed
@@ -70,8 +71,7 @@
         private contextMenuX: number = 0
         private contextMenuY: number = 0
         private symbolService: APRSSymbolService
-        private vl: VectorLayer
-        private vectorSource: VectorSource
+        private vectorSource: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
         private map: OLMap
@@ -126,7 +126,7 @@
             })
 
             // Adds a right click/contextmenu listener to the map
-            this.map.addEventListener('contextmenu', (evt: MapBrowserEvent) => {
+            this.map.addEventListener('contextmenu', (evt: MapBrowserEvent<UIEvent>) => {
                 if(evt?.coordinate) {
                     this.clickCoordinate = toLonLat(evt.coordinate)
                 }
@@ -236,7 +236,7 @@
             }
         }
 
-        private async removeFeature(feature: Feature) {
+        private async removeFeature(feature: Feature<Geometry>) {
             this.vectorSource.removeFeature(feature)
         }
 

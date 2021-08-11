@@ -4,6 +4,7 @@ module.exports = {
     ],
     pluginOptions: {
         electronBuilder: {
+            externals: [ 'js-aprs-fap' ],
             nodeIntegration: true
         }
     }

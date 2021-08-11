@@ -78,7 +78,7 @@ TODO:
         - [ ] Track station/Track my station
     - ContextMenu
         - [/] Clear all reports
-        - [ ] Set my station position
+        - [x] Set my station position
         - [ ] Create object (low priority also requires proper handling)
     - Helpful plugins
         - [ ] Offline - [outdated] https://github.com/tbicr/OfflineMap
