@@ -22,7 +22,7 @@
 
 <script lang="ts">
     import { Component, Prop, Vue } from 'vue-property-decorator'
-    import { Coordinate } from 'node_modules/@types/ol/coordinate'
+    import { Coordinate } from 'ol/coordinate'
 
     @Component({
         props: ['contextMenu', 'coordinate', 'positionX', 'positionY' ]

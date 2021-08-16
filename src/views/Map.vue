@@ -42,7 +42,7 @@
     import { BusEventTypes } from '@/enums'
     import store from '@/store'
     import ActionTypes from '@/ActionTypes'
-    import { Coordinate } from 'node_modules/@types/ol/coordinate'
+    import { Coordinate } from 'ol/coordinate'
     import MutationTypes from '@/MutationTypes'
     import { Mapper } from '@/utils/mappers'
     import Geometry from 'ol/geom/Geometry'

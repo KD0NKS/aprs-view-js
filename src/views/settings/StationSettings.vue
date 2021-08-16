@@ -207,14 +207,9 @@
             }
         })
         , created() {
-            console.log(JSON.stringify(this.$store.state.stationSettings))
-            console.log(JSON.stringify(this.stationInfo))
-
             // load settings here
             //https://jsfiddle.net/awolf2904/3rabkzsn/1/
             Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
-
-            console.log(JSON.stringify(this.stationInfo))
         }
         , computed: {
             aprsSymbols() {

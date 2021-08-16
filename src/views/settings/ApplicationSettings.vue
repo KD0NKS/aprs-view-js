@@ -38,6 +38,16 @@
                                 <v-btn color="normal" class="mr-4" @click="resetAppSettings">Reset</v-btn>
                             </v-flex>
                         </v-layout>
+
+                        <v-layout row wrap>
+                            <v-flex xs12 md6 class="px-2">
+                                <v-switch
+                                    v-model="softwareSettings.isDarkTheme"
+                                    label="Theme"
+                                    >
+                                </v-switch>
+                            </v-flex>
+                        </v-layout>
                     </v-container>
                 </v-form>
             </v-card-text>

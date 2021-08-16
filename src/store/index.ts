@@ -7,6 +7,7 @@ import Store from 'electron-store'
 import MutationTypes from '../MutationTypes'
 import Vue from 'vue'
 import Vuex from 'vuex'
+import Vuetify from 'vuetify'
 import { Connection, IConnection, IMapSettings, IStationSettings, MapSettings, StationSettings } from '@/models'
 import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel } from '@/models/ConnectionViewModel'
@@ -15,6 +16,7 @@ import { stat } from 'original-fs'
 import { BusEventTypes } from '@/enums'
 import { SoftwareSettings } from '@/models/SoftwareSettings'
 import { ISoftwareSettings } from '@/models/ISoftwareSettings'
+import vuetify from '@/plugins/vuetify'
 
 Vue.use(Vuex)
 
