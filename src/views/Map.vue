@@ -15,15 +15,14 @@
 
 <script lang="ts">
     import 'ol/ol.css'
-
     import * as _ from 'lodash'
     import { aprsPacket } from 'js-aprs-fap'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import Point from 'ol/geom/Point'
-    import { Image as ImageLayer, Heatmap as HeatmapLayer, Tile as TileLayer} from 'ol/layer'
+    import { Heatmap as HeatmapLayer, Tile as TileLayer} from 'ol/layer'
     import BaseLayer from 'ol/layer/Base'
     import VectorLayer from 'ol/layer/Vector'
-    import { fromLonLat, fromLonLat as lngLat } from 'ol/proj'
+    import { fromLonLat, toLonLat } from 'ol/proj'
     import OSM from 'ol/source/OSM'
     import VectorSource from 'ol/source/Vector'
     import { Style, Fill, Stroke, Text } from 'ol/style'
@@ -32,7 +31,7 @@
     import { NumberUtil, StringUtil } from '@/utils'
     import { Component, Vue } from 'vue-property-decorator'
     import { mapState } from 'vuex'
-    import { APRSSymbol } from '@/models'
+    import { APRSSymbol, StationSettings } from '@/models'
     import GetterTypes from '@/GetterTypes'
     import MapContextMenu from '@/components/maps/MapContextMenu.vue'
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
@@ -40,6 +39,10 @@
     import { BusEventTypes } from '@/enums'
     import store from '@/store'
     import ActionTypes from '@/ActionTypes'
+    import { Coordinate } from 'ol/coordinate'
+    import MutationTypes from '@/MutationTypes'
+    import { Mapper } from '@/utils/mappers'
+    import Geometry from 'ol/geom/Geometry'
 
     /**
      * Note: only 1 base layer is allowed
@@ -59,13 +62,13 @@
     })
     export default class Map extends Vue {
         private aprsPackets!: Array<aprsPacket>
+        private clickCoordinate: Coordinate = []
         private connectionService!: ConnectionService
         private contextMenu: boolean = false
         private contextMenuX: number = 0
         private contextMenuY: number = 0
         private symbolService: APRSSymbolService
-        private vl: VectorLayer
-        private vectorSource: VectorSource
+        private vectorSource: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
         private map: OLMap
@@ -94,11 +97,13 @@
                 })
             ]
 
+            const stationSettings = this.$store.state.stationSettings
+
             this.map = new OLMap({
                 target: 'map'
                 , layers: layers
                 , view: new View({
-                    center: lngLat([-98.5795, 39.8283]) // Default to center of the US
+                    center: fromLonLat([-98.5795, 39.8283]) // Default to center of the US
                     , zoom: 10
                 })
             })
@@ -118,7 +123,7 @@
             })
 
             // Adds a right click/contextmenu listener to the map
-            this.map.addEventListener('contextmenu', (evt: MapBrowserEvent) => {
+            this.map.addEventListener('contextmenu', (evt: MapBrowserEvent<UIEvent>) => {
                 if(evt?.originalEvent && (evt?.originalEvent as MouseEvent).clientX) {
                     this.contextMenuX = (evt?.originalEvent as MouseEvent).clientX
                 }
@@ -202,7 +207,7 @@
             }
         }
 
-        private async removeFeature(feature: Feature) {
+        private async removeFeature(feature: Feature<Geometry>) {
             this.vectorSource.removeFeature(feature)
         }
 

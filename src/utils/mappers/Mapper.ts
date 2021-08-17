@@ -34,7 +34,9 @@ export class Mapper {
     public static CopyInto<T, U>(objFrom: T, objTo: U): U {
         if(objFrom && objTo && _.isObject(objFrom) && _.isObject(objTo)) {
             _.each(Object.keys(objTo), k => {
-                if(_.has(objFrom, k) && typeof objTo[k] == typeof objFrom[k]) {
+                // NOTE: Don't use typeof comparison here.  If one value is null and the other is not, the null value will be an object the other will be number for example.
+                // If  typeof objTo[k] == typeof objFrom[k]
+                if (_.has(objFrom, k)) {
                     objTo[k] = objFrom[k] ?? null
                 }
             })
