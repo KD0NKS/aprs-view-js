@@ -90,6 +90,11 @@ export default new Vuex.Store({
         },
         [ActionTypes.ADD_DATA]({ state }, packet: string) {
             state.aprsData.push(packet)
+
+            // TODO: This should probably be a setting to cache x amount of data.
+            if(state.aprsData.length > 1000) {
+                state.aprsData.slice(100)
+            }
         },
         [ActionTypes.ADD_PACKET]({ state }, packet: aprsPacket) {
             state.aprsPackets.push(packet)
