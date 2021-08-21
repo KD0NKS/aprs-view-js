@@ -1186,12 +1186,7 @@
   resolved "https://registry.npmjs.org/@types/minimist/-/minimist-1.2.1.tgz"
   integrity sha512-fZQQafSREFyuZcdWFAExYjBiCL7AUCdgsk80iO0q4yihYYdcIiH28CcuPTGFgLOCC8RlW49GSQxdHwZP+I7CNg==
 
-"@types/node@*":
-  version "14.14.31"
-  resolved "https://registry.npmjs.org/@types/node/-/node-14.14.31.tgz"
-  integrity sha512-vFHy/ezP5qI0rFgJ7aQnjDXwAMrG0KqqIH7tQG5PPv3BWBayOPIQNBjVc/P6hhdZfMx51REc6tfDNXHUio893g==
-
-"@types/node@^14.14.35", "@types/node@^14.6.2":
+"@types/node@*", "@types/node@^14.14.35", "@types/node@^14.6.2":
   version "14.14.35"
   resolved "https://registry.npmjs.org/@types/node/-/node-14.14.35.tgz"
   integrity sha512-Lt+wj8NVPx0zUmUwumiVXapmaLUcAk3yPuHCFVXras9k5VT9TdhJqKqGVUQCD60OTMCl0qxJ57OiTL0Mic3Iag==
@@ -3988,10 +3983,10 @@ electron-to-chromium@^1.3.793:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.807.tgz#c2eb803f4f094869b1a24151184ffbbdbf688b1f"
   integrity sha512-p8uxxg2a23zRsvQ2uwA/OOI+O4BQxzaR7YKMIGGGQCpYmkFX2CVF5f0/hxLMV7yCr7nnJViCwHLhPfs52rIYCA==
 
-electron@^13.1.9:
-  version "13.1.9"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-13.1.9.tgz#668e2632b81e9fa21edfd32876282d3e2ff7fd76"
-  integrity sha512-By4Zb72XNQLrPb70BXdIW3NtEHFwybP5DIQjohnCxOYONq5vojuHjNcTuWnBgMvwQ2qwykk6Tw5EwF2Pt0CWjA==
+electron@^13.2.1:
+  version "13.2.1"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-13.2.1.tgz#0dc89ed0e3faf327b39571de533ca1ae18878ff1"
+  integrity sha512-/K0Uw+o3+phbHtrVL6qDFVJqmeRF6EIPwVeUHEH5R8JNy13f4X3RouKjQzVyY/Os8fEqYHGFONWhD6q6g750HQ==
   dependencies:
     "@electron/get" "^1.0.1"
     "@types/node" "^14.6.2"
