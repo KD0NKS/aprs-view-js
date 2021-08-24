@@ -24,20 +24,8 @@
                         </v-flex>
                     </v-layout>
 
-                    <v-layout row wrap>
-                        <v-flex xs12 md8 class="px-2">
-                            <v-text-field label="URL" v-model="conn.host" :rules="[rules.required]"></v-text-field>
-                        </v-flex>
-                        <v-flex xs12 md4 clsss="px-2">
-                            <v-text-field label="Port" v-model="conn.port" type="number" :rules="[rules.required]"></v-text-field>
-                        </v-flex>
-                    </v-layout>
-
-                    <v-layout row wrap>
-                        <v-flex xs12 md12 class="px-2">
-                            <v-text-field label="Filter" v-model="conn.filter"></v-text-field>
-                        </v-flex>
-                    </v-layout>
+                    <ISConnectionItem v-if="conn.connectionType == 'IS_SOCKET'"></ISConnectionItem>
+                    <TNCConnectionItem v-if="conn.connectionTYpe == 'Serial TNC'"></TNCConnectionItem>
 
                     <v-layout row wrap>
                         <v-flex xs12 class="px-2">
@@ -62,13 +50,19 @@
 
 <script lang="ts">
     import { Component, Prop, Vue } from 'vue-property-decorator'
-    import { Connection } from '@/models/Connection'
-    import { ConnectionViewModel } from '@/models/ConnectionViewModel'
+    import { Connection } from '@/models/connections/Connection'
+    import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
     import { ConnectionTypes } from '@/enums/ConnectionTypes'
+    import ISConnectionItem from '@/components/settings/connections/ISConnectionItem.vue'
+    import TNCConnectionItem from '@/components/settings/connections/TNCConnectionItem.vue'
     //import store from '@/store'
 
     @Component({
         props: ['connection']
+        , components: {
+            ISConnectionItem
+            , TNCConnectionItem
+        }
     })
     export default class ConnectionItem extends Vue {
         @Prop()

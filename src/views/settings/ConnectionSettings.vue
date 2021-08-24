@@ -17,12 +17,12 @@
 
 <script lang="ts">
     import { Component, Prop, Vue } from 'vue-property-decorator'
-    import ConnectionItem from "@/components/settings/ConnectionItem.vue"
+    import ConnectionItem from "@/components/settings/connections/ConnectionItem.vue"
     import store from '@/store'
-    import { Connection } from '@/models/Connection'
+    import { Connection } from '@/models/connections/Connection'
     import ActionTypes from '@/ActionTypes'
     import MutationTypes from '@/MutationTypes'
-    import { ConnectionViewModel } from '@/models/ConnectionViewModel'
+    import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
 
     @Component({
         components: { ConnectionItem }

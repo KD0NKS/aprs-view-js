@@ -10,7 +10,7 @@ import Vue from 'vue'
 import vuetify from '@/plugins/vuetify'
 import { Mapper } from '@/utils/mappers'
 import MutationTypes from '@/MutationTypes'
-import { Connection } from '@/models/Connection'
+import { Connection } from '@/models/connections/Connection'
 import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel, MapSettings, StationSettings } from '@/models'
 

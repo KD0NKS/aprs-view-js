@@ -1,8 +1,8 @@
 import { aprsParser } from 'js-aprs-fap';
-import { Connection } from '@/models/Connection';
+import { Connection } from '@/models/connections/Connection';
 import DataEventTypes from '@/enums/DataEventTypes';
 import { EventEmitter } from 'events';
-import { IConnection } from '@/models/IConnection';
+import { IConnection } from '@/models/connections/IConnection';
 import { ISSocket } from 'js-aprs-is';
 import store from '@/store'
 //import { IObserver } from '../observable/IObserver';
