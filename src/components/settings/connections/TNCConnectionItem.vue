@@ -3,18 +3,17 @@
 </template>
 
 <script lang="ts">
-    import { Connection } from '@/models'
     import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
     import { Component, Prop, Vue } from 'vue-property-decorator'
 
     @Component({
-        props: ['connection']
+        props: [ 'connection', 'rules' ]
     })
     export default class TNCConnectionItem extends Vue {
         @Prop()
-        private connection: Connection
-        private rules = { required: value => !!value || "Required." }
+        private rules: any
 
-        private conn: ConnectionViewModel = new ConnectionViewModel()
+        @Prop()
+        private connection: ConnectionViewModel
     }
 </script>

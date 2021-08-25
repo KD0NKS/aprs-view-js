@@ -24,8 +24,18 @@
                         </v-flex>
                     </v-layout>
 
-                    <ISConnectionItem v-if="conn.connectionType == 'IS_SOCKET'"></ISConnectionItem>
-                    <TNCConnectionItem v-if="conn.connectionTYpe == 'Serial TNC'"></TNCConnectionItem>
+                    <ISConnectionItem
+                            v-if="conn.connectionType == 'IS_SOCKET'"
+                            :connection = conn
+                            :rules = rules
+                            >
+                    </ISConnectionItem>
+                    <TNCConnectionItem
+                            v-if="conn.connectionTYpe == 'SERIAL_TNC'"
+                            :connection = conn
+                            :rules = rules
+                            >
+                    </TNCConnectionItem>
 
                     <v-layout row wrap>
                         <v-flex xs12 class="px-2">
