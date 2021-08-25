@@ -26,14 +26,14 @@
 
                     <ISConnectionItem
                             v-if="conn.connectionType == 'IS_SOCKET'"
-                            :connection = conn
-                            :rules = rules
+                            :connection = "conn"
+                            :rules = "rules"
                             >
                     </ISConnectionItem>
                     <TNCConnectionItem
-                            v-if="conn.connectionTYpe == 'SERIAL_TNC'"
-                            :connection = conn
-                            :rules = rules
+                            v-if="conn.connectionType == 'SERIAL_TNC'"
+                            :connection = "conn"
+                            :rules = "rules"
                             >
                     </TNCConnectionItem>
 
