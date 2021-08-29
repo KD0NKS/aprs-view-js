@@ -27,8 +27,6 @@ export class APRSSymbolService implements IAPRSSymbolService {
     });
 
     constructor() {
-
-
         /*
          * TODO: For more fun, here's a more descriptive list
          * in the future, we could change the name accordingly for specific alt types
@@ -40,7 +38,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
             , new APRSSymbol({ key: '/%'    , value: require('@/assets/symbols/PrimaryTable/DX.png'                         ), name: "DX Station"                   , isRotatable: false    })
             , new APRSSymbol({ key: '/&'    , value: require('@/assets/symbols/PrimaryTable/Gateway.png'                    ), name: "Gateway"                      , isRotatable: false    })
             , new APRSSymbol({ key: '/\''   , value: require('@/assets/symbols/PrimaryTable/SmallAircraft.png'              ), name: "Small Aircraft"               , isRotatable: true     })
-            , new APRSSymbol({ key: '/('    , value: require('@/assets/symbols/PrimaryTable/MobileSatteliteStation.png'     ), name: "Mobile Sattelite Station"     , isRotatable: false    })
+            , new APRSSymbol({ key: '/('    , value: require('@/assets/symbols/PrimaryTable/MobileSatteliteStation.png'     ), name: "Mobile Sattelite Station"     , isRotatable: true     })
             , new APRSSymbol({ key: '/)'    , value: require('@/assets/symbols/PrimaryTable/Wheelchair.png'                 ), name: "Wheelchair"                   , isRotatable: true     })
             , new APRSSymbol({ key: '/*'    , value: require('@/assets/symbols/PrimaryTable/Snowmobile.png'                 ), name: "Snow Mobile"                  , isRotatable: true     })
             , new APRSSymbol({ key: '/+'    , value: require('@/assets/symbols/PrimaryTable/RedCross.png'                   ), name: "Red Cross"                    , isRotatable: false    })

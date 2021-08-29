@@ -19,7 +19,7 @@
     import { aprsPacket } from 'js-aprs-fap'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import Point from 'ol/geom/Point'
-    import { Heatmap as HeatmapLayer, Tile as TileLayer} from 'ol/layer'
+    import { Heatmap as HeatmapLayer, Tile as TileLayer } from 'ol/layer'
     import BaseLayer from 'ol/layer/Base'
     import VectorLayer from 'ol/layer/Vector'
     import { fromLonLat, toLonLat } from 'ol/proj'
@@ -152,11 +152,12 @@
                     })
             */
 
+            // TODO: This doesn't work
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
-                _.each(this.vectorSource.getFeatures().filter(f => _.indexOf(data, f.get('name')) > 0), f => this.removeFeature(f))
+                _.forEach(this.vectorSource.getFeatures().filter(f => _.indexOf(data, f.get('name')) > 0), f => this.removeFeature(f))
             })
 
-            _.each(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (30 * 60000)),
+            _.forEach(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (30 * 60000)),
                     async (p) => {
                         if(new Date().getTime() - p.receivedTime < (30 * 60000))
                             this.addPacket(p)

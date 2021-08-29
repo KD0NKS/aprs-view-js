@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import ActionTypes from './ActionTypes'
 import App from './App.vue'
-import DataEventTypes from '@/enums/DataEventTypes'
+import { DataEventTypes } from '@/enums'
 import router from '@/router'
 import store from '@/store'
 import Store from 'electron-store'

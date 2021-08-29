@@ -24,6 +24,7 @@ yarn install
 ```
 
 Build the project.
+NOTE: You may have to use ```yarn electron:rebuild``` to get the tnc package to properly build.
 ```
 yarn run electron:build
 ```
@@ -37,6 +38,9 @@ TODO:
 * UI
     - [ ] Restore to size, screen and location on start
     - [ ] Output window styling? https://github.com/chinchang/screenlog.js
+    - [ ] Themes
+        - [ ] Dark Theme
+        - [ ] Use OS theme?
 * Maps
     - [ ] Make maps a plugin
     - [ ] Trails
@@ -136,3 +140,9 @@ TODO:
         * Workzone
 * Overlays
     * All are original
+
+# Back-pocket notes
+- https://github.com/serialport/node-serialport/issues/1789
+- Draggable List https://codepen.io/lqy1/pen/EpXbYP
+    - https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js
+    - https://cdn.jsdelivr.net/npm/vuedraggable@2.16.0/dist/vuedraggable.min.js

@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Prop, Vue } from 'vue-property-decorator'
+    import { Component, Vue } from 'vue-property-decorator'
     import ConnectionItem from "@/components/settings/connections/ConnectionItem.vue"
     import store from '@/store'
     import { Connection } from '@/models/connections/Connection'

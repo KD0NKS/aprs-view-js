@@ -3,5 +3,3 @@ export enum DataEventTypes {
     , ERROR = 'error'
     , PACKET = 'packet'
 }
-
-export default DataEventTypes;
