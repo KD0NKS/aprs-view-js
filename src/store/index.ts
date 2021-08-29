@@ -76,6 +76,8 @@ export default new Vuex.Store({
         },
         [MutationTypes.SET_SOFTWARE_SETTINGS](state, settings: ISoftwareSettings) {
             Mapper.CopyInto<ISoftwareSettings, SoftwareSettings>(settings, state.softwareSettings)
+
+            persistentStorage.set('softwareSettings', Mapper.Map<SoftwareSettings>(state.softwareSettings, SoftwareSettings))
         },
         [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
             // state.stationSettings.propname = settings.propname doesn't work here
@@ -124,4 +126,5 @@ export default new Vuex.Store({
         }
     }
 })
+
 
