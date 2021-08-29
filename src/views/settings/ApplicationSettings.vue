@@ -66,7 +66,7 @@
             let map = []
 
             Object.keys(DistanceUnitTypes).forEach(k => {
-                map.push({ id: k, name: DistanceUnitTypes[k] })
+                map.push({ id: DistanceUnitTypes[k], name: DistanceUnitTypes[k] })
             });
 
             return map
@@ -76,14 +76,13 @@
             let map = []
 
             Object.keys(TemperatureUnitTypes).forEach(k => {
-                map.push({ id: k, name: TemperatureUnitTypes[k] })
+                map.push({ id: TemperatureUnitTypes[k], name: TemperatureUnitTypes[k] })
             });
 
             return map
         }
 
         private saveAppSettings() {
-            console.log(JSON.stringify(this.softwareSettings))
             this.$store.commit(MutationTypes.SET_SOFTWARE_SETTINGS, this.softwareSettings)
         }
 

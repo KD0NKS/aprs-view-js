@@ -55,6 +55,7 @@
     import { aprsPacket } from 'js-aprs-fap'
     import { Component, Prop, Vue } from 'vue-property-decorator'
     import { ConversionUtil } from '@/utils'
+import { DistanceUnitTypes } from '@/enums'
 
     @Component({
         props: ['packet']
