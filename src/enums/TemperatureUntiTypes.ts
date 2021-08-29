@@ -1,4 +1,4 @@
 export enum TemperatureUnitTypes {
-    CELSIUS         = 'Celius'
+    CELSIUS         = 'Celsius'
     , FARENHEIGHT   = 'Farenheight'
 }

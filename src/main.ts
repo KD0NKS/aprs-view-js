@@ -29,6 +29,8 @@ new Vue({
         const softwareSettings = Mapper.Map<SoftwareSettings>(persistentStorage.get('softwareSettings'), SoftwareSettings)
         const stationSettings = Mapper.Map<StationSettings>(persistentStorage.get('stationSettings'), StationSettings)
 
+        console.log(softwareSettings)
+
 
         if(mapSettings) {
             this.$store.commit(MutationTypes.SET_MAP_SETTINGS, mapSettings)

@@ -13,7 +13,7 @@
                                 <v-select label="Distance Units"
                                     :items="distanceUnitTypeOptions"
                                     item-text="name"
-                                    item-value="id"
+                                    item-value="name"
                                     v-model="softwareSettings.distanceUnitType"
                                     >
                                 </v-select>
@@ -25,7 +25,7 @@
                                 <v-select label="Temperature Units"
                                     :items="temperatureUnitTypeOptions"
                                     item-text="name"
-                                    item-value="id"
+                                    item-value="name"
                                     v-model="softwareSettings.temperatureUnitType"
                                     >
                                 </v-select>
@@ -83,6 +83,7 @@
         }
 
         private saveAppSettings() {
+            console.log(this.softwareSettings)
             this.$store.commit(MutationTypes.SET_SOFTWARE_SETTINGS, this.softwareSettings)
         }
 
