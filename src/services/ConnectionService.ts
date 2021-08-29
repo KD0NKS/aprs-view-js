@@ -1,6 +1,6 @@
 import { aprsParser } from 'js-aprs-fap';
 import { Connection } from '@/models/connections/Connection';
-import DataEventTypes from '@/enums/DataEventTypes';
+import { DataEventTypes } from '@/enums/DataEventTypes';
 import { EventEmitter } from 'events';
 import { IConnection } from '@/models/connections/IConnection';
 import { ISSocket } from 'js-aprs-is';

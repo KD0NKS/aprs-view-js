@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
-import Home from '../views/Home.vue'
+//import Home from '../views/Home.vue'
 
 Vue.use(VueRouter)
 
@@ -16,11 +16,16 @@ const routes: Array<RouteConfig> = [
         // which is lazy-loaded when the route is visited.
         , component: () => import(/* webpackChunkName: "main" */ '../views/About.vue')
     }, {
+        path: '/applicationSettings'
+        , name: 'applicationSettings'
+        , component: () => import(/* webpackChunkName: "main" */ '../views/settings/ApplicationSettings.vue')
+    }
+    //, {
     //    path: '/dashboard'
     //    , name: 'dasbhoard'
     //    , component: () => import(/* webpackChunkName: "main" */ '../views/Dashboard.vue')
     //}
-    //, {
+    , {
         path: '/map'
         , name: 'map'
         , component: () => import(/* webpackChunkName: "main" */ '../views/Map.vue')
