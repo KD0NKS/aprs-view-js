@@ -1,6 +1,31 @@
 <template>
     <v-card>
-        <v-card-title>{{ packet.sourceCallsign }}</v-card-title>
+        <v-card-title>
+            <div id="imgWrapper">
+                <v-img
+                        :key="symbol.key"
+                        :src="symbol.value"
+                        v-if="symbol"
+                        max-height="35px"
+                        max-width="35px"
+                        >
+                    <v-overlay absolute opacity="0" v-if="overlay">
+                        <v-img
+                                :key="overlay.key"
+                                :src="overlay.value"
+                                max-height="35px"
+                                max-width="35px"
+                                class="d-flex fill-height"
+                                style="flex-direction:column"
+                                >
+                        </v-img>
+                    </v-overlay>
+                </v-img>
+            </div>
+            <div>
+                {{ packet.sourceCallsign }}
+            </div>
+        </v-card-title>
         <v-divider></v-divider>
         <v-card-text style="max-height: 50vh">
             <div v-if="packet">
@@ -55,14 +80,20 @@
     import { aprsPacket } from 'js-aprs-fap'
     import { Component, Prop, Vue } from 'vue-property-decorator'
     import { ConversionUtil } from '@/utils'
-import { DistanceUnitTypes } from '@/enums'
+    import { APRSSymbol } from '@/models'
 
     @Component({
-        props: ['packet']
+        props: [ 'overlay', 'packet', 'symbol']
     })
     export default class StationFeatureCard extends Vue {
         @Prop()
+        private overlay: APRSSymbol | undefined
+
+        @Prop()
         private packet: aprsPacket
+
+        @Prop()
+        private symbol: APRSSymbol
 
         private get applicationSettings() {
             return this.$store.state.softwareSettings
@@ -89,3 +120,8 @@ import { DistanceUnitTypes } from '@/enums'
         }
     }
 </script>
+<style scoped lang="sass">
+    .v-overlay__content
+        height: 100%
+        width: 100%
+</style>

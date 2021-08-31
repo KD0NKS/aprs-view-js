@@ -1,7 +1,12 @@
 <template>
     <div id="map">
         <v-dialog id="stationInfoDialog" justify="center" scrollable max-width="50%" v-model="isShowStationInfo">
-            <StationFeatureCard :packet='stationInfoPacket' v-on:close="isShowStationInfo = false" />
+            <StationFeatureCard
+                    :overlay='stationIconOverlay'
+                    :packet='stationInfoPacket'
+                    :symbol = 'stationIcon'
+                    v-on:close="isShowStationInfo = false"
+                    />
         </v-dialog>
         <MapContextMenu
             :contextMenu='contextMenu'
@@ -71,6 +76,18 @@
         private vectorSource: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
+        // Fake vue out and set a default overlay for the info card to make it reactive
+        private stationIconOverlay: APRSSymbol = new APRSSymbol({
+                    key: "logo"
+                    , value: require('@/assets/radio-tower.png')
+                    , name: "Radio Tower"
+                    })
+        // Fake vue out and set a default station icon for the info card to make it reactive
+        private stationIcon: APRSSymbol = new APRSSymbol({
+                    key: "logo"
+                    , value: require('@/assets/radio-tower.png')
+                    , name: "Radio Tower"
+                    })
         private map: OLMap
 
         constructor() {
@@ -110,12 +127,16 @@
 
             // display popup on click
             this.map.on('singleclick', async (evt) => {
+                // TODO: This seems to be getting the one on the bottom of the pile
                 var feature = this.map.forEachFeatureAtPixel(evt.pixel, (feature) => {
                     return feature
                 })
 
                 if(feature) {
                     let pkt = await this.$store.getters[GetterTypes.GET_PACKET](feature.get('name'))
+                    const icon = this.symbolService.GetAPRSSymbol(pkt.symbolcode, pkt.symboltable)
+                    this.stationIcon = icon['symbol']
+                    this.stationIconOverlay = icon['overlay']
 
                     this.stationInfoPacket = pkt
                     this.isShowStationInfo = true
@@ -253,7 +274,6 @@
                         , offsetY: -15
                         , font: 'bold 12px/1 Verdana'
                         , textAlign: 'left'
-                        ,
                     })
                 )
             }
