@@ -1,6 +1,18 @@
 <template>
-    <v-expansion-panel>
-        <v-expansion-panel-header>{{ connection.name }}</v-expansion-panel-header>
+    <v-expansion-panel :readonly="readonly">
+        <v-expansion-panel-header>
+            <div>
+                <v-icon small color="green" v-if="connection.isConnected">mdi-power-plug</v-icon>
+                <v-icon small color="red" v-else>mdi-power-plug-off</v-icon>
+                {{ connection.name }}
+            </div>
+            <!-- @click.native.stop prevents the panel from expanding when the connection is enabled -->
+            <v-switch label="Enabled"
+                    v-model="connection.isEnabled"
+                    @click.native.stop
+                    >
+            </v-switch>
+        </v-expansion-panel-header>
         <v-expansion-panel-content>
             <v-container>
                 <v-form
@@ -19,7 +31,6 @@
                                 item-text="name"
                                 item-value="id"
                                 v-model="conn.connectionType"
-
                             ></v-select>
                         </v-flex>
                     </v-layout>
@@ -47,7 +58,6 @@
 
                     <v-layout row wrap>
                         <v-flex xs12 md12 class="px-2">
-                            <!--<v-switch v-model="connection.isEnabled" v-on:change="(event) => this.$emit('enableConnection', event)" label="Enabled"></v-switch>-->
                             <v-switch v-model="connection.isEnabled" label="Enabled"></v-switch>
                         </v-flex>
                     </v-layout>
@@ -65,6 +75,7 @@
     import { ConnectionTypes } from '@/enums/ConnectionTypes'
     import ISConnectionItem from '@/components/settings/connections/ISConnectionItem.vue'
     import TNCConnectionItem from '@/components/settings/connections/TNCConnectionItem.vue'
+    import '@mdi/font/css/materialdesignicons.css'
     //import store from '@/store'
 
     @Component({
@@ -81,6 +92,7 @@
         private conn: ConnectionViewModel = new ConnectionViewModel()
 
         private isValid: boolean = false
+        private readonly: boolean = false
         private rules = { required: value => !!value || "Required." }
 
         private created() {
@@ -106,9 +118,29 @@
         private reset(): void {
             Vue.set(this.conn, 'name', this.connection.name)
             Vue.set(this.conn, 'connectionType', this.connection.connectionType)
-            Vue.set(this.conn, 'host', this.connection.host)
-            Vue.set(this.conn, 'port', this.connection.port)
-            Vue.set(this.conn, 'filter', this.connection.filter)
+
+            if(this.connection.connectionType == 'IS_SOCKET') {
+                Vue.set(this.conn, 'host', this.connection.host)
+                Vue.set(this.conn, 'port', this.connection.port)
+                Vue.set(this.conn, 'filter', this.connection.filter)
+            } else if(this.connection.connectionType == 'SERIAL_TNC') {
+                Vue.set(this.conn, 'comPort', this.connection.comPort)
+                Vue.set(this.conn, 'charset', this.connection.charset)
+                Vue.set(this.conn, 'exitCommands', this.connection.exitCommands)
+                Vue.set(this.conn, 'messageDelimieter', this.connection.messageDelimieter)
+                Vue.set(this.conn, 'initCommands', this.connection.initCommands)
+                Vue.set(this.conn, 'autoOpen', this.connection.autoOpen)
+                Vue.set(this.conn, 'baudRate', this.connection.baudRate)
+                Vue.set(this.conn, 'dataBits', this.connection.dataBits)
+                Vue.set(this.conn, 'highWaterMark', this.connection.highWaterMark)
+                Vue.set(this.conn, 'lock', this.connection.lock)
+                Vue.set(this.conn, 'stopBits', this.connection.stopBits)
+                Vue.set(this.conn, 'parity', this.connection.parity)
+                Vue.set(this.conn, 'rtscts', this.connection.rtscts)
+                Vue.set(this.conn, 'xany', this.connection.xany)
+                Vue.set(this.conn, 'xon', this.connection.xon)
+                Vue.set(this.conn, 'xoff', this.connection.xoff)
+            }
         }
 
         private save(): void {
@@ -117,28 +149,4 @@
             }
         }
     }
-
-/*
-  , computed: {
-        isConnected() {
-            if(this.item.connection !== null && this.item.connection !== undefined) {
-                return this.item.connection.isConnected();
-            }
-
-            return false;
-        }
-    },
-    methods: {
-        cancel() {}
-        , remove() {}
-        , edit() {}
-        , reset() {
-            this.item.name = this.originalName;
-        }
-        , save() {
-            this.originalName = this.item.name;
-        }
-    }
-};
-*/
 </script>

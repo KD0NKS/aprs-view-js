@@ -5,7 +5,7 @@ export class Mapper {
      * Usage is screwy, however, typescript does not handle creating a new instance of a generic type inside of a generic method gracefully.
      * https://github.com/microsoft/TypeScript/issues/204#issuecomment-122414105
      *
-     * Mapper.MapObject<StationSettings>(persistentStorage.get('stationSettings'), StationSettings)
+     * Mapper.Map<StationSettings>(persistentStorage.get('stationSettings'), StationSettings)
      */
     public static Map<T>(obj: any, ctor: ctorOf<T>): T {
         // This may not work in all cases

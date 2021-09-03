@@ -83,7 +83,6 @@
         }
 
         private saveAppSettings() {
-            console.log(this.softwareSettings)
             this.$store.commit(MutationTypes.SET_SOFTWARE_SETTINGS, this.softwareSettings)
         }
 

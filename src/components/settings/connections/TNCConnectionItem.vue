@@ -2,50 +2,107 @@
     <div>
         <v-layout row wrap>
             <v-flex xs12 md6 class="px-2">
-                <v-text-field label="COM Port"></v-text-field>
+                <v-select
+                    :items="comPorts"
+                    item-text="path"
+                    item-value="path"
+                    label="COM Port"
+                    v-model="connection.comPort"
+                ></v-select>
+            </v-flex>
+
+            <v-flex xs12 md6 class="px-2">
+                <v-text-field label="Baud Rate" type="number" v-model="connection.baudRate"></v-text-field>
             </v-flex>
         </v-layout>
 
         <v-layout row wrap>
             <v-flex xs12 md6 class="px-2">
-                <v-text-field label="Data Bits"></v-text-field>
+                <v-select
+                    :items="dataBitOptions"
+                    label="Data Bit"
+                    v-model="connection.dataBits"
+                    >
+                </v-select>
+            </v-flex>
+
+            <v-flex xs12 md6 class="px-2">
+                <v-select
+                    :items="stopBitOptions"
+                    label="Stop Bits"
+                    v-model="connection.stopBits"
+                    >
+                </v-select>
             </v-flex>
         </v-layout>
 
         <v-layout row wrap>
             <v-flex xs12 md6 class="px-2">
-                <v-text-field label="Stop Bits"></v-text-field>
+                <v-select
+                    :items="parityOptions"
+                    label="Parity"
+                    v-model="connection.parity"
+                    >
+                </v-select>
+            </v-flex>
+
+            <v-flex xs12 md6 class="px-2">
+                <v-select
+                    :items="charSetOptions"
+                    label="Character Set"
+                    v-model="connection.charset"
+                    >
+                </v-select>
             </v-flex>
         </v-layout>
 
         <v-layout row wrap>
             <v-flex xs12 md6 class="px-2">
-                <v-text-field label="Parity"></v-text-field>
+                <v-select
+                    :items="eolCharOptions"
+                    item-text="key"
+                    item-value="value"
+                    label="EOL Character"
+                    v-model="connection.messageDelimieter"
+                    >
+                </v-select>
             </v-flex>
         </v-layout>
 
-        <v-layout row wrap>
+        <v-layout row>
             <v-flex xs12 md6 class="px-2">
-                <v-text-field label="Baud Rate"></v-text-field>
+                <v-list id="initCommandList" dense subheader>
+                    <v-subheader>Init Commands</v-subheader>
+                    <TNCCommand :command="command" v-for="command in connection.initCommands" :key="command" />
+                </v-list>
+            </v-flex>
+            <v-flex xs12 md6 class="px-2">
+                <v-list id="exitCommandList" dense subheader>
+                    <v-subheader>Exit Commands</v-subheader>
+                    <TNCCommand :command="command" v-for="command in connection.exitCommands" :key="command" />
+                </v-list>
             </v-flex>
         </v-layout>
 
-        <v-layout row wrap>
-            <!-- INIT COMMANDS -->
-        </v-layout>
-
-        <v-layout row wrap>
-            <!-- TERM COMMANDS -->
-        </v-layout>
+        <!--
+            NOTE: an rtscts option may need to be added.  this is a send/clear to send flow control for RS-232 chips
+        -->
     </div>
 </template>
 
 <script lang="ts">
+    import _ from 'lodash'
     import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
     import { Component, Prop, Vue } from 'vue-property-decorator'
+    import { SerialPortUtil } from 'js-aprs-tnc'
+    import { EolCharEnum } from '@/enums'
+    import TNCCommand from '@/components/settings/connections/TNCCommand.vue'
 
     @Component({
         props: [ 'connection', 'rules' ]
+        , components: {
+            TNCCommand
+        }
     })
     export default class TNCConnectionItem extends Vue {
         @Prop()
@@ -53,5 +110,39 @@
 
         @Prop()
         private connection: ConnectionViewModel
+        private comPorts = []
+
+        private charSetOptions = [ 'ascii', 'utf8', 'utf16le', 'ucs2', 'base64', 'binary', 'hex' ]
+        private dataBitOptions = [ 5, 6, 7, 8]
+        private stopBitOptions = [ 1, 2 ]
+        private parityOptions = [ 'none', 'even', 'odd', 'mark', 'space' ]
+
+        constructor() {
+            super()
+
+            // Get all available serial ports
+            SerialPortUtil.getAvailableSerialPorts().then((ports) => {
+                _.forEach(ports, port => {
+                    if(port.manufacturer
+                            || port.serialNumber
+                            || port.pnpId
+                            || port.locationId
+                            || port.productId
+                            || port.vendorId) {
+                        this.comPorts.push(port)
+                    }
+                })
+            })
+        }
+
+        private get eolCharOptions() {
+            let map = []
+
+            Object.keys(EolCharEnum).forEach(k => {
+                map.push({ key: k, value: EolCharEnum[k] })
+            });
+
+            return map
+        }
     }
 </script>

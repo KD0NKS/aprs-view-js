@@ -14,6 +14,7 @@ import { Connection } from '@/models/connections/Connection'
 import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel, MapSettings, StationSettings } from '@/models'
 import { SoftwareSettings } from './models/SoftwareSettings'
+import { app } from 'electron'
 
 export const bus = new Vue()
 const persistentStorage = new Store()
@@ -42,14 +43,14 @@ new Vue({
         }
 
         // Load connections.
-        const connections = Object.entries(persistentStorage.get('connections')).map(element => {
-            const props = Mapper.Map<ConnectionViewModel>(element[1], ConnectionViewModel)
-
-            return new Connection(props)
-        })
-
-        _.each(connections, conn => {
-            this.$store.dispatch(ActionTypes.ADD_CONNECTION, conn)
+        _.forEach(Object.entries(persistentStorage.get('connections')), (element) => {
+            // Create a new connection by using the element and mapping it to a connection view model
+            this.$store.dispatch(
+                ActionTypes.ADD_CONNECTION
+                , new Connection(
+                    Mapper.Map<ConnectionViewModel>(element[1], ConnectionViewModel)
+                )
+            )
         })
 
         // TODO: packet service - packet settings
@@ -60,9 +61,14 @@ new Vue({
 
         let packetCount: number = 0 // NOTE: temporary id until database is implemented
         this.$store.state.connectionService.on(DataEventTypes.PACKET, (packet: aprsPacket) => {
-            packet.id = packetCount.toString()
-            this.$store.dispatch(ActionTypes.ADD_PACKET, packet)
-            packetCount++
+            if(packet) {
+                packet.id = packetCount.toString()
+                this.$store.dispatch(ActionTypes.ADD_PACKET, packet)
+                packetCount++
+            }
         })
+
+        // TODO: Gracefully kill all connections
+        //app.on('before-quit', () => { })
     }
 }).$mount('#app');

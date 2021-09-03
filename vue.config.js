@@ -4,7 +4,7 @@ module.exports = {
     ],
     pluginOptions: {
         electronBuilder: {
-            externals: [ 'js-aprs-fap' ],
+            externals: [ 'serialport', 'js-aprs-fap', 'js-aprs-tnc' ],
             nodeIntegration: true
         }
     }
