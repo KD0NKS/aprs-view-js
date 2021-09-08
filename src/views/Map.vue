@@ -36,7 +36,7 @@
     import { NumberUtil, StringUtil } from '@/utils'
     import { Component, Vue } from 'vue-property-decorator'
     import { mapState } from 'vuex'
-    import { APRSSymbol, StationSettings } from '@/models'
+    import { APRSSymbol, MapSettings, StationSettings } from '@/models'
     import GetterTypes from '@/GetterTypes'
     import MapContextMenu from '@/components/maps/MapContextMenu.vue'
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
@@ -48,10 +48,12 @@
     import MutationTypes from '@/MutationTypes'
     import { Mapper } from '@/utils/mappers'
     import Geometry from 'ol/geom/Geometry'
+    import configureCompat from 'vue'
 
     /**
      * Note: only 1 base layer is allowed
      * TODO: aprspacket to computed, reduce, and filtered:  mapState(['aprsPackets'])
+     * TODO: Can watch be used somehow to decouple from aprsPacket events? Initial investigation showed the old and new array values were identical
      */
     @Component({
         components: {
@@ -62,6 +64,7 @@
             ...mapState({
                 aprsPackets: 'aprsPackets'
                 , connectionService: 'connectionService'
+                , mapSettings: 'mapSettings'
             })
         }
     })
@@ -72,6 +75,7 @@
         private contextMenu: boolean = false
         private contextMenuX: number = 0
         private contextMenuY: number = 0
+        private mapSettings!: MapSettings
         private symbolService: APRSSymbolService
         private vectorSource: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
@@ -162,7 +166,7 @@
                 return [...accumulator, this.generateFeature(currentValue)]
             }, []))
             */
-            this.connectionService.on('packet', async (p) => {
+            bus.$on(BusEventTypes.PACKET_ADDED, async (p) => {
                 this.addPacket(p)
             })
 
@@ -173,15 +177,23 @@
                     })
             */
 
-            // TODO: This doesn't work
+            // TODO: Why is this hitting 2-4 times?
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
-                _.forEach(this.vectorSource.getFeatures().filter(f => _.indexOf(data, f.get('name')) > 0), f => this.removeFeature(f))
+                const toRemove = _.filter(this.vectorSource.getFeatures(), f => _.indexOf(data, f.getProperties()['name']) > 0)
+                //console.log(toRemove)
+
+                _.forEach(toRemove, f => this.removeFeature(f))
             })
 
-            _.forEach(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (30 * 60000)),
+            /*
+            bus.$on("packetsRemoved", (data) => {
+                _.forEach(this.vectorSource.getFeatures().filter(f => _.indexOf(data, f.get('name')) > 0), f => this.removeFeature(f))
+            })
+            */
+
+            _.forEach(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (this.mapSettings.pointLifetime * 60000)),
                     async (p) => {
-                        if(new Date().getTime() - p.receivedTime < (30 * 60000))
-                            this.addPacket(p)
+                        this.addPacket(p)
                     })
         }
 
@@ -192,6 +204,7 @@
 
         private clearAllStations(): void {
             // Hack for a much more complex problem...
+            // TODO: There needs to be a clearall packets/data in the store
             this.$store.dispatch(ActionTypes.REMOVE_PACKETS, this.vectorSource.getFeatures().map(f => f.get('name')))
         }
 

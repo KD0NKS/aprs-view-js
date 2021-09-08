@@ -85,6 +85,7 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
 
             conn.connection?.on('error', (err: Error) => {
                 this.emit(DataEventTypes.ERROR, err)
+                conn.connection.end()
             })
         }
     }

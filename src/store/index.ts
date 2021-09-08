@@ -106,6 +106,7 @@ export default new Vuex.Store({
         },
         [ActionTypes.ADD_PACKET]({ state }, packet: aprsPacket) {
             state.aprsPackets.push(packet)
+            bus.$emit(BusEventTypes.PACKET_ADDED, packet)
         },
         [ActionTypes.REMOVE_PACKETS]({ state }, ids: string[]) {
             this.commit(MutationTypes.REMOVE_PACKETS, ids)

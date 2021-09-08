@@ -6,7 +6,6 @@
                 <v-icon small color="red" v-else>mdi-power-plug-off</v-icon>
                 {{ connection.name }}
             </div>
-            <!-- @click.native.stop prevents the panel from expanding when the connection is enabled -->
             <v-switch label="Enabled"
                     v-model="connection.isEnabled"
                     @click.native.stop

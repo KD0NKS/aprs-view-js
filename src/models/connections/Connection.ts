@@ -96,6 +96,7 @@ export class Connection implements IConnection {
         if(this._connection) {
             if(this._isEnabled === false) {
                 this._connection.end()  // planning to depricate disconnect
+                this._connection.destroy()
             } else {
                 if(this.connectionType == 'IS_SOCKET') {
                     const c = this._connection as ISSocket

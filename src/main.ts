@@ -14,9 +14,9 @@ import { Connection } from '@/models/connections/Connection'
 import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel, MapSettings, StationSettings } from '@/models'
 import { SoftwareSettings } from './models/SoftwareSettings'
-import { app } from 'electron'
 
 export const bus = new Vue()
+
 const persistentStorage = new Store()
 
 new Vue({
