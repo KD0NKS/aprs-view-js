@@ -132,9 +132,7 @@
             // display popup on click
             this.map.on('singleclick', async (evt) => {
                 // TODO: This seems to be getting the one on the bottom of the pile
-                var feature = this.map.forEachFeatureAtPixel(evt.pixel, (feature) => {
-                    return feature
-                })
+                var feature = _.reverse(this.map.getFeaturesAtPixel(evt.pixel))[0]
 
                 if(feature) {
                     let pkt = await this.$store.getters[GetterTypes.GET_PACKET](feature.get('name'))
@@ -185,12 +183,6 @@
                 _.forEach(toRemove, f => this.removeFeature(f))
             })
 
-            /*
-            bus.$on("packetsRemoved", (data) => {
-                _.forEach(this.vectorSource.getFeatures().filter(f => _.indexOf(data, f.get('name')) > 0), f => this.removeFeature(f))
-            })
-            */
-
             _.forEach(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (this.mapSettings.pointLifetime * 60000)),
                     async (p) => {
                         this.addPacket(p)
@@ -200,6 +192,7 @@
         // contextMenu actions
         private closeContextMenu(): void {
             this.contextMenu = false
+            this.stationInfoPacket = null
         }
 
         private clearAllStations(): void {
