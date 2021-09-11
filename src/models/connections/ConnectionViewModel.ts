@@ -13,6 +13,7 @@ export class ConnectionViewModel implements IConnection {
     public charset?: 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'binary' | 'hex' = 'ascii'
     public exitCommands?: string[] = ["DIGI OFF", "UIDIGI OFF WIDE1-1", "BEACON EVERY 0", "HID OFF", "CD INTERNAL", "INTFACE TERMINAL", "ECHO ON"]
     public messageDelimieter? = '\r'
+    public myCallCommand?: string = ''
     public initCommands?: string[] = ["ECHO OFF", "INTFACE TERMINAL", "CD SOFTWARE", "LFAOFF", "AUTOLF ON", "MONITOR ON", "MCON OFF"
         , "MALL ON", "MCOM OFF", "MXMIT OFF", "BEACON EVERY 0", "BLT EVERY 0", "UIDIGI OFF WIDE1-1", "DIGIPEAT OFF", "UIDWAIT OFF"
         , "PID OFF", "HEADERLN OFF", "PASSALL OFF", "FLOW ON", "HID OFF", "MSTAMP OFF", "NEWMODE OFF", "XFLOW ON", "HBAUD 1200", "ECHO ON"]

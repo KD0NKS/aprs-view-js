@@ -25,6 +25,7 @@ export class Connection implements IConnection {
     public charset?: 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'binary' | 'hex'
     public exitCommands?: string[]
     public messageDelimieter?
+    public myCallCommand?: string = null
     public initCommands?: string[]
     public autoOpen?: boolean
     public baudRate?: 115200 | 57600 | 38400 | 19200 | 9600 | 4800 | 2400 | 1800 | 1200 | 600 | 300 | 200 | 150 | 134 | 110 | 75 | 50 | number
@@ -64,6 +65,8 @@ export class Connection implements IConnection {
             } else if (connection.connectionType == 'SERIAL_TNC') {
                 const terminalSettings: TerminalSettings = new TerminalSettings()
                 connection.comPort = this.comPort
+                connection.myCallCommand = this.myCallCommand
+
                 terminalSettings.autoOpen = this.autoOpen
                 terminalSettings.baudRate = this.baudRate
                 terminalSettings.charset = this.charset
@@ -95,8 +98,11 @@ export class Connection implements IConnection {
 
         if(this._connection) {
             if(this._isEnabled === false) {
-                this._connection.end()  // planning to depricate disconnect
-                this._connection.destroy()
+                try {
+                    this._connection.end(() => { this._connection.destroy() })
+                } catch (e) {
+                    this._connection.destroy()
+                }
             } else {
                 if(this.connectionType == 'IS_SOCKET') {
                     const c = this._connection as ISSocket
@@ -120,8 +126,11 @@ export class Connection implements IConnection {
 
     public set connection(conn: ISSocket | TerminalConnection) {
         if(this._connection && this._connection !== null && this.connection !== undefined) {
-            this._connection.end()
-            this._connection.destroy()
+            try {
+                this._connection.end(() => { this._connection.destroy() })
+            } catch(e) {
+                this._connection.destroy()
+            }
         }
 
         this._connection = conn

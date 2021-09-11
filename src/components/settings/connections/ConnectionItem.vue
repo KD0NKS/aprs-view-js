@@ -68,6 +68,7 @@
 
 
 <script lang="ts">
+    import _ from 'lodash'
     import { Component, Prop, Vue } from 'vue-property-decorator'
     import { Connection } from '@/models/connections/Connection'
     import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
@@ -125,9 +126,8 @@
             } else if(this.connection.connectionType == 'SERIAL_TNC') {
                 Vue.set(this.conn, 'comPort', this.connection.comPort)
                 Vue.set(this.conn, 'charset', this.connection.charset)
-                Vue.set(this.conn, 'exitCommands', this.connection.exitCommands)
                 Vue.set(this.conn, 'messageDelimieter', this.connection.messageDelimieter)
-                Vue.set(this.conn, 'initCommands', this.connection.initCommands)
+                Vue.set(this.conn, 'myCallCommand', this.connection.myCallCommand)
                 Vue.set(this.conn, 'autoOpen', this.connection.autoOpen)
                 Vue.set(this.conn, 'baudRate', this.connection.baudRate)
                 Vue.set(this.conn, 'dataBits', this.connection.dataBits)
@@ -139,6 +139,17 @@
                 Vue.set(this.conn, 'xany', this.connection.xany)
                 Vue.set(this.conn, 'xon', this.connection.xon)
                 Vue.set(this.conn, 'xoff', this.connection.xoff)
+
+                // Arrays must be deep copied
+                Vue.set(this.conn, 'exitCommands', [])
+                _.forEach(this.connection.exitCommands, c => {
+                    this.conn.exitCommands.push(c)
+                })
+
+                Vue.set(this.conn, 'initCommands', [])
+                _.forEach(this.connection.initCommands, c => {
+                    this.conn.initCommands.push(c)
+                })
             }
         }
 

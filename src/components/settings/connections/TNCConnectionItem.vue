@@ -58,6 +58,9 @@
 
         <v-layout row wrap>
             <v-flex xs12 md6 class="px-2">
+                <v-text-field label="MYCALL Command" v-model="connection.myCallCommand"></v-text-field>
+            </v-flex>
+            <v-flex xs12 md6 class="px-2">
                 <v-select
                     :items="eolCharOptions"
                     item-text="key"
@@ -71,15 +74,27 @@
 
         <v-layout row>
             <v-flex xs12 md6 class="px-2">
-                <v-list id="initCommandList" dense subheader>
+                <v-list v-model="connection.initCommands">
                     <v-subheader>Init Commands</v-subheader>
-                    <TNCCommand :command="command" v-for="command in connection.initCommands" :key="command" />
+
+                    <draggable v-model="connection.initCommands" @start="drag=true" @end="drag=false">
+                        <div v-for="(item, index) in connection.initCommands" :key="index">
+                            <!-- TODO: Deep copying may not need to be done in the parent if this had a key?... works for now -->
+                            <TNCCommand :command.sync="connection.initCommands[index]" />
+                        </div>
+                    </draggable>
                 </v-list>
             </v-flex>
             <v-flex xs12 md6 class="px-2">
-                <v-list id="exitCommandList" dense subheader>
+                <v-list v-model="connection.exitCommands">
                     <v-subheader>Exit Commands</v-subheader>
-                    <TNCCommand :command="command" v-for="command in connection.exitCommands" :key="command" />
+
+                    <draggable v-model="connection.exitCommands" @start="drag=true" @end="drag=false">
+                        <div v-for="(item, index) in connection.exitCommands" :key="index">
+                            <!-- TODO: Deep copying may not need to be done in the parent if this had a key?... works for now -->
+                            <TNCCommand :command.sync="connection.exitCommands[index]" :key="index" />
+                        </div>
+                    </draggable>
                 </v-list>
             </v-flex>
         </v-layout>
@@ -93,15 +108,17 @@
 <script lang="ts">
     import _ from 'lodash'
     import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
-    import { Component, Prop, Vue } from 'vue-property-decorator'
+    import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
     import { SerialPortUtil } from 'js-aprs-tnc'
     import { EolCharEnum } from '@/enums'
     import TNCCommand from '@/components/settings/connections/TNCCommand.vue'
+    import draggable from 'vuedraggable'
 
     @Component({
         props: [ 'connection', 'rules' ]
         , components: {
-            TNCCommand
+            draggable
+            , TNCCommand
         }
     })
     export default class TNCConnectionItem extends Vue {
