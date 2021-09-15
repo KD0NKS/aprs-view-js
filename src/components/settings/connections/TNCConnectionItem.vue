@@ -77,10 +77,12 @@
                 <v-list v-model="connection.initCommands">
                     <v-subheader>Init Commands</v-subheader>
 
-                    <draggable v-model="connection.initCommands" @start="drag=true" @end="drag=false">
+                    <draggable v-model="connection.initCommands" @start="drag=true" @end="drag=false" handle=".handle">
                         <div v-for="(item, index) in connection.initCommands" :key="index">
                             <!-- TODO: Deep copying may not need to be done in the parent if this had a key?... works for now -->
-                            <TNCCommand :command.sync="connection.initCommands[index]" />
+                            <TNCCommand :command.sync="connection.initCommands[index]"
+                                    v-on:removeCommand="removeCommand(connection.initCommands, index)"
+                                    />
                         </div>
                     </draggable>
                 </v-list>
@@ -92,7 +94,9 @@
                     <draggable v-model="connection.exitCommands" @start="drag=true" @end="drag=false">
                         <div v-for="(item, index) in connection.exitCommands" :key="index">
                             <!-- TODO: Deep copying may not need to be done in the parent if this had a key?... works for now -->
-                            <TNCCommand :command.sync="connection.exitCommands[index]" :key="index" />
+                            <TNCCommand :command.sync="connection.exitCommands[index]"
+                                    v-on:removeCommand="removeCommand(connection.exitCommands, index)"
+                                    />
                         </div>
                     </draggable>
                 </v-list>
@@ -160,6 +164,10 @@
             });
 
             return map
+        }
+
+        private removeCommand(list, index): void {
+            list.splice(index, 1)
         }
     }
 </script>

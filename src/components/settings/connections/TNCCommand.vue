@@ -1,6 +1,10 @@
 <template>
     <v-list-item dense>
+        <v-icon class="handle">mdi-drag-vertical</v-icon>
         <v-text-field v-model="localCommand" />
+        <v-btn icon @click="removeCommand">
+            <v-icon>mdi-close</v-icon>
+        </v-btn>
     </v-list-item>
 </template>
 
@@ -29,6 +33,10 @@
         @Watch('localCommand')
         onLocalCommandChanged(value: string) {
             this.$emit('update:command', this.localCommand)
+        }
+
+        private removeCommand() {
+            this.$emit('removeCommand')
         }
     }
 </script>
