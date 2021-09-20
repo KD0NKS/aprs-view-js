@@ -85,6 +85,13 @@
                                     />
                         </div>
                     </draggable>
+                    <v-list-item xs3>
+                        <v-list-item-content>
+                            <div>
+                                <v-btn text @click="addCommand(connection.initCommands)"><v-icon>mdi-plus</v-icon> Add Init Command</v-btn>
+                            </div>
+                        </v-list-item-content>
+                    </v-list-item>
                 </v-list>
             </v-flex>
             <v-flex xs12 md6 class="px-2">
@@ -99,6 +106,13 @@
                                     />
                         </div>
                     </draggable>
+                    <v-list-item xs3>
+                        <v-list-item-content>
+                            <div>
+                                <v-btn text @click="addCommand(connection.exitCommands)"><v-icon>mdi-plus</v-icon> Add Exit Command</v-btn>
+                            </div>
+                        </v-list-item-content>
+                    </v-list-item>
                 </v-list>
             </v-flex>
         </v-layout>
@@ -164,6 +178,10 @@
             });
 
             return map
+        }
+
+        private addCommand(list): void {
+            list.push("")
         }
 
         private removeCommand(list, index): void {
