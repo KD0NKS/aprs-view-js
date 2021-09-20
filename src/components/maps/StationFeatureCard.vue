@@ -95,28 +95,24 @@
         @Prop()
         private symbol: APRSSymbol
 
-        private get applicationSettings() {
-            return this.$store.state.softwareSettings
-        }
-
         private get altitude() {
-            return ConversionUtil.metersFeetWithLabel(this.packet.altitude, this.applicationSettings.distanceUnitType)
+            return ConversionUtil.metersFeetWithLabel(this.packet.altitude, this.$store.state.softwareSettings.distanceUnitType)
         }
 
         private get speed() {
-            return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.applicationSettings.distanceUnitType)
+            return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.$store.state.softwareSettings.distanceUnitType)
         }
 
         private get temperature() {
-            return ConversionUtil.getTemperatureWithLabel(parseFloat(this.packet.wx?.temp), this.applicationSettings.temperatureUnitType)
+            return ConversionUtil.getTemperatureWithLabel(parseFloat(this.packet.wx?.temp), this.$store.state.softwareSettings.temperatureUnitType)
         }
 
         private get windSpeed() {
-            return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_speed), this.applicationSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
+            return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_speed), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
         }
 
         private get windGust() {
-            return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_gust), this.applicationSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
+            return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_gust), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
         }
     }
 </script>
