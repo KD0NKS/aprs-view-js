@@ -1,7 +1,7 @@
 <template>
     <div class="connectionSettings" style="padding: 10px">
         <div class="text-xs-center mb-3">
-            <h1>Connection Settings <v-btn icon @click="addConnection"><v-icon>mdi-plus</v-icon></v-btn></h1>
+            <h1>Connection Settings</h1>
         </div>
 
         <v-expansion-panels v-for="(item, name) in connections" :key="name">
@@ -11,6 +11,10 @@
                     >
             </ConnectionItem>
         </v-expansion-panels>
+
+        <div style="center">
+            <v-btn text @click="addConnection"><v-icon>mdi-plus</v-icon> Add Connection</v-btn>
+        </div>
     </div>
 </template>
 
