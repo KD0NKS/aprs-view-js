@@ -45,10 +45,10 @@
 </template>
 
 <script lang="ts">
+    import ActionTypes from '@/ActionTypes'
     import { Component, Prop, Vue } from 'vue-property-decorator'
     import { MapSettings as vm } from '@/models/MapSettings'
     import { Mapper } from '@/utils/mappers'
-    import MutationTypes from '@/MutationTypes'
 
     @Component({
     })
@@ -68,7 +68,7 @@
 
         private saveMapSettings() {
             if(this.isMapSettingsValid) {
-                this.$store.commit(MutationTypes.SET_MAP_SETTINGS, this.mapSettings)
+                this.$store.dispatch(ActionTypes.SET_MAP_SETTINGS, this.mapSettings)
             }
         }
 

@@ -31,15 +31,15 @@ new Vue({
         const stationSettings = Mapper.Map<StationSettings>(persistentStorage.get('stationSettings'), StationSettings)
 
         if(mapSettings) {
-            this.$store.commit(MutationTypes.SET_MAP_SETTINGS, mapSettings)
+            this.$store.dispatch(ActionTypes.SET_MAP_SETTINGS, mapSettings)
         }
 
         if(softwareSettings) {
-            this.$store.commit(MutationTypes.SET_SOFTWARE_SETTINGS, softwareSettings)
+            this.$store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, softwareSettings)
         }
 
         if(stationSettings) {
-            this.$store.commit(MutationTypes.SET_STATION_SETTINGS, stationSettings)
+            this.$store.dispatch(ActionTypes.SET_STATION_SETTINGS, stationSettings)
         }
 
         // Load connections.

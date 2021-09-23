@@ -3,7 +3,13 @@ enum ActionTypes {
     , ADD_CONNECTION = 'addConnection'
     , ADD_DATA = 'addData'
     , ADD_PACKET = 'addPacket'
+    , CLEAR_OLD_PACKETS = 'clearOldPackets'
+    , DELETE_CONNECTION = 'deleteConnection'
     , REMOVE_PACKETS = 'removePackets'
+    , SAVE_CONNECTION = 'saveConnection'
+    , SET_MAP_SETTINGS = 'setMapSettings'
+    , SET_SOFTWARE_SETTINGS = 'setSoftwareSettings'
+    , SET_STATION_SETTINGS = 'setStationSettings'
 }
 
 export default ActionTypes;

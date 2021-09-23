@@ -71,7 +71,6 @@
     import { APRSSymbol } from '@/models'
     import { APRSSymbolService } from '@/services'
     import Component from 'vue-class-component'
-    import store from '@/store'
     import Vue from 'vue'
     import { StringUtil } from '@/utils'
 
@@ -99,22 +98,22 @@
         private mini = true
 
         private get callsign(): string {
-            if(!StringUtil.IsNullOrWhiteSpace(store.state?.stationSettings?.ssid)) {
-                return `${store?.state?.stationSettings?.callsign}-${store.state.stationSettings.ssid}`
+            if(!StringUtil.IsNullOrWhiteSpace(this.$store.state?.stationSettings?.ssid)) {
+                return `${this.$store?.state?.stationSettings?.callsign}-${this.$store.state.stationSettings.ssid}`
             }
 
-            return store?.state?.stationSettings?.callsign ?? ''
+            return this.$store?.state?.stationSettings?.callsign ?? ''
         }
 
         private get symbol(): APRSSymbol {
-            if(StringUtil.IsNullOrWhiteSpace(store?.state?.stationSettings?.symbol)) {
+            if(StringUtil.IsNullOrWhiteSpace(this.$store?.state?.stationSettings?.symbol)) {
                 return new APRSSymbol({
                     key: "logo"
                     , value: require('@/assets/radio-tower.png')
                     , name: "Radio Tower"
                     })
             } else {
-                return this.symbolSvc.GetSymbolByKey(store.state.stationSettings.symbol)
+                return this.symbolSvc.GetSymbolByKey(this.$store.state.stationSettings.symbol)
             }
         }
     }

@@ -132,10 +132,9 @@
 </template>
 
 <script lang="ts">
+    import ActionTypes from '@/ActionTypes'
     import { APRSSymbolService } from '@/services/APRSSymbolService'
-    import MutationTypes from '@/MutationTypes'
     import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
-    import store from '@/store'
     import { StringUtil } from '@/utils'
     import { Mapper } from '@/utils/mappers'
 
@@ -152,7 +151,7 @@
         , created() {
             // load settings here
             //https://jsfiddle.net/awolf2904/3rabkzsn/1/
-            Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(store.state.stationSettings, this.stationInfo)
+            Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
         }
         , computed: {
             aprsSymbols() {
@@ -170,11 +169,11 @@
         , methods: {
             saveStationInfo() {
                 if(this.isStationSettingsValid) {
-                    store.commit(MutationTypes.SET_STATION_SETTINGS, this.stationInfo)
+                    this.$store.dispatch(ActionTypes.SET_STATION_SETTINGS, this.stationInfo)
                 }
             }
             , resetStationInfo() {
-                Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(store.state.stationSettings, this.stationInfo)
+                Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
             }
             , updateSymbol(key: string) {
                 // Dropdowns are being special and set this as a string, not an actual null/undefined value.

@@ -76,7 +76,6 @@
     import ISConnectionItem from '@/components/settings/connections/ISConnectionItem.vue'
     import TNCConnectionItem from '@/components/settings/connections/TNCConnectionItem.vue'
     import '@mdi/font/css/materialdesignicons.css'
-    //import store from '@/store'
 
     @Component({
         props: ['connection']

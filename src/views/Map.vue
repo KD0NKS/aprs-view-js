@@ -27,28 +27,25 @@
     import { Heatmap as HeatmapLayer, Tile as TileLayer } from 'ol/layer'
     import BaseLayer from 'ol/layer/Base'
     import VectorLayer from 'ol/layer/Vector'
-    import { fromLonLat, toLonLat } from 'ol/proj'
+    import { fromLonLat } from 'ol/proj'
     import OSM from 'ol/source/OSM'
     import VectorSource from 'ol/source/Vector'
     import { Style, Fill, Stroke, Text } from 'ol/style'
     import Icon from 'ol/style/Icon'
-    import { APRSSymbolService, ConnectionService } from '@/services'
+    import { APRSSymbolService } from '@/services'
     import { NumberUtil, StringUtil } from '@/utils'
     import { Component, Vue } from 'vue-property-decorator'
     import { mapState } from 'vuex'
-    import { APRSSymbol, MapSettings, StationSettings } from '@/models'
+    import { APRSSymbol, MapSettings } from '@/models'
     import GetterTypes from '@/GetterTypes'
     import MapContextMenu from '@/components/maps/MapContextMenu.vue'
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
     import { bus } from '@/main'
     import { BusEventTypes } from '@/enums'
-    import store from '@/store'
     import ActionTypes from '@/ActionTypes'
     import { Coordinate } from 'ol/coordinate'
-    import MutationTypes from '@/MutationTypes'
-    import { Mapper } from '@/utils/mappers'
     import Geometry from 'ol/geom/Geometry'
-    import configureCompat from 'vue'
+    import MutationTypes from '@/MutationTypes'
 
     /**
      * Note: only 1 base layer is allowed
@@ -71,13 +68,12 @@
     export default class Map extends Vue {
         private aprsPackets!: Array<aprsPacket>
         private clickCoordinate: Coordinate = []
-        private connectionService!: ConnectionService
         private contextMenu: boolean = false
         private contextMenuX: number = 0
         private contextMenuY: number = 0
         private mapSettings!: MapSettings
         private symbolService: APRSSymbolService
-        private vectorSource: VectorSource<Geometry>
+        private stationPositionVector: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
         // Fake vue out and set a default overlay for the info card to make it reactive
@@ -98,7 +94,7 @@
             super()
 
             this.symbolService = new APRSSymbolService()
-            this.vectorSource = new VectorSource({})
+            this.stationPositionVector = new VectorSource({})
         }
 
         async mounted() {
@@ -107,18 +103,16 @@
                     source: new OSM()
                 })
                 , new VectorLayer({
-                    source: this.vectorSource
+                    source: this.stationPositionVector
                     , minZoom: 8
                 })
                 , new HeatmapLayer({
-                    source: this.vectorSource
+                    source: this.stationPositionVector
                     , maxZoom: 8
                     , weight: '1'
                     , gradient: [ '#600', '#900', '#C00', '#F00'   ]
                 })
             ]
-
-            const stationSettings = this.$store.state.stationSettings
 
             this.map = new OLMap({
                 target: 'map'
@@ -177,10 +171,18 @@
 
             // TODO: Why is this hitting 2-4 times?
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
-                const toRemove = _.filter(this.vectorSource.getFeatures(), f => _.indexOf(data, f.getProperties()['name']) > 0)
-                //console.log(toRemove)
+                console.log(data)
+                const toRemove = _.filter(this.stationPositionVector.getFeatures(), f => _.indexOf(data, f.getProperties()['name']) > 0)
+                console.log(toRemove)
 
-                _.forEach(toRemove, f => this.removeFeature(f))
+                _.forEach(toRemove, f => {
+                    try {
+                        console.log(`removing ${JSON.stringify(f)}`)
+                        this.stationPositionVector.removeFeature(f)
+                    } catch(e) {
+                        console.log(e)
+                    }
+                })
             })
 
             _.forEach(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (this.mapSettings.pointLifetime * 60000)),
@@ -198,7 +200,7 @@
         private clearAllStations(): void {
             // Hack for a much more complex problem...
             // TODO: There needs to be a clearall packets/data in the store
-            this.$store.dispatch(ActionTypes.REMOVE_PACKETS, this.vectorSource.getFeatures().map(f => f.get('name')))
+            this.$store.dispatch(ActionTypes.REMOVE_PACKETS, this.stationPositionVector.getFeatures().map(f => f.get['name']))
         }
 
         // icon generation stuffz
@@ -225,18 +227,14 @@
                     const styles = this.generateIcon(packet)
                     feature.setStyle(await styles)
 
-                    const existingFeature = this.vectorSource.getFeatureById(packet.sourceCallsign)
+                    const existingFeature = this.stationPositionVector.getFeatureById(packet.sourceCallsign)
                     if(existingFeature) {
-                        this.vectorSource.removeFeature(existingFeature)
+                        this.stationPositionVector.removeFeature(existingFeature)
                     }
 
-                    this.vectorSource.addFeature(feature)
+                    this.stationPositionVector.addFeature(feature)
                 }
             }
-        }
-
-        private async removeFeature(feature: Feature<Geometry>) {
-            this.vectorSource.removeFeature(feature)
         }
 
         private async generateIcon(packet: aprsPacket) {
@@ -265,7 +263,7 @@
                 })
             })
 
-            if(store.state.mapSettings?.isShowLabels === true) {
+            if(this.mapSettings?.isShowLabels === true) {
                 shadowStyle.setText(
                     new Text({
                         text: packet.sourceCallsign

@@ -46,10 +46,10 @@
 </template>
 
 <script lang="ts">
-    import { DistanceUnitTypes, TemperatureUnitTypes } from '@/enums';
-    import { SoftwareSettings } from '@/models/SoftwareSettings';
-    import MutationTypes from '@/MutationTypes';
-    import { Mapper } from '@/utils/mappers';
+    import ActionTypes from '@/ActionTypes'
+    import { DistanceUnitTypes, TemperatureUnitTypes } from '@/enums'
+    import { SoftwareSettings } from '@/models/SoftwareSettings'
+    import { Mapper } from '@/utils/mappers'
     import { Component, Prop, Vue } from 'vue-property-decorator'
 
     @Component({})
@@ -83,7 +83,8 @@
         }
 
         private saveAppSettings() {
-            this.$store.commit(MutationTypes.SET_SOFTWARE_SETTINGS, this.softwareSettings)
+            console.log('saving software settings')
+            this.$store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, this.softwareSettings)
         }
 
         private resetAppSettings() {
