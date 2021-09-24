@@ -66,7 +66,7 @@
                     item-text="key"
                     item-value="value"
                     label="EOL Character"
-                    v-model="connection.messageDelimieter"
+                    v-model="connection.messageDelimeter"
                     >
                 </v-select>
             </v-flex>

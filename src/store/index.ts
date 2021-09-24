@@ -18,7 +18,6 @@ import { ISoftwareSettings } from '@/models/ISoftwareSettings'
 Vue.use(Vuex)
 
 const persistentStorage = new Store()
-let packetTimer = undefined
 
 export default new Vuex.Store({
     state: {
@@ -26,6 +25,7 @@ export default new Vuex.Store({
         , aprsPackets: new Array<aprsPacket>()
         , connectionService: new ConnectionService()
         , mapSettings: new MapSettings()
+        , packetTimer: undefined
         , softwareSettings: new SoftwareSettings()
         , stationSettings: new StationSettings()
     },
@@ -71,17 +71,14 @@ export default new Vuex.Store({
             }
         },
         [MutationTypes.SET_MAP_SETTINGS](state, settings: IMapSettings) {
-            console.log('set map settings')
+            if(!this.packetTimer) {
+                // Set the interval to the new time
+                this.packetTimer = setInterval(
+                    () => this.dispatch(ActionTypes.CLEAR_OLD_PACKETS)
+                    , 60000) // 60000ms per minute
+            }
+            
             if(settings.pointLifetime != state.mapSettings.pointLifetime) {
-                // Clear the timer
-                if(!packetTimer) {
-                    // Set the interval to the new time
-                    packetTimer = setInterval(
-                        this.dispatch(ActionTypes.CLEAR_OLD_PACKETS)
-                        , 60000) // 60000ms per minute
-                }
-
-                // Remove any packets that wouldn't fit the time filtering
                 this.dispatch(ActionTypes.CLEAR_OLD_PACKETS)
             }
 
@@ -129,8 +126,14 @@ export default new Vuex.Store({
         [ActionTypes.SAVE_CONNECTION]({ commit }, connection: IConnection) {
             commit(MutationTypes.SAVE_CONNECTION, connection)
         },
-        [ActionTypes.SET_MAP_SETTINGS]({ commit }, settings: IStationSettings) {
+        [ActionTypes.SET_MAP_SETTINGS]({ commit }, settings: IMapSettings) {
             commit(MutationTypes.SET_MAP_SETTINGS, settings)
+        },
+        [ActionTypes.SET_SOFTWARE_SETTINGS]({ commit }, settings: ISoftwareSettings) {
+            commit(MutationTypes.SET_SOFTWARE_SETTINGS, settings)
+        },
+        [ActionTypes.SET_STATION_SETTINGS]({ commit }, settings: IStationSettings) {
+            commit(MutationTypes.SET_STATION_SETTINGS, settings)
         }
     },
     getters: {

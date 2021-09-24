@@ -125,7 +125,7 @@
             } else if(this.connection.connectionType == 'SERIAL_TNC') {
                 Vue.set(this.conn, 'comPort', this.connection.comPort)
                 Vue.set(this.conn, 'charset', this.connection.charset)
-                Vue.set(this.conn, 'messageDelimieter', this.connection.messageDelimieter)
+                Vue.set(this.conn, 'messageDelimeter', this.connection.messageDelimeter)
                 Vue.set(this.conn, 'myCallCommand', this.connection.myCallCommand)
                 Vue.set(this.conn, 'autoOpen', this.connection.autoOpen)
                 Vue.set(this.conn, 'baudRate', this.connection.baudRate)

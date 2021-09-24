@@ -97,6 +97,15 @@
             this.stationPositionVector = new VectorSource({})
         }
 
+        // Stop listening to the bus before destroying the component.
+        // Failure to do so will result in n + 1 events being triggered
+        // https://stackoverflow.com/questions/41879836/vue-js-method-called-multiple-times-using-emit-and-on-when-it-should-only-be-c
+        beforeDestroy () {
+            //EventBus.$off('increment', this.incrementCount)
+            bus.$off(BusEventTypes.PACKET_ADDED)
+            bus.$off(BusEventTypes.PACKETS_REMOVED)
+        }
+
         async mounted() {
             const layers: BaseLayer[] = [
                 new TileLayer({
@@ -169,15 +178,14 @@
                     })
             */
 
-            // TODO: Why is this hitting 2-4 times?
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
-                console.log(data)
+                //console.log(`packet data to remove ${data}`)
                 const toRemove = _.filter(this.stationPositionVector.getFeatures(), f => _.indexOf(data, f.getProperties()['name']) > 0)
-                console.log(toRemove)
+                //console.log(`packets to remove ${toRemove}`)
 
                 _.forEach(toRemove, f => {
                     try {
-                        console.log(`removing ${JSON.stringify(f)}`)
+                        //console.log(`removing ${JSON.stringify(f)}`)
                         this.stationPositionVector.removeFeature(f)
                     } catch(e) {
                         console.log(e)
@@ -286,8 +294,7 @@
 
             if(overlay != null && overlay != undefined) {
                 const overlayStyle = new Style({
-                    zIndex: 1
-                    , text: new Text({
+                    text: new Text({
                         text: packet.symboltable
                         , fill: new Fill({
                             color: 'white'

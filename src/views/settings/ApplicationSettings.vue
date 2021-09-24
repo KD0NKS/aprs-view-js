@@ -83,7 +83,6 @@
         }
 
         private saveAppSettings() {
-            console.log('saving software settings')
             this.$store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, this.softwareSettings)
         }
 

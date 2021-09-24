@@ -24,7 +24,7 @@ export class Connection implements IConnection {
     public comPort?: string = null
     public charset?: 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'binary' | 'hex'
     public exitCommands?: string[]
-    public messageDelimieter?
+    public messageDelimeter?
     public myCallCommand?: string = null
     public initCommands?: string[]
     public autoOpen?: boolean
@@ -74,11 +74,15 @@ export class Connection implements IConnection {
                 terminalSettings.parity = this.parity
                 terminalSettings.rtscts = this.rtscts
                 terminalSettings.stopBits = this.stopBits
-                terminalSettings.messageDelimieter = this.messageDelimieter
+                terminalSettings.messageDelimeter = this.messageDelimeter
                 terminalSettings.exitCommands = this.exitCommands
                 terminalSettings.initCommands = this.initCommands
 
-                this._connection = new TerminalConnection(this.comPort, terminalSettings)
+                try {
+                    this._connection = new TerminalConnection(this.comPort, terminalSettings)
+                } catch(error) {
+                    console.log(`Failed bo build Terminal Connection ${this.name}`)
+                }
             }
         }
 

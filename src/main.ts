@@ -15,6 +15,9 @@ import { aprsPacket } from 'js-aprs-fap'
 import { ConnectionViewModel, MapSettings, StationSettings } from '@/models'
 import { SoftwareSettings } from './models/SoftwareSettings'
 
+// NOTE!  When listening to bus, you MUST stop listening to events before destroying the component.
+// Failure to do so will result in n + 1 events being triggered
+// https://stackoverflow.com/questions/41879836/vue-js-method-called-multiple-times-using-emit-and-on-when-it-should-only-be-c
 export const bus = new Vue()
 
 const persistentStorage = new Store()
