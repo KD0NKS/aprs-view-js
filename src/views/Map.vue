@@ -104,6 +104,7 @@
             //EventBus.$off('increment', this.incrementCount)
             bus.$off(BusEventTypes.PACKET_ADDED)
             bus.$off(BusEventTypes.PACKETS_REMOVED)
+            this.map.dispose()
         }
 
         async mounted() {
@@ -180,7 +181,7 @@
 
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
                 //console.log(`packet data to remove ${data}`)
-                const toRemove = _.filter(this.stationPositionVector.getFeatures(), f => _.indexOf(data, f.getProperties()['name']) > 0)
+                const toRemove = _.filter(this.stationPositionVector.getFeatures(), f => _.indexOf(data, f.get('name')) > -1)
                 //console.log(`packets to remove ${toRemove}`)
 
                 _.forEach(toRemove, f => {
