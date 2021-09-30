@@ -1,3 +1,4 @@
+import _ from "lodash"
 import * as crypto from "crypto"
 import { ISSocket } from "js-aprs-is"
 import { TerminalConnection } from "js-aprs-tnc"
@@ -52,5 +53,19 @@ export abstract class AbstractConnection {
 
     public get isConnected(): boolean {
         return this._isConnected
+    }
+
+    protected applyListeners(): void {
+        _.each(this.DISCONNECT_EVENTS, e => {
+            this._connection.on(e, () => {
+                this._isConnected = false
+            })
+        })
+
+        _.each(this.CONNECT_EVENTS, e => {
+            this._connection.on(e, () => {
+                this._isConnected = true
+            })
+        })
     }
 }
