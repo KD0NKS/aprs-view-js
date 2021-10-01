@@ -1,14 +1,14 @@
 import _ from "lodash"
 import * as crypto from "crypto"
 import { ISSocket } from "js-aprs-is"
-import { TerminalConnection } from "js-aprs-tnc"
+import { TerminalSocket } from "js-aprs-tnc"
 
 export abstract class AbstractConnection {
     public id: string
     public name: string
     public connectionType: string
 
-    protected _connection: ISSocket | TerminalConnection
+    protected _connection: ISSocket | TerminalSocket
     protected _isConnected = false
     protected _isEnabled = false
 
@@ -22,11 +22,11 @@ export abstract class AbstractConnection {
             Object.assign(this, connection)
     }
 
-    public get connection(): ISSocket | TerminalConnection {
+    public get connection(): ISSocket | TerminalSocket {
         return this._connection
     }
 
-    public set connection(conn: ISSocket | TerminalConnection) {
+    public set connection(conn: ISSocket | TerminalSocket) {
         if (this._connection && this._connection !== null && this.connection !== undefined) {
             this._connection.end()
             this._connection.destroy()

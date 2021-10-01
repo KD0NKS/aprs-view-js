@@ -133,6 +133,12 @@
                 })
             })
 
+            /* NOTE: use this for last location preferences
+            this.map.on('moveend', (evt) => {
+                console.log(evt)
+            })
+            */
+
             // display popup on click
             this.map.on('singleclick', async (evt) => {
                 // TODO: This seems to be getting the one on the bottom of the pile
@@ -168,8 +174,27 @@
                 return [...accumulator, this.generateFeature(currentValue)]
             }, []))
             */
-            bus.$on(BusEventTypes.PACKET_ADDED, async (p) => {
-                this.addPacket(p)
+            bus.$on(BusEventTypes.PACKET_ADDED, async (p: aprsPacket) => {
+                if(p.alive == null || p.alive == true) {
+                    this.addPacket(p)
+                } else {
+                    const toRemove = _.filter(
+                            this.stationPositionVector.getFeatures()
+                            , f =>
+                                f.get('label') == p.itemname || f.get('label') == p.objectname
+                            )
+
+                    // TODO: REMOVE WHEN FULLY TESTED
+                    console.log(`killed objects/items: ${JSON.stringify(toRemove)}`)
+
+                    _.forEach(toRemove, f => {
+                        try {
+                            this.stationPositionVector.removeFeature(f)
+                        } catch(e) {
+                            console.log(e)
+                        }
+                    })
+                }
             })
 
             /*
@@ -180,13 +205,10 @@
             */
 
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
-                //console.log(`packet data to remove ${data}`)
                 const toRemove = _.filter(this.stationPositionVector.getFeatures(), f => _.indexOf(data, f.get('name')) > -1)
-                //console.log(`packets to remove ${toRemove}`)
 
                 _.forEach(toRemove, f => {
                     try {
-                        //console.log(`removing ${JSON.stringify(f)}`)
                         this.stationPositionVector.removeFeature(f)
                     } catch(e) {
                         console.log(e)
@@ -230,7 +252,7 @@
                     feature.setId(packet.sourceCallsign)
                     feature.setProperties({
                         name: packet.id
-                        , label: packet.sourceCallsign
+                        , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                     })
 
                     const styles = this.generateIcon(packet)
@@ -238,6 +260,17 @@
 
                     const existingFeature = this.stationPositionVector.getFeatureById(packet.sourceCallsign)
                     if(existingFeature) {
+                        /*
+                            if position != old position - this may not be 100% reliable, but *should be* close enough
+                                change style to a point
+                                look at a vector source for station/object
+                                    if it does not exist
+                                        start a new polyline
+                                        get a random color
+                                    else add coordinates to polyline
+                            else
+                                remove old feature
+                        */
                         this.stationPositionVector.removeFeature(existingFeature)
                     }
 
@@ -275,7 +308,7 @@
             if(this.mapSettings?.isShowLabels === true) {
                 shadowStyle.setText(
                     new Text({
-                        text: packet.sourceCallsign
+                        text: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                         , fill: new Fill({
                             color: 'black'
                         })

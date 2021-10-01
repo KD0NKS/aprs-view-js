@@ -43,7 +43,7 @@ TODO:
     - [ ] Trails
     - [x] Rotated markers
     - [x] Show labels
-    - [ ] Properly handle objects - names, not moving stationary objects on duplicate src callsign, etc
+    - [x] Properly handle objects - names, not moving stationary objects on duplicate src callsign, etc
     - [x] Heat maps on zoom out (aprs.fi)
     - [x] Remove old position reports
     - Options
@@ -72,8 +72,7 @@ TODO:
         - Labels
             - [x] Show labels
             - [ ] Label options
-                - Object name
-                - Callsign
+                - Object/Callsign
                 - Weather data
         - [ ] Station info panel - see aprs.fi
         - [ ] User defined maps
@@ -91,7 +90,7 @@ TODO:
     - BUGS/ENHANCEMENTS:
         - [ ] Clearing all markers currently doesn't work properly.  Working with kefir/bacon may help mitigate this
         - [ ] Repeater icons may have multiple locations with the same callsign
-        - [ ] Weather packets with no locations - if we know the location of the station already, update the id to get the latest when the icon is clicked
+        - [ ] Weather packets with no locations - if we know the location of the station already, update the id to get the latest when the icon is clicked?
         - [ ] Overlays are not allowing newer markers to cover them
         - [ ] APRSViewJS used Bacon/Kefir for filtering and packet types, can these be easily utilized to make packets easier to handle
         source/Vector.js
@@ -99,8 +98,8 @@ TODO:
             - This could lead down a rabbit hole where the entire lib needs to be rewritten
             - Collection would likely need to be rewritten - https://github.com/openlayers/openlayers/blob/b7ccb68b02bd936373b1bd1d2f5ca445e1d286e0/src/ol/Collection.js
 - [ ] Messaging
-- [ ] TNC Support
-    - [ ] User defined commands
+- [ ] TNC Support - via js-aprs-tnc
+    - [x] User defined commands
     - [ ] KISS
 - General app settings
     - [x] Imperial/metric

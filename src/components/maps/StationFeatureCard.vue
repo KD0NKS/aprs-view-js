@@ -23,6 +23,12 @@
                 </v-img>
             </div>
             <div>
+                <span v-if="packet.itemname">
+                    {{ packet.itemname }} via
+                </span>
+                <span v-if="packet.objectname">
+                    {{ packet.objectname }} via
+                </span>
                 {{ packet.sourceCallsign }}
             </div>
         </v-card-title>

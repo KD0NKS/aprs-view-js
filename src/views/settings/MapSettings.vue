@@ -31,6 +31,17 @@
                             </v-flex>
                         </v-layout>
 
+                        <!--
+                            Center on options:
+                            Center on Station               - With callsign input + map menu option
+                            Center on previous position     - disabled inputs
+                            Center on coordinates           - coordinates + map menu option
+
+                            Return zoom options
+                            previons zoom   - disabled input
+                            preferred zoom  - editable input
+                        -->
+
                         <v-layout row wrap>
                             <v-flex xs12 class="px-2">
                                 <v-btn color="primary" class="mr-4" type="submit" :disabled="!isMapSettingsValid" form="map-settings-form">Save</v-btn>

@@ -3,7 +3,7 @@ import * as crypto from "crypto"
 import { IConnection } from "./IConnection"
 import { ISSocket } from "js-aprs-is"
 import store from "@/store"
-import { TerminalConnection, TerminalSettings } from "js-aprs-tnc"
+import { TerminalSocket, TerminalSettings } from "js-aprs-tnc"
 
 // TODO: Decouple from Vue/Vuex
 /**
@@ -39,7 +39,7 @@ export class Connection implements IConnection {
     public xon?: boolean
     public xoff?: boolean
 
-    private _connection: ISSocket | TerminalConnection
+    private _connection: ISSocket | TerminalSocket
     private _isConnected = false
     private _isEnabled = false
     private DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout']
@@ -63,11 +63,13 @@ export class Connection implements IConnection {
                     , store.state.connectionService.appId
                     )
             } else if (connection.connectionType == 'SERIAL_TNC') {
-                const terminalSettings: TerminalSettings = new TerminalSettings()
-                connection.comPort = this.comPort
-                connection.myCallCommand = this.myCallCommand
+                //console.log(JSON.stringify(this))
 
-                terminalSettings.autoOpen = this.autoOpen
+                const terminalSettings: TerminalSettings = new TerminalSettings()
+                this.comPort = connection.comPort
+                this.myCallCommand = connection.myCallCommand
+
+                terminalSettings.autoOpen = this.autoOpen ?? false
                 terminalSettings.baudRate = this.baudRate
                 terminalSettings.charset = this.charset
                 terminalSettings.dataBits = this.dataBits
@@ -79,7 +81,7 @@ export class Connection implements IConnection {
                 terminalSettings.initCommands = this.initCommands
 
                 try {
-                    this._connection = new TerminalConnection(this.comPort, terminalSettings)
+                    this._connection = new TerminalSocket(this.comPort, terminalSettings)
                 } catch(error) {
                     console.log(`Failed bo build Terminal Connection ${this.name}`)
                 }
@@ -103,7 +105,12 @@ export class Connection implements IConnection {
         if(this._connection) {
             if(this._isEnabled === false) {
                 try {
-                    this._connection.end(() => { this._connection.destroy() })
+                    if (this.connectionType == 'SERIAL_TNC') {
+                        // End doesn't work for these purposes in SerialPort
+                        (this._connection as TerminalSocket).close()
+                    } else {
+                        this._connection.end(() => { this._connection.destroy() })
+                    }
                 } catch (e) {
                     this._connection.destroy()
                 }
@@ -116,7 +123,7 @@ export class Connection implements IConnection {
 
                     c.connect()
                 } else if(this.connectionType == 'SERIAL_TNC') {
-                    const c = this._connection as TerminalConnection
+                    const c = this._connection as TerminalSocket
 
                     c.open()
                 }
@@ -124,11 +131,11 @@ export class Connection implements IConnection {
         }
     }
 
-    public get connection(): ISSocket | TerminalConnection {
+    public get connection(): ISSocket | TerminalSocket {
         return this._connection
     }
 
-    public set connection(conn: ISSocket | TerminalConnection) {
+    public set connection(conn: ISSocket | TerminalSocket) {
         if(this._connection && this._connection !== null && this.connection !== undefined) {
             try {
                 this._connection.end(() => { this._connection.destroy() })
@@ -141,17 +148,19 @@ export class Connection implements IConnection {
         this.applyListeners()
     }
 
-    private applyListeners() : void {
-        _.each(this.DISCONNECT_EVENTS, e => {
-            this._connection.on(e, () => {
-                this._isConnected = false
+    private applyListeners(): void {
+        if(this._connection) {
+            _.each(this.DISCONNECT_EVENTS, e => {
+                this._connection.on(e, () => {
+                    this._isConnected = false
+                })
             })
-        })
 
-        _.each(this.CONNECT_EVENTS, e => {
-            this._connection.on(e, () => {
-                this._isConnected = true
+            _.each(this.CONNECT_EVENTS, e => {
+                this._connection.on(e, () => {
+                    this._isConnected = true
+                })
             })
-        })
+        }
     }
 }

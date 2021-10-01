@@ -1,17 +1,19 @@
 import { Connection, IConnection } from "@/models";
+import { AbstractConnection } from "@/models/connections/AbstractConnection";
+import { ISConnection } from "@/models/connections/ISConnection";
 
 export class ConnectionFactory {
-    public create(connection: IConnection): Connection {
+    public create(connection: AbstractConnection): ISConnection | null {
         // TODO: Throw error if connection is null
 
-        let retVal: Connection = new Connection()
+        let retVal: AbstractConnection = null
 
         switch (connection.connectionType) {
             case 'IS_SOCKET':
-                retVal = this.buildISSocket()
+                retVal = this.buildISSocket(connection)
                 break
             case 'SERIAL_TNC':
-                retVal = this.buildTNCConnection()
+                retVal = this.buildTNCConnection(connection)
                 break
             // TODO: Throw error if connection type is not supported
         }
@@ -19,11 +21,11 @@ export class ConnectionFactory {
         return retVal
     }
 
-    private buildISSocket(): Connection {
-        return null
+    private buildISSocket(connection: Partial<AbstractConnection>): AbstractConnection {
+        return new ISConnection(connection)
     }
 
-    private buildTNCConnection(): Connection {
+    private buildTNCConnection(connection: Partial<AbstractConnection>): AbstractConnection {
         return null
     }
 }

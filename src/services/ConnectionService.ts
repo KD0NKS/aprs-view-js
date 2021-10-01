@@ -5,7 +5,7 @@ import { DataEventTypes } from '@/enums/DataEventTypes'
 import { EventEmitter } from 'events'
 import { IConnection } from '@/models/connections/IConnection'
 import { ISSocket } from 'js-aprs-is'
-import { TerminalConnection } from 'js-aprs-tnc'
+import { TerminalSocket } from 'js-aprs-tnc'
 import store from '@/store'
 import { StringUtil } from '@/utils';
 //import { IObserver } from '../observable/IObserver';
@@ -121,7 +121,7 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
                     c.sendLine(c.userLogin)
             } else if(conn.connectionType == 'SERIAL_TNC') {
                 // TODO: send callsign command
-                const c = conn.connection as TerminalConnection
+                const c = conn.connection as TerminalSocket
 
                 if(!StringUtil.IsNullOrWhiteSpace(store.state.stationSettings.callsign)) {
                     let callsign = store.state.stationSettings.callsign
@@ -130,13 +130,9 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
                         callsign = `${callsign}-${store.state.stationSettings.ssid}`
 
                     if(conn.isEnabled == true && !StringUtil.IsNullOrWhiteSpace(conn.myCallCommand)) {
-                        console.log(`sending command ${conn.myCallCommand.trim()} ${callsign}`)
-                        //c.sendCommand(`${conn.callsignCommand} ${callsign}`)
+                        c.sendCommand(`${conn.myCallCommand} ${callsign}`)
                     }
                 }
-
-                // set callsign
-                // TODO: Really need command mappings for various TNC brands/models
             }
         })
     }
