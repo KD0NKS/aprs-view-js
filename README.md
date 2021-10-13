@@ -4,6 +4,8 @@ APRS is a registered trademark Bob Bruninga, WB4APR.
 
 This is intended to be a fairly lightweight, cross platform, grapical APRS client.  Currently, this is a read-only client.  The only ability it has to send data is a login packet to the server.  There are certain packets that cannot be handled by the client, which is a limitation of the js-aprs-fap library.
 
+aprs-view-js is NOT intended to be run as a web server and would cause many issues and potential system vulnerabilities being run as such.  There are plenty of amazing online APRS clients such as https://aprs.fi.
+
 ## Features
 * Ability to connect to either an aprsc or Jav-APRS-IS server.
 * See raw data packets in output window.
@@ -41,6 +43,8 @@ TODO:
 * Maps
     - [ ] Make maps a plugin
     - [ ] Trails
+        - https://openlayers.org/workshop/en/vector/draw.html
+        - https://gis.stackexchange.com/questions/323992/create-polyline-from-coordinates-array-in-ol-openlayers-5-3-2
     - [x] Rotated markers
     - [x] Show labels
     - [x] Properly handle objects - names, not moving stationary objects on duplicate src callsign, etc
