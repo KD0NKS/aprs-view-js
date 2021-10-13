@@ -2,6 +2,7 @@ import _ from "lodash"
 import * as crypto from "crypto"
 import { ISSocket } from "js-aprs-is"
 import { TerminalSocket } from "js-aprs-tnc"
+import { IConnection } from "./IConnection"
 
 export abstract class AbstractConnection {
     public id: string
@@ -15,11 +16,13 @@ export abstract class AbstractConnection {
     protected DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout']
     protected CONNECT_EVENTS: string[] = ['connect']
 
-    constructor(connection?: Partial<AbstractConnection>) {
-        this.id = crypto.randomBytes(16).toString('hex')
+    constructor(settings?: IConnection) {
+        this.id = settings["name"] ?? crypto.randomBytes(16).toString('hex')
+        this.name = settings["name"] ?? "Default"
+        this.connectionType = settings["connectionType"] ?? "IS_SOCKET"
 
-        if(connection)
-            Object.assign(this, connection)
+        //if(settings)
+        //    Object.assign(this, settings)
     }
 
     public get connection(): ISSocket | TerminalSocket {

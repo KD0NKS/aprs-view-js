@@ -1,25 +1,24 @@
 import { ISSocket } from "js-aprs-is"
 import { AbstractConnection } from "./AbstractConnection"
 import store from "@/store"
+import { IConnection } from "./IConnection"
 
 export class ISConnection extends AbstractConnection {
     public host?: string = null
     public port?: number = null
     public filter?: string = null
 
-    constructor(connection?: Partial<AbstractConnection>) {
-        super(connection)
+    constructor(settings?: IConnection) {
+        super(settings)
 
-        if(!connection.connection) {
-            this._connection = new ISSocket(
-                this.host
-                , this.port
-                , store.state.stationSettings.callsign
-                , store.state.stationSettings.passcode
-                , this.filter
-                , store.state.connectionService.appId
-            )
-        }
+        this._connection = new ISSocket(
+            this.host
+            , this.port
+            , store.state.stationSettings.callsign
+            , store.state.stationSettings.passcode
+            , this.filter
+            , store.state.connectionService.appId
+        )
     }
 
     public set isEnabled(isEnabled: boolean) {

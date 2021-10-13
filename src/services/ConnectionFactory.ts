@@ -1,9 +1,10 @@
-import { Connection, IConnection } from "@/models";
+import { IConnection } from "@/models";
 import { AbstractConnection } from "@/models/connections/AbstractConnection";
 import { ISConnection } from "@/models/connections/ISConnection";
+import { TNCConnection } from "@/models/connections/TNCConnection";
 
 export class ConnectionFactory {
-    public create(connection: AbstractConnection): ISConnection | null {
+    public create(connection: IConnection): ISConnection | null {
         // TODO: Throw error if connection is null
 
         let retVal: AbstractConnection = null
@@ -21,11 +22,11 @@ export class ConnectionFactory {
         return retVal
     }
 
-    private buildISSocket(connection: Partial<AbstractConnection>): AbstractConnection {
+    private buildISSocket(connection: IConnection): AbstractConnection {
         return new ISConnection(connection)
     }
 
-    private buildTNCConnection(connection: Partial<AbstractConnection>): AbstractConnection {
-        return null
+    private buildTNCConnection(connection: IConnection): AbstractConnection {
+        return new TNCConnection(connection)
     }
 }
