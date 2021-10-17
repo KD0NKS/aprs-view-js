@@ -6,7 +6,7 @@ import { ISSocket } from 'js-aprs-is'
 import { TerminalSocket } from 'js-aprs-tnc'
 import { StringUtil } from '@/utils';
 import { ConnectionFactory } from './ConnectionFactory'
-import { IConnection, AbstractConnection, TNCConnection, IStationSettings } from '@/models'
+import { IConnection, AbstractConnection, TNCConnection } from '@/models'
 import Store from '@/store'
 import GetterTypes from "@/GetterTypes"
 
@@ -33,6 +33,7 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
 
             // Build the physical connection wrapped by an abstract connection
             if(conn.connectionType == 'IS_SOCKET') {
+                // todo validation before creation
                 conn.connection.on('connect', () => {
                     (conn.connection as ISSocket).sendLine((conn.connection as ISSocket).userLogin)
                 });

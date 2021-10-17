@@ -4,7 +4,7 @@ import { ISConnection } from "@/models/connections/ISConnection";
 import { TNCConnection } from "@/models/connections/TNCConnection";
 
 export class ConnectionFactory {
-    public create(connection: IConnection): ISConnection | null {
+    public create(connection: IConnection): AbstractConnection {
         // TODO: Throw error if connection is null
 
         let retVal: AbstractConnection = null

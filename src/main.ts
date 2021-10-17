@@ -10,9 +10,7 @@ import Vue from 'vue'
 import vuetify from '@/plugins/vuetify'
 import { Mapper } from '@/utils/mappers'
 import { aprsPacket } from 'js-aprs-fap'
-import { SoftwareSettings } from './models/SoftwareSettings'
-import { MapSettings } from './models/MapSettings'
-import { StationSettings } from './models/StationSettings'
+import { MapSettings, SoftwareSettings, StationSettings } from './models'
 
 // NOTE!  When listening to bus, you MUST stop listening to events before destroying the component.
 // Failure to do so will result in n + 1 events being triggered
