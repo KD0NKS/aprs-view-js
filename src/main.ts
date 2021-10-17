@@ -9,11 +9,10 @@ import Vue from 'vue'
 //import Vuelidate from 'vuelidate'
 import vuetify from '@/plugins/vuetify'
 import { Mapper } from '@/utils/mappers'
-import MutationTypes from '@/MutationTypes'
-import { Connection } from '@/models/connections/Connection'
 import { aprsPacket } from 'js-aprs-fap'
-import { ConnectionViewModel, MapSettings, StationSettings } from '@/models'
 import { SoftwareSettings } from './models/SoftwareSettings'
+import { MapSettings } from './models/MapSettings'
+import { StationSettings } from './models/StationSettings'
 
 // NOTE!  When listening to bus, you MUST stop listening to events before destroying the component.
 // Failure to do so will result in n + 1 events being triggered
@@ -50,9 +49,7 @@ new Vue({
             // Create a new connection by using the element and mapping it to a connection view model
             this.$store.dispatch(
                 ActionTypes.ADD_CONNECTION
-                , new Connection(
-                    Mapper.Map<ConnectionViewModel>(element[1], ConnectionViewModel)
-                )
+                , element[1]
             )
         })
 

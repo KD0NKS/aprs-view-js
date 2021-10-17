@@ -1,4 +1,4 @@
-import { APRSSymbol } from '@/models'
+import { APRSSymbol } from '@/models/APRSSymbol'
 import { StringUtil } from '@/utils'
 
 interface IAPRSSymbolService {

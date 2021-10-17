@@ -37,6 +37,7 @@ yarn run electron:serve
 ```
 
 TODO:
+* Vue3 Upgrade https://learnvue.co/2021/05/build-vue-3-desktop-apps-in-just-5-minutes-vite-electron-quick-start-guide/
 * UI
     - [ ] Restore to size, screen and location on start
     - [ ] Output window styling? https://github.com/chinchang/screenlog.js

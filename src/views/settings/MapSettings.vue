@@ -56,8 +56,9 @@
 </template>
 
 <script lang="ts">
+    import { Component, Vue } from 'vue-property-decorator'
+
     import ActionTypes from '@/ActionTypes'
-    import { Component, Prop, Vue } from 'vue-property-decorator'
     import { MapSettings as vm } from '@/models/MapSettings'
     import { Mapper } from '@/utils/mappers'
 

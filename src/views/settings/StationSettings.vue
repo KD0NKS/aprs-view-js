@@ -133,10 +133,12 @@
 
 <script lang="ts">
     import ActionTypes from '@/ActionTypes'
-    import { APRSSymbolService } from '@/services/APRSSymbolService'
-    import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
+
     import { StringUtil } from '@/utils'
     import { Mapper } from '@/utils/mappers'
+
+    import { APRSSymbolService } from '@/services/APRSSymbolService'
+    import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
 
     const symbolSvc = new APRSSymbolService();
 

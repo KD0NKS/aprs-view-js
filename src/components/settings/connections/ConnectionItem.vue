@@ -70,12 +70,14 @@
 <script lang="ts">
     import _ from 'lodash'
     import { Component, Prop, Vue } from 'vue-property-decorator'
-    import { Connection } from '@/models/connections/Connection'
+
     import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
+    import { AbstractConnection } from '@/models/connections/AbstractConnection'
     import { ConnectionTypes } from '@/enums/ConnectionTypes'
     import ISConnectionItem from '@/components/settings/connections/ISConnectionItem.vue'
     import TNCConnectionItem from '@/components/settings/connections/TNCConnectionItem.vue'
     import '@mdi/font/css/materialdesignicons.css'
+
 
     @Component({
         props: ['connection']
@@ -86,7 +88,7 @@
     })
     export default class ConnectionItem extends Vue {
         @Prop()
-        private connection: Connection
+        private connection: AbstractConnection
 
         private conn: ConnectionViewModel = new ConnectionViewModel()
 
@@ -119,34 +121,34 @@
             Vue.set(this.conn, 'connectionType', this.connection.connectionType)
 
             if(this.connection.connectionType == 'IS_SOCKET') {
-                Vue.set(this.conn, 'host', this.connection.host)
-                Vue.set(this.conn, 'port', this.connection.port)
-                Vue.set(this.conn, 'filter', this.connection.filter)
+                Vue.set(this.conn, 'host', this.connection["host"])
+                Vue.set(this.conn, 'port', this.connection["port"])
+                Vue.set(this.conn, 'filter', this.connection["filter"])
             } else if(this.connection.connectionType == 'SERIAL_TNC') {
-                Vue.set(this.conn, 'comPort', this.connection.comPort)
-                Vue.set(this.conn, 'charset', this.connection.charset)
-                Vue.set(this.conn, 'messageDelimeter', this.connection.messageDelimeter)
-                Vue.set(this.conn, 'myCallCommand', this.connection.myCallCommand)
-                Vue.set(this.conn, 'autoOpen', this.connection.autoOpen)
-                Vue.set(this.conn, 'baudRate', this.connection.baudRate)
-                Vue.set(this.conn, 'dataBits', this.connection.dataBits)
-                Vue.set(this.conn, 'highWaterMark', this.connection.highWaterMark)
-                Vue.set(this.conn, 'lock', this.connection.lock)
-                Vue.set(this.conn, 'stopBits', this.connection.stopBits)
-                Vue.set(this.conn, 'parity', this.connection.parity)
-                Vue.set(this.conn, 'rtscts', this.connection.rtscts)
-                Vue.set(this.conn, 'xany', this.connection.xany)
-                Vue.set(this.conn, 'xon', this.connection.xon)
-                Vue.set(this.conn, 'xoff', this.connection.xoff)
+                Vue.set(this.conn, 'autoOpen', this.connection["autoOpen"])
+                Vue.set(this.conn, 'comPort', this.connection["comPort"])
+                Vue.set(this.conn, 'charset', this.connection["charset"])
+                Vue.set(this.conn, 'messageDelimeter', this.connection["messageDelimeter"])
+                Vue.set(this.conn, 'myCallCommand', this.connection["myCallCommand"])
+                Vue.set(this.conn, 'baudRate', this.connection["baudRate"])
+                Vue.set(this.conn, 'dataBits', this.connection["dataBits"])
+                Vue.set(this.conn, 'highWaterMark', this.connection["highWaterMark"])
+                Vue.set(this.conn, 'lock', this.connection["lock"])
+                Vue.set(this.conn, 'stopBits', this.connection["stopBits"])
+                Vue.set(this.conn, 'parity', this.connection["parity"])
+                Vue.set(this.conn, 'rtscts', this.connection["rtscts"])
+                Vue.set(this.conn, 'xany', this.connection["xany"])
+                Vue.set(this.conn, 'xon', this.connection["xon"])
+                Vue.set(this.conn, 'xoff', this.connection["xoff"])
 
                 // Arrays must be deep copied
                 Vue.set(this.conn, 'exitCommands', [])
-                _.forEach(this.connection.exitCommands, c => {
+                _.forEach(this.connection["exitCommands"], c => {
                     this.conn.exitCommands.push(c)
                 })
 
                 Vue.set(this.conn, 'initCommands', [])
-                _.forEach(this.connection.initCommands, c => {
+                _.forEach(this.connection["initCommands"], c => {
                     this.conn.initCommands.push(c)
                 })
             }

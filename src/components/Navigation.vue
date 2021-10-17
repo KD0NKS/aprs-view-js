@@ -68,10 +68,9 @@
 </template>
 
 <script lang="ts">
+    import { Component, Prop, Vue } from 'vue-property-decorator'
     import { APRSSymbol } from '@/models'
     import { APRSSymbolService } from '@/services'
-    import Component from 'vue-class-component'
-    import Vue from 'vue'
     import { StringUtil } from '@/utils'
 
     @Component({})

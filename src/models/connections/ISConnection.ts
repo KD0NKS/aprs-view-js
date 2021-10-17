@@ -1,24 +1,34 @@
+import { IConnection } from "./IConnection"
 import { ISSocket } from "js-aprs-is"
 import { AbstractConnection } from "./AbstractConnection"
-import store from "@/store"
-import { IConnection } from "./IConnection"
+import Store from '@/store'
+import GetterTypes from "@/GetterTypes"
 
 export class ISConnection extends AbstractConnection {
     public host?: string = null
     public port?: number = null
     public filter?: string = null
 
-    constructor(settings?: IConnection) {
-        super(settings)
+    constructor(connectionSettings?: IConnection) {
+        super(connectionSettings)
+
+        // TODO: callsign, passcode, app id need to be passed in
+        if(connectionSettings) {
+            this.host = connectionSettings["host"] ?? null
+            this.port = connectionSettings["port"] ?? null
+            this.filter = connectionSettings["filter"] ?? null
+        }
 
         this._connection = new ISSocket(
             this.host
             , this.port
-            , store.state.stationSettings.callsign
-            , store.state.stationSettings.passcode
+            , Store.state.stationSettings.callsign
+            , Store.state.stationSettings.passcode
             , this.filter
-            , store.state.connectionService.appId
+            , Store.getters[GetterTypes.APP_ID]
         )
+
+        this.applyListeners()
     }
 
     public set isEnabled(isEnabled: boolean) {

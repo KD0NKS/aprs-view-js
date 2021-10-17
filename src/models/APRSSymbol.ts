@@ -1,6 +1,10 @@
 export class APRSSymbol {
     public constructor(init?: Partial<APRSSymbol>) {
-        Object.assign(this, init)
+        this.name = init?.name ?? null
+        this.key = init?.key ?? null
+        this.value = init?.value ?? null
+        this.isAllowOverlay = init?.isAllowOverlay ?? false
+        this.isRotatable = init?.isRotatable ?? false
     }
 
     public name: string

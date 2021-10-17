@@ -1,8 +1,8 @@
 import _ from "lodash"
 import * as crypto from "crypto"
+import { IConnection } from "./IConnection"
 import { ISSocket } from "js-aprs-is"
 import { TerminalSocket } from "js-aprs-tnc"
-import { IConnection } from "./IConnection"
 
 export abstract class AbstractConnection {
     public id: string
@@ -13,16 +13,13 @@ export abstract class AbstractConnection {
     protected _isConnected = false
     protected _isEnabled = false
 
-    protected DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout']
-    protected CONNECT_EVENTS: string[] = ['connect']
+    protected DISCONNECT_EVENTS: string[] = [ 'destroy', 'end', 'close', 'error', 'timeout' ]
+    protected CONNECT_EVENTS: string[] = [ 'connect', 'open' ]
 
     constructor(settings?: IConnection) {
         this.id = settings["name"] ?? crypto.randomBytes(16).toString('hex')
         this.name = settings["name"] ?? "Default"
         this.connectionType = settings["connectionType"] ?? "IS_SOCKET"
-
-        //if(settings)
-        //    Object.assign(this, settings)
     }
 
     public get connection(): ISSocket | TerminalSocket {
@@ -30,25 +27,13 @@ export abstract class AbstractConnection {
     }
 
     public set connection(conn: ISSocket | TerminalSocket) {
-        if (this._connection && this._connection !== null && this.connection !== undefined) {
+        if(this._connection && this._connection !== null && this.connection !== undefined) {
             this._connection.end()
             this._connection.destroy()
         }
 
         this._connection = conn
-
-        // TODO: This won't work since connection is null
-        for (const e in this.DISCONNECT_EVENTS) {
-            this._connection.on(e, () => {
-                this._isConnected = false
-            })
-        }
-
-        for (const e in this.CONNECT_EVENTS) {
-            this._connection.on(e, () => {
-                this._isConnected = true
-            })
-        }
+        this.applyListeners()
     }
 
     public abstract set isEnabled(isEnabled: boolean)

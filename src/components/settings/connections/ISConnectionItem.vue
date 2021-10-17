@@ -18,8 +18,9 @@
 </template>
 
 <script lang="ts">
-    import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
     import { Component, Prop, Vue } from 'vue-property-decorator'
+
+    import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
 
     @Component({
         props: [ 'connection', 'rules' ]

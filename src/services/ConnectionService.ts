@@ -1,51 +1,38 @@
 import _ from 'lodash'
-import { Connection } from '@/models/connections/Connection';
 import { aprsParser } from 'js-aprs-fap'
 import { DataEventTypes } from '@/enums/DataEventTypes'
 import { EventEmitter } from 'events'
-import { IConnection } from '@/models/connections/IConnection'
 import { ISSocket } from 'js-aprs-is'
 import { TerminalSocket } from 'js-aprs-tnc'
-import store from '@/store'
 import { StringUtil } from '@/utils';
-//import { IObserver } from '../observable/IObserver';
-//import { StationSettings } from '@/settings/StationSettings';
+import { ConnectionFactory } from './ConnectionFactory'
+import { IConnection, AbstractConnection, TNCConnection, IStationSettings } from '@/models'
+import Store from '@/store'
+import GetterTypes from "@/GetterTypes"
 
 /**
  * TODO: Refactor to decouple this from Vue/Vuex
  */
 export class ConnectionService extends EventEmitter { //implements IObserver {
-    private _appId = 'js-aprs-view 1.0.0';  // TODO: Read this from the config
-    private _connections: Connection[] = new Array<Connection>()
-    //private _settings = StationSettings;
+    private _connections: AbstractConnection[] = new Array<AbstractConnection>()
+    private _connectionFactory: ConnectionFactory
     private _parser = new aprsParser()
 
     // TODO: Need to get an app version here too
     public constructor() {
         super()
-    }
 
-    public set appId(value: string) {
-        this._appId = value
-        this.ChangeEvent()
-    }
-
-    public get appId(): string {
-        return this._appId
+        this._connectionFactory = new ConnectionFactory()
     }
 
     public addConnection(setting: IConnection) {
         if(setting !== null) {
-            const conn: Connection = setting as Connection
-
+            // Create an instance of ISConnection or TNCConnection
+            const conn: AbstractConnection = this._connectionFactory.create(setting)
             this._connections.push(conn)
 
-            // TODO: Refactor this to get an instance of either ISSocket or TNCConnection
+            // Build the physical connection wrapped by an abstract connection
             if(conn.connectionType == 'IS_SOCKET') {
-                // todo validation before creation
-                //const connection = new ISSocket(conn.host, conn.port, this.getCallsign, store.state.stationSettings.passcode, conn.filter, this._appId)
-                //conn.connection = connection
-
                 conn.connection.on('connect', () => {
                     (conn.connection as ISSocket).sendLine((conn.connection as ISSocket).userLogin)
                 });
@@ -96,11 +83,11 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
         this._connections.splice(index, 1)
     }
 
-    public getConnection(id: string): Connection {
+    public getConnection(id: string): AbstractConnection {
         return this._connections.find((x) => { return x.id === id })
     }
 
-    public getConnections(): Connection[] {
+    public getConnections(): AbstractConnection[] {
         return this._connections
     }
 
@@ -109,13 +96,17 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
     // Currently vuex only supports subscribing to all actions with an if statement inside for filtering.
     // Method is currently used by store to push change events.
     public ChangeEvent(): void {
-        _.forEach(this._connections, (conn: Connection) => {
+        const callsign: string = Store.state.stationSettings.callsign
+        const ssid = Store.state.stationSettings.ssid
+        const passcode = Store.state.stationSettings.passcode
+        const appId = Store.getters[GetterTypes.APP_ID]
+
+        _.forEach(this._connections, (conn: AbstractConnection) => {
             if(conn.connectionType == 'IS_SOCKET') {
                 const c = conn.connection as ISSocket
-
-                c.callsign = store.state.stationSettings.callsign
-                c.passcode = store.state.stationSettings.passcode
-                c.appId = this.appId
+                c.callsign = this.getCallsign(callsign, ssid)
+                c.passcode = passcode
+                c.appId = appId
 
                 if(conn.isEnabled == true)
                     c.sendLine(c.userLogin)
@@ -123,27 +114,24 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
                 // TODO: send callsign command
                 const c = conn.connection as TerminalSocket
 
-                if(!StringUtil.IsNullOrWhiteSpace(store.state.stationSettings.callsign)) {
-                    let callsign = store.state.stationSettings.callsign
+                if(!StringUtil.IsNullOrWhiteSpace(callsign)) {
+                    const cs = this.getCallsign(callsign, ssid)
 
-                    if(!StringUtil.IsNullOrWhiteSpace(store.state.stationSettings.ssid))
-                        callsign = `${callsign}-${store.state.stationSettings.ssid}`
-
-                    if(conn.isEnabled == true && !StringUtil.IsNullOrWhiteSpace(conn.myCallCommand)) {
-                        c.sendCommand(`${conn.myCallCommand} ${callsign}`)
+                    if(conn.isEnabled == true && !StringUtil.IsNullOrWhiteSpace((conn as TNCConnection).myCallCommand)) {
+                        c.sendCommand(`${(conn as TNCConnection).myCallCommand} ${cs}`)
                     }
                 }
             }
         })
     }
 
-    private get getCallsign(): string {
-        let callsign = store.state.stationSettings.callsign
+    private getCallsign(callsign: string, ssid?: string): string {
+        let retVal = callsign
 
-        if(store.state.stationSettings.ssid !== null && store.state.stationSettings.ssid !== undefined) {
-            callsign = `${callsign}-${store.state.stationSettings.ssid}`
+        if(StringUtil.IsNullOrWhiteSpace(ssid)) {
+            retVal = `${callsign}-${ssid}`
         }
 
-        return callsign
+        return retVal
     }
 }

@@ -4,10 +4,10 @@ import { AbstractConnection } from "./AbstractConnection"
 
 export class TNCConnection extends AbstractConnection {
     public autoOpen = false
-    public baudRate = 9600
-    public charset = "ascii"
-    public dataBits = 8
-    public parity = "none"
+    public baudRate: 115200 | 57600 | 38400 | 19200 | 9600 | 4800 | 2400 | 1800 | 1200 | 600 | 300 | 200 | 150 | 134 | 110 | 75 | 50 | number = 9600
+    public charset: 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'binary' | 'hex' = "ascii"
+    public dataBits: 8 | 7 | 6 | 5 = 8
+    public parity: 'none' | 'even' | 'mark' | 'odd' | 'space' = "none"
     public rtscts = true
     public stopBits = 1
     public messageDelimeter = "\r"
@@ -22,6 +22,8 @@ export class TNCConnection extends AbstractConnection {
 
         const terminalSettings: TerminalSettings = new TerminalSettings()
         this.comPort = settings["comPort"] ?? ""
+        this.exitCommands = settings["exitCommands"] ?? []
+        this.initCommands = settings["initCommands"] ?? []
         this.myCallCommand = settings["myCallCommand"] ?? "MYCALL"
 
         terminalSettings.autoOpen = settings['autoOpen'] ?? false
@@ -43,6 +45,8 @@ export class TNCConnection extends AbstractConnection {
         } catch (error) {
             console.log(`Failed bo build Terminal Connection ${this.name}`)
         }
+
+        this.applyListeners()
     }
 
     public get isEnabled(): boolean {

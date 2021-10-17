@@ -46,11 +46,12 @@
 </template>
 
 <script lang="ts">
+    import { Component, Vue } from 'vue-property-decorator'
+    import { Mapper } from '@/utils/mappers'
+
     import ActionTypes from '@/ActionTypes'
     import { DistanceUnitTypes, TemperatureUnitTypes } from '@/enums'
     import { SoftwareSettings } from '@/models/SoftwareSettings'
-    import { Mapper } from '@/utils/mappers'
-    import { Component, Prop, Vue } from 'vue-property-decorator'
 
     @Component({})
     export default class ApplicationSettings extends Vue {

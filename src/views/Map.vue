@@ -36,7 +36,6 @@
     import { NumberUtil, StringUtil } from '@/utils'
     import { Component, Vue } from 'vue-property-decorator'
     import { mapState } from 'vuex'
-    import { APRSSymbol, MapSettings } from '@/models'
     import GetterTypes from '@/GetterTypes'
     import MapContextMenu from '@/components/maps/MapContextMenu.vue'
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
@@ -45,7 +44,7 @@
     import ActionTypes from '@/ActionTypes'
     import { Coordinate } from 'ol/coordinate'
     import Geometry from 'ol/geom/Geometry'
-    import MutationTypes from '@/MutationTypes'
+    import { APRSSymbol, MapSettings } from '@/models'
 
     /**
      * Note: only 1 base layer is allowed
@@ -184,12 +183,10 @@
                                 f.get('label') == p.itemname || f.get('label') == p.objectname
                             )
 
-                    // TODO: REMOVE WHEN FULLY TESTED
-                    console.log(`killed objects/items: ${JSON.stringify(toRemove)}`)
-
                     _.forEach(toRemove, f => {
                         try {
                             this.stationPositionVector.removeFeature(f)
+                            // TODO: remove trail (coords)
                         } catch(e) {
                             console.log(e)
                         }

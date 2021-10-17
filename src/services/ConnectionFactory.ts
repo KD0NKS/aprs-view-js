@@ -1,4 +1,4 @@
-import { IConnection } from "@/models";
+import { IConnection } from "@/models/connections/IConnection";
 import { AbstractConnection } from "@/models/connections/AbstractConnection";
 import { ISConnection } from "@/models/connections/ISConnection";
 import { TNCConnection } from "@/models/connections/TNCConnection";

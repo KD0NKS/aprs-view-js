@@ -83,10 +83,11 @@
 </template>
 
 <script lang="ts">
-    import { aprsPacket } from 'js-aprs-fap'
     import { Component, Prop, Vue } from 'vue-property-decorator'
+
     import { ConversionUtil } from '@/utils'
-    import { APRSSymbol } from '@/models'
+    import { APRSSymbol } from '@/models/APRSSymbol'
+    import { aprsPacket } from 'js-aprs-fap'
 
     @Component({
         props: [ 'overlay', 'packet', 'symbol']

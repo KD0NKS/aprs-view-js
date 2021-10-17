@@ -1,19 +1,22 @@
-import * as _ from 'lodash'
-import ActionTypes from '../ActionTypes'
-import { bus } from '@/main'
-import { ConnectionService } from '@/services'
-import GetterTypes from '../GetterTypes'
-import Store from 'electron-store'
-import MutationTypes from '../MutationTypes'
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { Connection, IConnection, IMapSettings, IStationSettings, MapSettings, StationSettings } from '@/models'
-import { aprsPacket } from 'js-aprs-fap'
-import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
-import { Mapper } from '@/utils/mappers'
+import { bus } from '@/main'
+
+import * as _ from 'lodash'
+import Store from 'electron-store'
+
+import ActionTypes from '@/ActionTypes'
+import GetterTypes from '@/GetterTypes'
+import MutationTypes from '@/MutationTypes'
+
 import { BusEventTypes } from '@/enums'
-import { SoftwareSettings } from '@/models/SoftwareSettings'
-import { ISoftwareSettings } from '@/models/ISoftwareSettings'
+
+import { aprsPacket } from 'js-aprs-fap'
+import { Mapper } from '@/utils/mappers'
+import { IMapSettings, MapSettings, ISoftwareSettings, IStationSettings , SoftwareSettings, StationSettings, IConnection } from '@/models'
+
+import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
+import { ConnectionService } from '@/services'
 
 Vue.use(Vuex)
 
@@ -23,17 +26,17 @@ export default new Vuex.Store({
     state: {
         aprsData: []
         , aprsPackets: new Array<aprsPacket>()
-        , connectionService: new ConnectionService()
         , mapSettings: new MapSettings()
         , packetTimer: undefined
         , softwareSettings: new SoftwareSettings()
         , stationSettings: new StationSettings()
+        , connectionService: new ConnectionService()
     },
     mutations: {
-        [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
-            state.connectionService.addConnection(connection)
+        [MutationTypes.ADD_CONNECTION](state, settings: IConnection) {
+            state.connectionService.addConnection(settings)
 
-            persistentStorage.set(`connections.${connection.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
+            //persistentStorage.set(`connections.${connection.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
         },
         [MutationTypes.ADD_DATA](state, data: string) {
             state.aprsData.push(data)
@@ -65,9 +68,9 @@ export default new Vuex.Store({
             const connection = state.connectionService.getConnection(connectionProps.id)
 
             if(connection) {
-                Mapper.CopyInto<ConnectionViewModel, Connection>(connectionProps, connection)
+                //Mapper.CopyInto<ConnectionViewModel, Connection>(connectionProps, connection)
 
-                persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
+                //persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
             }
         },
         [MutationTypes.SET_MAP_SETTINGS](state, settings: IMapSettings) {
@@ -77,7 +80,7 @@ export default new Vuex.Store({
                     () => this.dispatch(ActionTypes.CLEAR_OLD_PACKETS)
                     , 60000) // 60000ms per minute
             }
-            
+
             if(settings.pointLifetime != state.mapSettings.pointLifetime) {
                 this.dispatch(ActionTypes.CLEAR_OLD_PACKETS)
             }
@@ -137,7 +140,10 @@ export default new Vuex.Store({
         }
     },
     getters: {
-        [GetterTypes.GET_PACKET]: state => id => {
+        [GetterTypes.APP_ID]() {
+            return 'js-aprs-view 1.0.0'
+        }
+        , [GetterTypes.GET_PACKET]: state => id => {
             return state.aprsPackets.find((packet) => packet.id == id)
         },
         [GetterTypes.MAP_SETTINGS](state) {

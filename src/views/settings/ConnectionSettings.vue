@@ -21,9 +21,7 @@
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator'
     import ConnectionItem from "@/components/settings/connections/ConnectionItem.vue"
-    import { Connection } from '@/models/connections/Connection'
     import ActionTypes from '@/ActionTypes'
-    import MutationTypes from '@/MutationTypes'
     import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
 
     @Component({
@@ -35,21 +33,21 @@
         }
 
         addConnection(): void {
-            this.$store.dispatch(ActionTypes.ADD_CONNECTION, new Connection({
-                name: "Default"
-                , connectionType: 'IS_SOCKET'
-                , host: "rotate.aprs2.net"
-                , port: 14580
-                , isEnabled: false
-                , filter: "r/39.00/-91.00/1000"
-            }))
+            let newConnection = new ConnectionViewModel()
+            newConnection.name = "Default"
+            newConnection.connectionType = 'IS_SOCKET'
+            newConnection.host = "rotate.aprs2.net"
+            newConnection.port = 14580
+            newConnection.filter = "r/39.00/-91.00/1000"
+
+            this.$store.dispatch(ActionTypes.ADD_CONNECTION, newConnection)
         }
 
-        deleteConnection(connectionId) {
+        deleteConnection(connectionId): void {
             this.$store.dispatch(ActionTypes.DELETE_CONNECTION, connectionId)
         }
 
-        saveConnection(connection: ConnectionViewModel) {
+        saveConnection(connection: ConnectionViewModel): void {
             this.$store.dispatch(ActionTypes.SAVE_CONNECTION, connection)
         }
     }

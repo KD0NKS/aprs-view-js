@@ -124,13 +124,14 @@
 </template>
 
 <script lang="ts">
-    import _ from 'lodash'
-    import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
     import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
-    import { SerialPortUtil } from 'js-aprs-tnc'
-    import { EolCharEnum } from '@/enums'
-    import TNCCommand from '@/components/settings/connections/TNCCommand.vue'
     import draggable from 'vuedraggable'
+
+    import _ from 'lodash'
+    import { EolCharEnum } from '@/enums'
+    import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
+    import { SerialPortUtil } from 'js-aprs-tnc'
+    import TNCCommand from '@/components/settings/connections/TNCCommand.vue'
 
     @Component({
         props: [ 'connection', 'rules' ]
