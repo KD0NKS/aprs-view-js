@@ -4,6 +4,7 @@ export class APRSSymbol {
         this.key = init?.key ?? null
         this.value = init?.value ?? null
         this.isAllowOverlay = init?.isAllowOverlay ?? false
+        this.isMovable = init?.isMovable ?? false
         this.isRotatable = init?.isRotatable ?? false
     }
 
@@ -11,5 +12,6 @@ export class APRSSymbol {
     public key: string
     public value: any  // Yeah, yeah, yeah, it's an image...
     public isAllowOverlay: boolean = false
+    public isMovable: boolean = false
     public isRotatable: boolean = false
 }
