@@ -45,6 +45,7 @@
     import { Coordinate } from 'ol/coordinate'
     import Geometry from 'ol/geom/Geometry'
     import { APRSSymbol, MapSettings } from '@/models'
+    import LineString from 'ol/geom/LineString'
 
     /**
      * Note: only 1 base layer is allowed
@@ -72,6 +73,7 @@
         private contextMenuY: number = 0
         private mapSettings!: MapSettings
         private symbolService: APRSSymbolService
+        private trailVector: VectorSource<Geometry>
         private stationPositionVector: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
@@ -89,9 +91,13 @@
                     })
         private map: OLMap
 
+        // Enhancement: make trail colors a selectable user configuration?
+        private trailColors: string[] = [ "purple", "blue", "hotpink", "red", "aqua" ]
+
         constructor() {
             super()
 
+            this.trailVector = new VectorSource({})
             this.symbolService = new APRSSymbolService()
             this.stationPositionVector = new VectorSource({})
         }
@@ -110,6 +116,10 @@
             const layers: BaseLayer[] = [
                 new TileLayer({
                     source: new OSM()
+                })
+                , new VectorLayer({
+                    source: this.trailVector
+                    , minZoom: 8
                 })
                 , new VectorLayer({
                     source: this.stationPositionVector
@@ -143,7 +153,8 @@
                 // TODO: This seems to be getting the one on the bottom of the pile
                 var feature = _.reverse(this.map.getFeaturesAtPixel(evt.pixel))[0]
 
-                if(feature) {
+                // Prevent trying to fetch data if a trail is clicked
+                if(feature && feature.getGeometry().getType() != "LineString") {
                     let pkt = await this.$store.getters[GetterTypes.GET_PACKET](feature.get('name'))
                     const icon = this.symbolService.GetAPRSSymbol(pkt.symbolcode, pkt.symboltable)
                     this.stationIcon = icon['symbol']
@@ -177,6 +188,7 @@
                 if(p.alive == null || p.alive == true) {
                     this.addPacket(p)
                 } else {
+                    // Remove "killed" objects/items
                     const toRemove = _.filter(
                             this.stationPositionVector.getFeatures()
                             , f =>
@@ -252,23 +264,42 @@
                         , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                     })
 
-                    const styles = this.generateIcon(packet)
+                    const symbols = this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
+                    const styles = this.generateIcon(packet, symbols)
                     feature.setStyle(await styles)
 
                     const existingFeature = this.stationPositionVector.getFeatureById(packet.sourceCallsign)
                     if(existingFeature) {
-                        /*
-                            if position != old position - this may not be 100% reliable, but *should be* close enough
-                                change style to a point
-                                look at a vector source for station/object
-                                    if it does not exist
-                                        start a new polyline
-                                        get a random color
-                                    else add coordinates to polyline
-                            else
-                                remove old feature
-                        */
-                        this.stationPositionVector.removeFeature(existingFeature)
+                        if(symbols['symbol'].isMovable
+                                && (existingFeature.getGeometry()['flatCoordinates'].toString() != feature.getGeometry()['flatCoordinates'].toString())) {
+
+                            var trail = this.trailVector.getFeatureById(packet.sourceCallsign)
+                            if(trail) {
+                                (trail.getGeometry() as LineString).appendCoordinate(fromLonLat([ packet.longitude, packet.latitude ]))
+                            }
+
+                            // TODO: Update existing feature
+                        } else {
+                            this.stationPositionVector.removeFeature(existingFeature)
+                        }
+                    } else {
+                        if(symbols['symbol'].isMovable) {
+                            // NOTE: Flow lines can show speed
+                            const ls = new LineString([ [packet.longitude, packet.latitude] ]).transform('EPSG:4326', 'EPSG:3857');
+
+                            let f = new Feature({
+                                geometry: ls
+                            })
+                            f.setId(packet.sourceCallsign)
+                            f.setStyle(new Style({
+                                    stroke : new Stroke({
+                                        color: this.trailColors[Math.floor(Math.random() * this.trailColors.length)] // get a random color
+                                        , width: 5
+                                    })
+                                }))
+
+                            this.trailVector.addFeature(f)
+                        }
                     }
 
                     this.stationPositionVector.addFeature(feature)
@@ -276,8 +307,7 @@
             }
         }
 
-        private async generateIcon(packet: aprsPacket) {
-            const symbols = this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
+        private async generateIcon(packet: aprsPacket, symbols: any) {
             const symbol = symbols['symbol'] as APRSSymbol
             const overlay = symbols['overlay'] as APRSSymbol
             const retVal = new Array<Style>()
