@@ -24,6 +24,8 @@ export class APRSSymbolService implements IAPRSSymbolService {
         key: ''
         , value: require('@/assets/symbols/Crosshair.png')
         , name: "Crosshair"
+        , isRotatable: false
+        , isMovable: true
     });
 
     constructor() {
@@ -73,8 +75,8 @@ export class APRSSymbolService implements IAPRSSymbolService {
             , new APRSSymbol({ key: '/H'    , value: require('@/assets/symbols/PrimaryTable/Hotel.png'                      ), name: "Hotel"                        , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/I'    , value: require('@/assets/symbols/PrimaryTable/TCPIPOnAirNetwork.png'          ), name: "TCPIP On Air Network"         , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/K'    , value: require('@/assets/symbols/PrimaryTable/School.png'                     ), name: "School"                       , isRotatable: false    , isMovable: false  })
-            , new APRSSymbol({ key: '/L'    , value: require('@/assets/symbols/PrimaryTable/PCUser.png'                     ), name: "PC User"                      , isRotatable: false    , isMovable: false  })
-            , new APRSSymbol({ key: '/M'    , value: require('@/assets/symbols/PrimaryTable/MacAprs.png'                    ), name: "Mac APRS"                     , isRotatable: false    , isMovable: false  })
+            , new APRSSymbol({ key: '/L'    , value: require('@/assets/symbols/PrimaryTable/PCUser.png'                     ), name: "PC User"                      , isRotatable: false    , isMovable: true   })
+            , new APRSSymbol({ key: '/M'    , value: require('@/assets/symbols/PrimaryTable/MacAprs.png'                    ), name: "Mac APRS"                     , isRotatable: false    , isMovable: true   })
             , new APRSSymbol({ key: '/N'    , value: require('@/assets/symbols/PrimaryTable/NationalTrafficStation.png'     ), name: "National Traffic Station"     , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/O'    , value: require('@/assets/symbols/PrimaryTable/Balloon.png'                    ), name: "Balloon"                      , isRotatable: false    , isMovable: true   })
             , new APRSSymbol({ key: '/P'    , value: require('@/assets/symbols/PrimaryTable/Police.png'                     ), name: "Police"                       , isRotatable: true     , isMovable: true   })
@@ -87,7 +89,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
             , new APRSSymbol({ key: '/W'    , value: require('@/assets/symbols/PrimaryTable/NationalWeatherService.png'     ), name: "NWS"                          , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/X'    , value: require('@/assets/symbols/PrimaryTable/Helicopter.png'                 ), name: "Helicopter"                   , isRotatable: true     , isMovable: true   })
             , new APRSSymbol({ key: '/Y'    , value: require('@/assets/symbols/PrimaryTable/Yacht.png'                      ), name: "Yacht"                        , isRotatable: true     , isMovable: true   })
-            , new APRSSymbol({ key: '/Z'    , value: require('@/assets/symbols/PrimaryTable/WinAprs.png'                    ), name: "Win APRS"                     , isRotatable: false    , isMovable: false  })
+            , new APRSSymbol({ key: '/Z'    , value: require('@/assets/symbols/PrimaryTable/WinAprs.png'                    ), name: "Win APRS"                     , isRotatable: true     , isMovable: true   })
             , new APRSSymbol({ key: '/['    , value: require('@/assets/symbols/PrimaryTable/Person.png'                     ), name: "Person"                       , isRotatable: true     , isMovable: true   })
             , new APRSSymbol({ key: '/\\'   , value: require('@/assets/symbols/PrimaryTable/DFStation.png'                  ), name: "DF Station"                   , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/]'    , value: require('@/assets/symbols/PrimaryTable/PostOffice.png'                 ), name: "Post Office"                  , isRotatable: false    , isMovable: false  })
@@ -117,7 +119,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
             , new APRSSymbol({ key: '/u'    , value: require('@/assets/symbols/PrimaryTable/SemiTruck.png'                  ), name: "Semi Truck"                   , isRotatable: true     , isMovable: true   })
             , new APRSSymbol({ key: '/v'    , value: require('@/assets/symbols/PrimaryTable/Van.png'                        ), name: "Van"                          , isRotatable: true     , isMovable: true   })
             , new APRSSymbol({ key: '/w'    , value: require('@/assets/symbols/PrimaryTable/WaterStation.png'               ), name: "Water Station"                , isRotatable: false    , isMovable: false  })
-            , new APRSSymbol({ key: '/x'    , value: require('@/assets/symbols/PrimaryTable/Xastir.png'                     ), name: "Xastir"                       , isRotatable: false    , isMovable: false  })
+            , new APRSSymbol({ key: '/x'    , value: require('@/assets/symbols/PrimaryTable/Xastir.png'                     ), name: "Xastir"                       , isRotatable: true    , isMovable: false  })
             , new APRSSymbol({ key: '/y'    , value: require('@/assets/symbols/PrimaryTable/HouseWithYagi.png'              ), name: "House with Yagi"              , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/z'    , value: require('@/assets/symbols/PrimaryTable/TBD.png'                        ), name: "TBD"                          , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/|'    , value: require('@/assets/symbols/PrimaryTable/TNCStreamSwitch.png'            ), name: "TNC Strem Switch"             , isRotatable: false    , isMovable: false  })
