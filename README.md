@@ -46,6 +46,7 @@ TODO:
     - [ ] Trails
         - https://openlayers.org/workshop/en/vector/draw.html
         - https://gis.stackexchange.com/questions/323992/create-polyline-from-coordinates-array-in-ol-openlayers-5-3-2
+        - routes while cool would display more data than is actually transmitted, but is a cool idea: https://gis.stackexchange.com/questions/147617/how-to-draw-route-from-osrm-on-right-road-using-openlayers
     - [x] Rotated markers
     - [x] Show labels
     - [x] Properly handle objects - names, not moving stationary objects on duplicate src callsign, etc
