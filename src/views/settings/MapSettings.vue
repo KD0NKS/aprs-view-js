@@ -31,6 +31,16 @@
                             </v-flex>
                         </v-layout>
 
+                        <v-layout row wrap>
+                            <v-flex xs12 md6 class="px-2">
+                                <v-switch
+                                    v-model="mapSettings.isShowTrails"
+                                    label="Show Trails"
+                                    >
+                                </v-switch>
+                            </v-flex>
+                        </v-layout>
+
                         <!--
                             Center on options:
                             Center on Station               - With callsign input + map menu option
