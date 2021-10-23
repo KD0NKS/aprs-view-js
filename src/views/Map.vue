@@ -27,7 +27,7 @@
     import { Heatmap as HeatmapLayer, Tile as TileLayer } from 'ol/layer'
     import BaseLayer from 'ol/layer/Base'
     import VectorLayer from 'ol/layer/Vector'
-    import { fromLonLat } from 'ol/proj'
+    import { fromLonLat, toLonLat } from 'ol/proj'
     import OSM from 'ol/source/OSM'
     import VectorSource from 'ol/source/Vector'
     import { Style, Fill, Stroke, Text } from 'ol/style'
@@ -46,6 +46,7 @@
     import Geometry from 'ol/geom/Geometry'
     import { APRSSymbol, MapSettings } from '@/models'
     import LineString from 'ol/geom/LineString'
+    import CircleStyle from 'ol/style/Circle'
 
     /**
      * Note: only 1 base layer is allowed
@@ -74,6 +75,7 @@
         private mapSettings!: MapSettings
         private symbolService: APRSSymbolService
         private trailVector: VectorSource<Geometry>
+        private genericPointVector: VectorSource<Geometry>
         private stationPositionVector: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
@@ -92,11 +94,35 @@
         private map: OLMap
 
         // Enhancement: make trail colors a selectable user configuration?
-        private trailColors: string[] = [ "purple", "blue", "hotpink", "red", "aqua" ]
+        private trailStyles: Style[] = _.map([
+                  "rgba(125 , 0     , 255   , 0.5)" // purple
+                , "rgba(0   , 0     , 255   , 0.5)" // blue
+                , "rgba(255 , 0     , 255   , 0.5)" // hot pink-ish
+                , "rgba(255 , 0     , 0     , 0.5)" // red
+                , "rgba(0   , 225   , 255   , 0.5)" // teal
+                , "rgba(255 , 64    , 0     , 0.5)" // orange
+                , "rgba(0   , 0     , 102   , 0.5)" // navy
+                , "rgba(128 , 0     , 0     , 0.5)" // maroon
+            ], c =>
+                new Style({
+                    stroke : new Stroke({
+                        color: c
+                        , width: 5
+                    })
+                })
+            )
+
+        private oldPositionStyle: Style = new Style({
+            image: new CircleStyle({
+                radius: 5
+                , fill: new Fill({ color: "red" })
+            })
+        })
 
         constructor() {
             super()
 
+            this.genericPointVector = new VectorSource({})
             this.trailVector = new VectorSource({})
             this.symbolService = new APRSSymbolService()
             this.stationPositionVector = new VectorSource({})
@@ -119,6 +145,10 @@
                 })
                 , new VectorLayer({
                     source: this.trailVector
+                    , minZoom: 8
+                })
+                , new VectorLayer({
+                    source: this.genericPointVector
                     , minZoom: 8
                 })
                 , new VectorLayer({
@@ -151,11 +181,14 @@
             // display popup on click
             this.map.on('singleclick', async (evt) => {
                 // TODO: This seems to be getting the one on the bottom of the pile
-                var feature = _.reverse(this.map.getFeaturesAtPixel(evt.pixel))[0]
+                var feature = _.filter(this.map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")[0]
+                //var feature = _.reverse(
+                //        _.filter(this.map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")
+                //    )[0]
 
                 // Prevent trying to fetch data if a trail is clicked
                 if(feature && feature.getGeometry().getType() != "LineString") {
-                    let pkt = await this.$store.getters[GetterTypes.GET_PACKET](feature.get('name'))
+                    let pkt = this.$store.getters[GetterTypes.GET_PACKET](feature.getId())
                     const icon = this.symbolService.GetAPRSSymbol(pkt.symbolcode, pkt.symboltable)
                     this.stationIcon = icon['symbol']
                     this.stationIconOverlay = icon['overlay']
@@ -176,14 +209,10 @@
                 }
 
                 this.contextMenu = true
+
                 return true
             })
 
-            /*
-            this.vectorSource.addFeatures(this.aprsPackets.reduce((accumulator: any, currentValue: aprsPacket) => {
-                return [...accumulator, this.generateFeature(currentValue)]
-            }, []))
-            */
             bus.$on(BusEventTypes.PACKET_ADDED, async (p: aprsPacket) => {
                 if(p.alive == null || p.alive == true) {
                     this.addPacket(p)
@@ -195,40 +224,69 @@
                                 f.get('label') == p.itemname || f.get('label') == p.objectname
                             )
 
-                    _.forEach(toRemove, f => {
-                        try {
-                            this.stationPositionVector.removeFeature(f)
-                            // TODO: remove trail (coords)
-                        } catch(e) {
-                            console.log(e)
-                        }
-                    })
+                    if(toRemove != null && toRemove.length > 0) {
+                        _.map(toRemove, f => {
+                            try {
+                                this.stationPositionVector.removeFeature(f)
+
+                                // remove the entire trail... assume it won't be used again
+                                //const trail = this.trailVector.getFeatureById(p.itemname ?? p.objectname ?? p.sourceCallsign)
+                                //this.trailVector.removeFeature(trail)
+                            } catch(e) {
+                                console.log(e)
+                            }
+                        })
+                    }
                 }
             })
 
-            /*
-            _.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (30 * 60000)).forEach(async (p) => {
-                        if(new Date().getTime() - p.receivedTime < (30 * 60000))
-                            this.addPacket(p)
-                    })
-            */
+            bus.$on(BusEventTypes.PACKETS_REMOVED, (data: number[] | string[]) => {
+                this.removePoints(this.genericPointVector, data)
 
-            bus.$on(BusEventTypes.PACKETS_REMOVED, (data) => {
-                const toRemove = _.filter(this.stationPositionVector.getFeatures(), f => _.indexOf(data, f.get('name')) > -1)
+                if(this.mapSettings.isShowTrails == true) {
+                    this.removePoints(this.stationPositionVector, data)
+                }
 
-                _.forEach(toRemove, f => {
+                /*
+                const toRemove = _.filter(this.stationPositionVector.getFeatures(), (f) => _.indexOf(data, f.getId()) > -1)
+
+                _.each(toRemove, f => {
                     try {
                         this.stationPositionVector.removeFeature(f)
+                        //console.log(f.getGeometry()["flatCoordinates"])
+
+                        let trail = this.trailVector.getFeatureById(f.get('label'))
+                        if(trail) {
+                            //console.log(trail?.getGeometry()["flatCoordinates"])
+                            //console.log(trail.getGeometry())
+                            // get flat coordinates
+                            let coords = trail.getGeometry()["flatCoordinates"]
+
+                            //if(coords && coords.length() > 0) {
+                            //    _.each(coords, c => {
+                            //        if(c > -1)
+                            //            coords = _.pullAt(coords, c)
+                            //    });
+                            //
+                            //    (trail.getGeometry() as LineString).setCoordinates(coords)
+                            //}
+
+                            // update flat coordinates array by moving first instance of matching coords
+                            // update the trail
+                        }
                     } catch(e) {
                         console.log(e)
                     }
                 })
-            })
+                */
+            });
 
-            _.forEach(_.filter(this.aprsPackets, (p) => new Date().getTime() - p.receivedTime < (this.mapSettings.pointLifetime * 60000)),
-                    async (p) => {
-                        this.addPacket(p)
-                    })
+            _.map(this.getAllLocationPackets()
+                , async (p) => {
+                    this.addPacket(p)
+                    return
+                }
+            )
         }
 
         // contextMenu actions
@@ -240,71 +298,163 @@
         private clearAllStations(): void {
             // Hack for a much more complex problem...
             // TODO: There needs to be a clearall packets/data in the store
-            this.$store.dispatch(ActionTypes.REMOVE_PACKETS, this.stationPositionVector.getFeatures().map(f => f.get['name']))
+            this.$store.dispatch(ActionTypes.REMOVE_PACKETS, _.map(this.stationPositionVector.getFeatures(), f => f.getId()))
         }
 
         // icon generation stuffz
         private async addPacket(packet: aprsPacket) {
-            if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
-                    && packet.latitude && packet.latitude != null && packet.latitude != undefined
-                    && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
+            if(this.isValidPacket(packet)) {
+                let existingFeatures = await _.filter(this.stationPositionVector.getFeatures(), f => {
+                    return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
+                                    && packet.receivedTime > f.get('receivedTime')
+                })
 
-                // programatically set the property on the locations object to be reactive
-                if(!StringUtil.IsNullOrWhiteSpace(packet.sourceCallsign)
-                        && packet.latitude && packet.latitude != null && packet.latitude != undefined
-                        && packet.longitude && packet.longitude != null && packet.longitude != undefined) {
-                    const feature = new Feature({
+                var mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
+                    result.push(value.get('receivedTime'))
+                    return result
+                }, []))
+
+                const symbols = await this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
+                const styles = await this.generateIcon(packet, symbols)
+                // if no existing features || received time > all existing features
+                if(mostRecentTime == null || packet.receivedTime > mostRecentTime) {
+                    // programatically set the property on the locations object to be reactive
+                    let feature = new Feature({
                         geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
-                        , name: packet.id
                     })
 
-                    feature.setId(packet.sourceCallsign)
+                    feature.setId(packet.id)
                     feature.setProperties({
-                        name: packet.id
+                        name: packet.sourceCallsign
                         , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
+                        , receivedTime: packet.receivedTime
                     })
 
-                    const symbols = this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
-                    const styles = this.generateIcon(packet, symbols)
                     feature.setStyle(await styles)
-
-                    const existingFeature = this.stationPositionVector.getFeatureById(packet.sourceCallsign)
-                    if(existingFeature) {
-                        if(symbols['symbol'].isMovable
-                                && (existingFeature.getGeometry()['flatCoordinates'].toString() != feature.getGeometry()['flatCoordinates'].toString())) {
-
-                            var trail = this.trailVector.getFeatureById(packet.sourceCallsign)
-                            if(trail) {
-                                (trail.getGeometry() as LineString).appendCoordinate(fromLonLat([ packet.longitude, packet.latitude ]))
-                            }
-
-                            // TODO: Update existing feature
-                        } else {
-                            this.stationPositionVector.removeFeature(existingFeature)
-                        }
-                    } else {
-                        if(symbols['symbol'].isMovable) {
-                            // NOTE: Flow lines can show speed
-                            const ls = new LineString([ [packet.longitude, packet.latitude] ]).transform('EPSG:4326', 'EPSG:3857');
-
-                            let f = new Feature({
-                                geometry: ls
-                            })
-                            f.setId(packet.sourceCallsign)
-                            f.setStyle(new Style({
-                                    stroke : new Stroke({
-                                        color: this.trailColors[Math.floor(Math.random() * this.trailColors.length)] // get a random color
-                                        , width: 5
-                                    })
-                                }))
-
-                            this.trailVector.addFeature(f)
-                        }
-                    }
-
                     this.stationPositionVector.addFeature(feature)
                 }
+
+                if(symbols['symbol'].isMovable && this.mapSettings.isShowTrails == true) {
+                    this.addGenericPoint(packet)
+                    // TODO: Add to trail
+                } else {
+                    // TODO: Remove any generic points
+                    // TODO: Remove any trails
+                }
+
+                if(existingFeatures != undefined && existingFeatures != null && existingFeatures.length > 0) {
+                    _.map(existingFeatures, f => this.stationPositionVector.removeFeature(f))
+                }
             }
+
+            return
+
+            //if(test == true) { // TODO: Map setting for show trails
+                    /*
+                    /*
+                    let existingFeatures = _.sortBy(
+                        _.filter(this.stationPositionVector.getFeatures(), f => {
+                            return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
+                                    && f.get('receivedTime') < packet.receivedTime
+                        })
+                        , f => f.get('receivedTime')
+                    )
+
+                    let trail = this.trailVector.getFeatureById(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+
+                    if(trail) {
+                        let points = []
+                        if(existingFeatures && existingFeatures.length > -1) {
+                            points = _.reduce(existingFeatures, (result, value) => {
+                                result.push(value.getGeometry()["flatCoordinates"])
+                                return result
+                            }, [])
+                        }
+
+                        points.push(fromLonLat([ packet.longitude, packet.latitude ]));
+                        (trail.getGeometry() as LineString).setCoordinates(points)
+                    } else {
+                        const ls = new LineString([ [ packet.longitude, packet.latitude ] ]).transform('EPSG:4326', 'EPSG:3857');
+
+                        let f = new Feature({
+                            geometry: ls
+                        })
+                        f.setId(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                        f.setStyle(this.trailStyles[Math.floor(Math.random() * this.trailStyles.length)]) // get a random trail style/color
+
+                        this.trailVector.addFeature(f)
+                    }
+
+                    _.map(existingFeatures, f => {
+                        if(f && f != undefined)
+                            f.setStyle(this.oldPositionStyle)
+
+                        return
+                    })
+
+                } else {
+                    const trail = this.trailVector.getFeatureById(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                    if(trail)   // keep it cached
+                            (trail.getGeometry() as LineString).setCoordinates([])
+
+                    _.each(existingFeatures, f => {
+                        if(f && f != undefined)
+                            this.stationPositionVector.removeFeature(f)
+                        }
+                    )
+
+                    return
+                }
+                */
+        }
+
+        private async addGenericPoint(packet: aprsPacket) {
+            let feature = new Feature({
+                geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
+            })
+
+            feature.setId(packet.id)
+            feature.setProperties({
+                name: packet.sourceCallsign
+                , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
+                , receivedTime: packet.receivedTime
+            })
+
+            feature.setStyle(this.oldPositionStyle)
+            this.genericPointVector.addFeature(feature)
+
+            return
+        }
+
+        private async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]) {
+            if(ids != null && ids.length > 0) {
+                const toRemove = _.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1)
+
+                if(toRemove != null && toRemove.length > 0) {
+                    _.map(toRemove, f => {
+                        try {
+                            vector.removeFeature(f)
+                        } catch(e) {
+                            console.log(e)
+                        }
+                    })
+
+                    return
+                }
+            }
+
+            return
+        }
+
+        private async generateTrail(label: string) {
+            const features = _.filter(this.genericPointVector.getFeatures(), f => {
+                f.get('label') == label
+            })
+
+            //if(features != undefined && features.length > 0) {
+            //}
+
+            return
         }
 
         private async generateIcon(packet: aprsPacket, symbols: any) {
@@ -373,6 +523,23 @@
             }
 
             return retVal
+        }
+
+        private getAllLocationPackets(): aprsPacket[] {
+            return _.sortBy(
+                _.filter(this.aprsPackets, (p) => {
+                    return this.isValidPacket(p)
+                        && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
+                })
+                , p => (p as aprsPacket).receivedTime
+            )
+        }
+
+        private isValidPacket(packet: aprsPacket) {
+            return (packet.latitude && packet.latitude != null && packet.latitude != undefined)
+                        && (packet.longitude && packet.latitude != null && packet.longitude != undefined)
+                        && StringUtil.IsNullOrWhiteSpace(packet.resultCode)
+                        && StringUtil.IsNullOrWhiteSpace(packet.resultMessage)
         }
     }
 </script>
