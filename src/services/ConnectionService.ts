@@ -41,7 +41,7 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
                 conn.connection.on(DataEventTypes.PACKET, (data: string) => {
                     if(data.charAt(0) != '#') {
                         try {
-                            const msg = this._parser.parseaprs(data.trim())
+                            const msg = this._parser.parseaprs(data.trim(), { accept_broken_mice: true })
                             this.emit(DataEventTypes.PACKET, msg)
                         } catch (err) {
                             this.emit(DataEventTypes.ERROR, err)
@@ -59,9 +59,12 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
             } else if(conn.connectionType == 'SERIAL_TNC') {
                 conn.connection.on(DataEventTypes.PACKET, (data: string) => {
                     try {
+                        const receivedTime = Date.now()
+
                         // TODO: The command should be a parameter set by the user to strip off the beginning of the packet
                         data = data.trim().replace(/^[cmd:]*/, '')
                         const msg = this._parser.parseaprs(data)
+                        msg.receivedTime = receivedTime
                         this.emit(DataEventTypes.PACKET, msg)
 
                         // Serial port on data event will emit character at a time.

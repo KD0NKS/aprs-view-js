@@ -19,6 +19,11 @@
 </template>
 
 <script lang="ts">
+    /*
+     * DEVELOPER NOTES:  Sometimes trying to be too fancy is a good thing, too much processing on any given layer can cause severe slowness.
+     * It may be better trying to simplify the problem and create multiple layers to achieve what you want to do when dealing with points and lines.
+     */
+
     import 'ol/ol.css'
     import * as _ from 'lodash'
     import { aprsPacket } from 'js-aprs-fap'
@@ -215,21 +220,24 @@
 
             bus.$on(BusEventTypes.PACKET_ADDED, async (p: aprsPacket) => {
                 if(p.alive == null || p.alive == true) {
-                    this.addPacket(p)
+                    this.addPacket(p, true)
                 } else {
                     // Remove "killed" objects/items
-                    const toRemove = _.filter(
+                    const toRemove = _.compact(
+                        _.filter(
                             this.stationPositionVector.getFeatures()
                             , f =>
                                 f.get('label') == p.itemname || f.get('label') == p.objectname
                             )
+                    )
 
                     if(toRemove != null && toRemove.length > 0) {
                         _.map(toRemove, f => {
                             try {
-                                this.stationPositionVector.removeFeature(f)
+                                if(f != undefined)
+                                    this.stationPositionVector.removeFeature(f)
 
-                                // remove the entire trail... assume it won't be used again
+                                // TODO: remove the entire trail... assume it won't be used again
                                 //const trail = this.trailVector.getFeatureById(p.itemname ?? p.objectname ?? p.sourceCallsign)
                                 //this.trailVector.removeFeature(trail)
                             } catch(e) {
@@ -246,47 +254,26 @@
                 if(this.mapSettings.isShowTrails == true) {
                     this.removePoints(this.stationPositionVector, data)
                 }
-
-                /*
-                const toRemove = _.filter(this.stationPositionVector.getFeatures(), (f) => _.indexOf(data, f.getId()) > -1)
-
-                _.each(toRemove, f => {
-                    try {
-                        this.stationPositionVector.removeFeature(f)
-                        //console.log(f.getGeometry()["flatCoordinates"])
-
-                        let trail = this.trailVector.getFeatureById(f.get('label'))
-                        if(trail) {
-                            //console.log(trail?.getGeometry()["flatCoordinates"])
-                            //console.log(trail.getGeometry())
-                            // get flat coordinates
-                            let coords = trail.getGeometry()["flatCoordinates"]
-
-                            //if(coords && coords.length() > 0) {
-                            //    _.each(coords, c => {
-                            //        if(c > -1)
-                            //            coords = _.pullAt(coords, c)
-                            //    });
-                            //
-                            //    (trail.getGeometry() as LineString).setCoordinates(coords)
-                            //}
-
-                            // update flat coordinates array by moving first instance of matching coords
-                            // update the trail
-                        }
-                    } catch(e) {
-                        console.log(e)
-                    }
-                })
-                */
             });
 
-            _.map(this.getAllLocationPackets()
-                , async (p) => {
-                    this.addPacket(p)
-                    return
-                }
-            )
+            await Promise.all(this.getAllLocationPackets().map(async (p) => {
+                await this.addPacket(p, false)
+            })).then(() => {
+                _.map(
+                    _.compact(
+                        _.uniq(
+                            _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
+                                result.push(value.get('label'))
+                                return result
+                            }, [])
+                        )
+                    )
+                    , c => {
+                        this.generateTrail(c)
+                        return
+                    }
+                )
+            })
         }
 
         // contextMenu actions
@@ -302,12 +289,13 @@
         }
 
         // icon generation stuffz
-        private async addPacket(packet: aprsPacket) {
+        private async addPacket(packet: aprsPacket, generateTrail: boolean): Promise<void> {
             if(this.isValidPacket(packet)) {
-                let existingFeatures = await _.filter(this.stationPositionVector.getFeatures(), f => {
+                // TODO: For some reason this doesn't work on initial load
+                let existingFeatures = await _.compact(_.filter(this.stationPositionVector.getFeatures(), f => {
                     return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
-                                    && packet.receivedTime > f.get('receivedTime')
-                })
+                                    && f.get('receivedTime') < packet.receivedTime
+                }))
 
                 var mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
                     result.push(value.get('receivedTime'))
@@ -334,23 +322,29 @@
                     this.stationPositionVector.addFeature(feature)
                 }
 
-                if(symbols['symbol'].isMovable && this.mapSettings.isShowTrails == true) {
-                    this.addGenericPoint(packet)
-                    // TODO: Add to trail
+                if(symbols['symbol'].isMovable) {
+                    await this.addGenericPoint(packet)
+
+                    if(generateTrail == true)
+                        this.generateTrail(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
                 } else {
                     // TODO: Remove any generic points
                     // TODO: Remove any trails
                 }
 
-                if(existingFeatures != undefined && existingFeatures != null && existingFeatures.length > 0) {
-                    _.map(existingFeatures, f => this.stationPositionVector.removeFeature(f))
+                if(existingFeatures && existingFeatures != undefined && existingFeatures != null && existingFeatures.length > 0) {
+                    _.map(existingFeatures, f => {
+                        if(f != undefined) {
+                            this.stationPositionVector.removeFeature(f)
+                            return
+                        }
+                    })
                 }
             }
 
             return
 
             //if(test == true) { // TODO: Map setting for show trails
-                    /*
                     /*
                     let existingFeatures = _.sortBy(
                         _.filter(this.stationPositionVector.getFeatures(), f => {
@@ -408,7 +402,7 @@
                 */
         }
 
-        private async addGenericPoint(packet: aprsPacket) {
+        private async addGenericPoint(packet: aprsPacket): Promise<void> {
             let feature = new Feature({
                 geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
             })
@@ -426,17 +420,14 @@
             return
         }
 
-        private async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]) {
+        private async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]): Promise<void> {
             if(ids != null && ids.length > 0) {
-                const toRemove = _.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1)
+                const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
                 if(toRemove != null && toRemove.length > 0) {
                     _.map(toRemove, f => {
-                        try {
+                        if(f != undefined)
                             vector.removeFeature(f)
-                        } catch(e) {
-                            console.log(e)
-                        }
                     })
 
                     return
@@ -447,12 +438,43 @@
         }
 
         private async generateTrail(label: string) {
-            const features = _.filter(this.genericPointVector.getFeatures(), f => {
-                f.get('label') == label
-            })
+            if(this.mapSettings.isShowTrails == true) {
+                //TODO: force this to be serial processing? https://gist.github.com/joeytwiddle/37d2085425c049629b80956d3c618971
+                const coords = _.reduce(
+                    _.sortBy(
+                        _.compact(
+                            _.filter(this.genericPointVector.getFeatures(), f => {
+                                return (f.get('label') == label)
+                            })
+                        )
+                        , f => f.get('receivedTime')
+                    )
+                    , (result, value) => {
+                        result.push(value.getGeometry()["flatCoordinates"])
+                        return result
+                    }
+                    , []
+                )
 
-            //if(features != undefined && features.length > 0) {
-            //}
+                if(coords != undefined) {
+                    const trail = this.trailVector.getFeatureById(label)
+
+                    if(trail != undefined) {
+                        (trail.getGeometry() as LineString).setCoordinates(coords)
+                    } else {
+                        const ls = new LineString(coords)
+
+                        let f = new Feature({
+                            geometry: ls
+                        })
+
+                        f.setId(label)
+                        f.setStyle(this.trailStyles[Math.floor(Math.random() * this.trailStyles.length)]) // get a random trail style/color
+
+                        this.trailVector.addFeature(f)
+                    }
+                }
+            }
 
             return
         }
@@ -526,12 +548,15 @@
         }
 
         private getAllLocationPackets(): aprsPacket[] {
-            return _.sortBy(
-                _.filter(this.aprsPackets, (p) => {
-                    return this.isValidPacket(p)
-                        && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
-                })
-                , p => (p as aprsPacket).receivedTime
+
+            return _.compact(
+                _.sortBy(
+                    _.filter(this.aprsPackets, (p) => {
+                        return this.isValidPacket(p)
+                            && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
+                    })
+                    , p => (p as aprsPacket).receivedTime
+                )
             )
         }
 
