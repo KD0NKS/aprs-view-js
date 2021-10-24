@@ -81,7 +81,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
             , new APRSSymbol({ key: '/O'    , value: require('@/assets/symbols/PrimaryTable/Balloon.png'                    ), name: "Balloon"                      , isRotatable: false    , isMovable: true   })
             , new APRSSymbol({ key: '/P'    , value: require('@/assets/symbols/PrimaryTable/Police.png'                     ), name: "Police"                       , isRotatable: true     , isMovable: true   })
             , new APRSSymbol({ key: '/Q'    , value: require('@/assets/symbols/PrimaryTable/Quake.png'                      ), name: "Earthquake"                   , isRotatable: false    , isMovable: false  }) // TBD?
-            , new APRSSymbol({ key: '/R'    , value: require('@/assets/symbols/PrimaryTable/RV.png'                         ), name: "RV"                           , isRotatable: false    , isMovable: false  })
+            , new APRSSymbol({ key: '/R'    , value: require('@/assets/symbols/PrimaryTable/RV.png'                         ), name: "RV"                           , isRotatable: false    , isMovable: true   })
             , new APRSSymbol({ key: '/S'    , value: require('@/assets/symbols/PrimaryTable/Shuttle.png'                    ), name: "Shuttle"                      , isRotatable: true     , isMovable: true   })
             , new APRSSymbol({ key: '/T'    , value: require('@/assets/symbols/PrimaryTable/SSTV.png'                       ), name: "SSTV"                         , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/U'    , value: require('@/assets/symbols/PrimaryTable/Bus.png'                        ), name: "Bus"                          , isRotatable: true     , isMovable: true   })
