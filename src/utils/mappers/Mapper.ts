@@ -13,7 +13,7 @@ export class Mapper {
 
         if(obj) {
             _.each(Object.keys(retVal), k => {
-                if(obj[k]) {
+                if(obj[k] != null || obj[k] != undefined) {
                     retVal[k] = obj[k]
                 } else {
                     retVal[k] = null
