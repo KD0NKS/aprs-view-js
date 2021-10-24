@@ -238,8 +238,9 @@
                                     this.stationPositionVector.removeFeature(f)
 
                                 // TODO: remove the entire trail... assume it won't be used again
-                                //const trail = this.trailVector.getFeatureById(p.itemname ?? p.objectname ?? p.sourceCallsign)
-                                //this.trailVector.removeFeature(trail)
+                                const trail = this.trailVector.getFeatureById(p.itemname ?? p.objectname ?? p.sourceCallsign)
+                                if(trail && trail != undefined)
+                                    this.trailVector.removeFeature(trail)
                             } catch(e) {
                                 console.log(e)
                             }
@@ -249,10 +250,10 @@
             })
 
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data: number[] | string[]) => {
-                this.removePoints(this.genericPointVector, data)
+                this.removePoints(this.genericPointVector, true, data)
 
                 if(this.mapSettings.isShowTrails == true) {
-                    this.removePoints(this.stationPositionVector, data)
+                    this.removePoints(this.stationPositionVector, true, data)
                 }
             });
 
@@ -289,7 +290,7 @@
         }
 
         // icon generation stuffz
-        private async addPacket(packet: aprsPacket, generateTrail: boolean): Promise<void> {
+        private async addPacket(packet: aprsPacket, isGenerateTrail: boolean): Promise<void> {
             if(this.isValidPacket(packet)) {
                 // TODO: For some reason this doesn't work on initial load
                 let existingFeatures = await _.compact(_.filter(this.stationPositionVector.getFeatures(), f => {
@@ -305,7 +306,7 @@
                 const symbols = await this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
                 const styles = await this.generateIcon(packet, symbols)
                 // if no existing features || received time > all existing features
-                if(mostRecentTime == null || packet.receivedTime > mostRecentTime) {
+                if((!mostRecentTime || mostRecentTime == null) || packet.receivedTime > mostRecentTime) {
                     // programatically set the property on the locations object to be reactive
                     let feature = new Feature({
                         geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
@@ -325,11 +326,24 @@
                 if(symbols['symbol'].isMovable) {
                     await this.addGenericPoint(packet)
 
-                    if(generateTrail == true)
+                    if(isGenerateTrail == true)
                         this.generateTrail(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
                 } else {
-                    // TODO: Remove any generic points
-                    // TODO: Remove any trails
+                    const genericPointIds = _.reduce(
+                        _.filter(
+                            this.genericPointVector.getFeatures()
+                            , f => {
+                                return f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                            }
+                        )
+                        , (result, value) => {
+                            result.push(value.getId())
+                            return result
+                        }
+                        , []
+                    )
+
+                    this.removePoints(this.genericPointVector, isGenerateTrail, genericPointIds)
                 }
 
                 if(existingFeatures && existingFeatures != undefined && existingFeatures != null && existingFeatures.length > 0) {
@@ -420,14 +434,19 @@
             return
         }
 
-        private async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]): Promise<void> {
+        private async removePoints(vector: VectorSource<Geometry>, isGenerateTrail: boolean, ids?: number[] | string[]): Promise<void> {
             if(ids != null && ids.length > 0) {
                 const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
                 if(toRemove != null && toRemove.length > 0) {
                     _.map(toRemove, f => {
-                        if(f != undefined)
+                        if(f != undefined) {
                             vector.removeFeature(f)
+
+                            if(isGenerateTrail == true) {
+                                this.generateTrail(f.get('label'))
+                            }
+                        }
                     })
 
                     return
