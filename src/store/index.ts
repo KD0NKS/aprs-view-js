@@ -77,7 +77,7 @@ export default new Vuex.Store({
                     }
                 }
 
-                persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
+                persistentStorage.set(`connections.${connectionProps.id}`, connectionProps)
             }
             // TODO: Error notification to tell user saving failed
         },
