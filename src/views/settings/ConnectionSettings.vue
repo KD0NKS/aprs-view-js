@@ -19,6 +19,7 @@
 </template>
 
 <script lang="ts">
+    import * as crypto from "crypto"
     import { Component, Vue } from 'vue-property-decorator'
     import ConnectionItem from "@/components/settings/connections/ConnectionItem.vue"
     import ActionTypes from '@/ActionTypes'
@@ -34,6 +35,7 @@
 
         addConnection(): void {
             let newConnection = new ConnectionViewModel()
+            newConnection.id = crypto.randomBytes(16).toString('hex')
             newConnection.name = "Default"
             newConnection.connectionType = 'IS_SOCKET'
             newConnection.host = "rotate.aprs2.net"

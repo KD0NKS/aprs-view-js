@@ -3,6 +3,7 @@ import * as crypto from "crypto"
 import { IConnection } from "./IConnection"
 import { ISSocket } from "js-aprs-is"
 import { TerminalSocket } from "js-aprs-tnc"
+import { StringUtil } from "@/utils"
 
 export abstract class AbstractConnection {
     public id: string
@@ -17,7 +18,7 @@ export abstract class AbstractConnection {
     protected CONNECT_EVENTS: string[] = [ 'connect', 'open' ]
 
     constructor(settings?: IConnection) {
-        this.id = settings["name"] ?? crypto.randomBytes(16).toString('hex')
+        this.id = !StringUtil.IsNullOrWhiteSpace(settings["id"]) ? settings["id"] : crypto.randomBytes(16).toString('hex')
         this.name = settings["name"] ?? "Default"
         this.connectionType = settings["connectionType"] ?? "IS_SOCKET"
     }

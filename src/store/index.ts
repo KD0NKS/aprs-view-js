@@ -13,7 +13,7 @@ import { BusEventTypes } from '@/enums'
 
 import { aprsPacket } from 'js-aprs-fap'
 import { Mapper } from '@/utils/mappers'
-import { IMapSettings, MapSettings, ISoftwareSettings, IStationSettings , SoftwareSettings, StationSettings, IConnection } from '@/models'
+import { IMapSettings, MapSettings, ISoftwareSettings, IStationSettings , SoftwareSettings, StationSettings, IConnection, ISConnection, TNCConnection } from '@/models'
 
 import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
 import { ConnectionService } from '@/services'
@@ -36,7 +36,7 @@ export default new Vuex.Store({
         [MutationTypes.ADD_CONNECTION](state, settings: IConnection) {
             state.connectionService.addConnection(settings)
 
-            //persistentStorage.set(`connections.${connection.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
+            persistentStorage.set(`connections.${settings.id}`, Mapper.Map<ConnectionViewModel>(settings, ConnectionViewModel))
         },
         [MutationTypes.ADD_DATA](state, data: string) {
             state.aprsData.push(data)
@@ -68,10 +68,18 @@ export default new Vuex.Store({
             const connection = state.connectionService.getConnection(connectionProps.id)
 
             if(connection) {
-                //Mapper.CopyInto<ConnectionViewModel, Connection>(connectionProps, connection)
+                // TODO: Is this the appropriate place to handle connection type switching?  I doubt it!
+                if(connection.connectionType == connectionProps.connectionType) {
+                    if(connectionProps.connectionType == "IS_SOCKET") {
+                        Mapper.CopyInto<ConnectionViewModel, ISConnection>(connectionProps, (connection as ISConnection))
+                    } else if(connectionProps.connectionType == "SERIAL_TNC") {
+                        Mapper.CopyInto<ConnectionViewModel, TNCConnection>(connectionProps, (connection as TNCConnection))
+                    }
+                }
 
-                //persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
+                persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
             }
+            // TODO: Error notification to tell user saving failed
         },
         [MutationTypes.SET_MAP_SETTINGS](state, settings: IMapSettings) {
             if(!this.packetTimer) {
