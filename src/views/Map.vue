@@ -84,6 +84,7 @@
         private stationPositionVector: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
+        private trailStyleIndex = 0
         // Fake vue out and set a default overlay for the info card to make it reactive
         private stationIconOverlay: APRSSymbol = new APRSSymbol({
                     key: "logo"
@@ -257,9 +258,11 @@
                 }
             });
 
-            await Promise.all(this.getAllLocationPackets().map(async (p) => {
+            await Promise.all(_.map(this.getAllLocationPackets(), async (p) => {
                 await this.addPacket(p, false)
+                return
             })).then(() => {
+                // Get unique non null or empty callsigns, then generate a trail based on callsign
                 _.map(
                     _.compact(
                         _.uniq(
@@ -270,6 +273,27 @@
                         )
                     )
                     , c => {
+                        // Because adding all the packets runs async, let's clean up the map a little... this is a dirty hack until a better solution is found
+                        // 1.  Get the aprs symbol before even processing, then process generic and latest (station) points individually
+                        // 2.  Generate trails for all stations regardless of movability, then add only the latest packet to the station position vector
+                        let existingFeatures = _.sortBy(
+                            _.filter(this.stationPositionVector.getFeatures(), f => {
+                                return (f.get('label') == c)
+                            })
+                            , f => f.get('receivedTime')
+                        )
+
+                        var mostRecentTime = _.max(_.reduce(existingFeatures, (result, value) => {
+                            result.push(value.get('receivedTime'))
+                            return result
+                        }, []))
+
+                        _.map(existingFeatures, f => {
+                            if(f.get('receivedTime') != mostRecentTime)
+                                this.stationPositionVector.removeFeature(f)
+                        })
+
+                        // Let's finally generate the trail!
                         this.generateTrail(c)
                         return
                     }
@@ -287,16 +311,17 @@
             // Hack for a much more complex problem...
             // TODO: There needs to be a clearall packets/data in the store
             this.$store.dispatch(ActionTypes.REMOVE_PACKETS, _.map(this.stationPositionVector.getFeatures(), f => f.getId()))
+            this.$store.dispatch(ActionTypes.REMOVE_PACKETS, _.map(this.genericPointVector.getFeatures(), f => f.getId()))
         }
 
         // icon generation stuffz
         private async addPacket(packet: aprsPacket, isGenerateTrail: boolean): Promise<void> {
-            if(this.isValidPacket(packet)) {
+            if(this.isValidPacket(packet) == true) {
                 // TODO: For some reason this doesn't work on initial load
-                let existingFeatures = await _.compact(_.filter(this.stationPositionVector.getFeatures(), f => {
+                let existingFeatures = await _.filter(this.stationPositionVector.getFeatures(), f => {
                     return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
                                     && f.get('receivedTime') < packet.receivedTime
-                }))
+                })
 
                 var mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
                     result.push(value.get('receivedTime'))
@@ -320,7 +345,7 @@
                     })
 
                     feature.setStyle(await styles)
-                    this.stationPositionVector.addFeature(feature)
+                    await this.stationPositionVector.addFeature(feature)
                 }
 
                 if(symbols['symbol'].isMovable) {
@@ -357,63 +382,6 @@
             }
 
             return
-
-            //if(test == true) { // TODO: Map setting for show trails
-                    /*
-                    let existingFeatures = _.sortBy(
-                        _.filter(this.stationPositionVector.getFeatures(), f => {
-                            return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
-                                    && f.get('receivedTime') < packet.receivedTime
-                        })
-                        , f => f.get('receivedTime')
-                    )
-
-                    let trail = this.trailVector.getFeatureById(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
-
-                    if(trail) {
-                        let points = []
-                        if(existingFeatures && existingFeatures.length > -1) {
-                            points = _.reduce(existingFeatures, (result, value) => {
-                                result.push(value.getGeometry()["flatCoordinates"])
-                                return result
-                            }, [])
-                        }
-
-                        points.push(fromLonLat([ packet.longitude, packet.latitude ]));
-                        (trail.getGeometry() as LineString).setCoordinates(points)
-                    } else {
-                        const ls = new LineString([ [ packet.longitude, packet.latitude ] ]).transform('EPSG:4326', 'EPSG:3857');
-
-                        let f = new Feature({
-                            geometry: ls
-                        })
-                        f.setId(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
-                        f.setStyle(this.trailStyles[Math.floor(Math.random() * this.trailStyles.length)]) // get a random trail style/color
-
-                        this.trailVector.addFeature(f)
-                    }
-
-                    _.map(existingFeatures, f => {
-                        if(f && f != undefined)
-                            f.setStyle(this.oldPositionStyle)
-
-                        return
-                    })
-
-                } else {
-                    const trail = this.trailVector.getFeatureById(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
-                    if(trail)   // keep it cached
-                            (trail.getGeometry() as LineString).setCoordinates([])
-
-                    _.each(existingFeatures, f => {
-                        if(f && f != undefined)
-                            this.stationPositionVector.removeFeature(f)
-                        }
-                    )
-
-                    return
-                }
-                */
         }
 
         private async addGenericPoint(packet: aprsPacket): Promise<void> {
@@ -567,7 +535,6 @@
         }
 
         private getAllLocationPackets(): aprsPacket[] {
-
             return _.compact(
                 _.sortBy(
                     _.filter(this.aprsPackets, (p) => {
@@ -584,6 +551,14 @@
                         && (packet.longitude && packet.latitude != null && packet.longitude != undefined)
                         && StringUtil.IsNullOrWhiteSpace(packet.resultCode)
                         && StringUtil.IsNullOrWhiteSpace(packet.resultMessage)
+        }
+
+        private getTrailStyle() {
+            if(this.trailStyleIndex >= this.trailStyles.length) {
+                this.trailStyleIndex = 0
+            }
+
+            return this.trailStyles[this.trailStyleIndex++]
         }
     }
 </script>

@@ -98,7 +98,6 @@
 
         private created() {
             this.conn.id = this.connection.id
-
             this.reset()
         }
 

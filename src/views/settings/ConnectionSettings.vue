@@ -22,7 +22,6 @@
     import * as crypto from "crypto"
     import { Component, Vue } from 'vue-property-decorator'
     import ConnectionItem from "@/components/settings/connections/ConnectionItem.vue"
-    import ActionTypes from '@/ActionTypes'
     import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
 
     @Component({
@@ -42,15 +41,15 @@
             newConnection.port = 14580
             newConnection.filter = "r/39.00/-91.00/1000"
 
-            this.$store.dispatch(ActionTypes.ADD_CONNECTION, newConnection)
+            this.$store.state.connectionService.addConnection(newConnection)
         }
 
         deleteConnection(connectionId): void {
-            this.$store.dispatch(ActionTypes.DELETE_CONNECTION, connectionId)
+            this.$store.state.connectionService.deleteConnection(connectionId)
         }
 
         saveConnection(connection: ConnectionViewModel): void {
-            this.$store.dispatch(ActionTypes.SAVE_CONNECTION, connection)
+            this.$store.state.connectionService.updateConnection(connection)
         }
     }
 </script>

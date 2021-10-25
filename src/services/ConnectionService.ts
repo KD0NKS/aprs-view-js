@@ -1,4 +1,6 @@
 import _ from 'lodash'
+import ActionTypes from '@/ActionTypes'
+import { Mapper } from '@/utils/mappers'
 import { aprsParser } from 'js-aprs-fap'
 import { DataEventTypes } from '@/enums/DataEventTypes'
 import { EventEmitter } from 'events'
@@ -6,7 +8,7 @@ import { ISSocket } from 'js-aprs-is'
 import { TerminalSocket } from 'js-aprs-tnc'
 import { StringUtil } from '@/utils';
 import { ConnectionFactory } from './ConnectionFactory'
-import { IConnection, AbstractConnection, TNCConnection } from '@/models'
+import { IConnection, AbstractConnection, TNCConnection, ConnectionViewModel, ISConnection } from '@/models'
 import Store from '@/store'
 import GetterTypes from "@/GetterTypes"
 
@@ -79,12 +81,16 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
                 this.emit(DataEventTypes.ERROR, err)
                 conn.connection.end()
             })
+
+            Store.dispatch(ActionTypes.ADD_CONNECTION, setting)
         }
     }
 
     public deleteConnection(id: string): void {
         const index = this._connections.map(_ => { return _.id }).indexOf(id)
         this._connections.splice(index, 1)
+
+        Store.dispatch(ActionTypes.DELETE_CONNECTION, id)
     }
 
     public getConnection(id: string): AbstractConnection {
@@ -93,6 +99,23 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
 
     public getConnections(): AbstractConnection[] {
         return this._connections
+    }
+
+    public updateConnection(viewModel: ConnectionViewModel): void {
+        const connection = Store.state.connectionService.getConnection(viewModel.id)
+
+        // TODO: Is this the appropriate place to handle connection type switching?  I doubt it!
+        if(connection.connectionType == viewModel.connectionType) {
+            if(viewModel.connectionType == "IS_SOCKET") {
+                Mapper.CopyInto<ConnectionViewModel, ISConnection>(viewModel, (connection as ISConnection))
+            } else if(viewModel.connectionType == "SERIAL_TNC") {
+                Mapper.CopyInto<ConnectionViewModel, TNCConnection>(viewModel, (connection as TNCConnection))
+            }
+
+            Store.dispatch(ActionTypes.SAVE_CONNECTION, connection)
+        }
+
+        return
     }
 
     // TODO: Should this be a listener.  Making this listen to station settings creates a loop dependency,

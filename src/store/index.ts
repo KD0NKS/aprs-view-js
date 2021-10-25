@@ -13,7 +13,7 @@ import { BusEventTypes } from '@/enums'
 
 import { aprsPacket } from 'js-aprs-fap'
 import { Mapper } from '@/utils/mappers'
-import { IMapSettings, MapSettings, ISoftwareSettings, IStationSettings , SoftwareSettings, StationSettings, IConnection, ISConnection, TNCConnection } from '@/models'
+import { IMapSettings, MapSettings, ISoftwareSettings, IStationSettings , SoftwareSettings, StationSettings, IConnection } from '@/models'
 
 import { ConnectionViewModel } from '@/models/connections/ConnectionViewModel'
 import { ConnectionService } from '@/services'
@@ -34,8 +34,6 @@ export default new Vuex.Store({
     },
     mutations: {
         [MutationTypes.ADD_CONNECTION](state, settings: IConnection) {
-            state.connectionService.addConnection(settings)
-
             persistentStorage.set(`connections.${settings.id}`, Mapper.Map<ConnectionViewModel>(settings, ConnectionViewModel))
         },
         [MutationTypes.ADD_DATA](state, data: string) {
@@ -57,7 +55,6 @@ export default new Vuex.Store({
                 , toRemove)
         },
         [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
-            state.connectionService.deleteConnection(connectionId)
             persistentStorage.delete(`connections.${connectionId}`)
         },
         [MutationTypes.REMOVE_PACKETS](state, ids: string[]) {
@@ -65,18 +62,7 @@ export default new Vuex.Store({
             bus.$emit(BusEventTypes.PACKETS_REMOVED, ids)
         },
         [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
-            const connection = state.connectionService.getConnection(connectionProps.id)
-
-            if(connection) {
-                // TODO: Is this the appropriate place to handle connection type switching?  I doubt it!
-                if(connection.connectionType == connectionProps.connectionType) {
-                    if(connectionProps.connectionType == "IS_SOCKET") {
-                        Mapper.CopyInto<ConnectionViewModel, ISConnection>(connectionProps, (connection as ISConnection))
-                    } else if(connectionProps.connectionType == "SERIAL_TNC") {
-                        Mapper.CopyInto<ConnectionViewModel, TNCConnection>(connectionProps, (connection as TNCConnection))
-                    }
-                }
-
+            if(connectionProps && connectionProps.id) {
                 persistentStorage.set(`connections.${connectionProps.id}`, connectionProps)
             }
             // TODO: Error notification to tell user saving failed

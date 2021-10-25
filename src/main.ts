@@ -45,10 +45,7 @@ new Vue({
         // Load connections.
         _.forEach(Object.entries(persistentStorage.get('connections')), (element) => {
             // Create a new connection by using the element and mapping it to a connection view model
-            this.$store.dispatch(
-                ActionTypes.ADD_CONNECTION
-                , element[1]
-            )
+            this.$store.state.connectionService.addConnection(element[1])
         })
 
         // TODO: packet service - packet settings
