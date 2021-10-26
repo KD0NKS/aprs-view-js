@@ -56,12 +56,16 @@ export class TNCConnection extends AbstractConnection {
     public set isEnabled(isEnabled: boolean) {
         this._isEnabled = isEnabled
 
-        if(this._connection) {
-            if (this._isEnabled === false) {
-                (this._connection as TerminalSocket).close()
-            } else {
-                (this._connection as TerminalSocket).open()
+        try {
+            if(this._connection) {
+                if (this._isEnabled === false) {
+                    (this._connection as TerminalSocket).close()
+                } else {
+                    (this._connection as TerminalSocket).open()
+                }
             }
+        } catch {
+            console.log("Unable to open or close port.")
         }
     }
 }

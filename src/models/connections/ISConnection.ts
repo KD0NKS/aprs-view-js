@@ -34,16 +34,21 @@ export class ISConnection extends AbstractConnection {
     public set isEnabled(isEnabled: boolean) {
         this._isEnabled = isEnabled
 
-        if(this._connection) {
-            if (this._isEnabled === false) {
-                this._connection.end()  // TODO: planning to depricate disconnect
-            } else {
-                const c = this._connection as ISSocket
-                c.host = this.host
-                c.port = this.port
-                c.filter = this.filter
 
-                c.connect()
+        if(this._connection) {
+            try {
+                if(this._isEnabled === false) {
+                    this._connection.end()  // TODO: planning to depricate disconnect
+                } else {
+                    const c = this._connection as ISSocket
+                    c.host = this.host
+                    c.port = this.port
+                    c.filter = this.filter
+
+                    c.connect()
+                }
+            } catch {
+                console.log('Unable to open or close port.')
             }
         }
     }
