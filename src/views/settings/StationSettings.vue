@@ -141,10 +141,12 @@
     import { StationSettings as StationSettingsModel} from '@/models/StationSettings'
 
     const symbolSvc = new APRSSymbolService();
+    const _mapper = new Mapper()
 
     export default {
         data: () => ({
             isStationSettingsValid: true
+            , mapper: new Mapper()
             , stationInfo: new StationSettingsModel()
             , rules: {
                 required: value => !!value || 'Required.',
@@ -153,7 +155,7 @@
         , created() {
             // load settings here
             //https://jsfiddle.net/awolf2904/3rabkzsn/1/
-            Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
+            _mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
         }
         , computed: {
             aprsSymbols() {
@@ -175,7 +177,7 @@
                 }
             }
             , resetStationInfo() {
-                Mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
+                _mapper.CopyInto<StationSettingsModel, StationSettingsModel>(this.$store.state.stationSettings, this.stationInfo)
             }
             , updateSymbol(key: string) {
                 // Dropdowns are being special and set this as a string, not an actual null/undefined value.

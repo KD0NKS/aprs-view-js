@@ -21,6 +21,7 @@ import { ConnectionService } from '@/services'
 Vue.use(Vuex)
 
 const persistentStorage = new Store()
+const _mapper = new Mapper()
 
 export default new Vuex.Store({
     state: {
@@ -34,7 +35,7 @@ export default new Vuex.Store({
     },
     mutations: {
         [MutationTypes.ADD_CONNECTION](state, settings: IConnection) {
-            persistentStorage.set(`connections.${settings.id}`, Mapper.Map<ConnectionViewModel>(settings, ConnectionViewModel))
+            persistentStorage.set(`connections.${settings.id}`, _mapper.Map<ConnectionViewModel>(settings, ConnectionViewModel))
         },
         [MutationTypes.ADD_DATA](state, data: string) {
             state.aprsData.push(data)
@@ -79,14 +80,14 @@ export default new Vuex.Store({
                 this.dispatch(ActionTypes.CLEAR_OLD_PACKETS)
             }
 
-            Mapper.CopyInto<IMapSettings, MapSettings>(settings, state.mapSettings)
+            _mapper.CopyInto<IMapSettings, MapSettings>(settings, state.mapSettings)
 
             persistentStorage.set('mapSettings', state.mapSettings)
         },
         [MutationTypes.SET_SOFTWARE_SETTINGS](state, settings: ISoftwareSettings) {
-            Mapper.CopyInto<ISoftwareSettings, SoftwareSettings>(settings, state.softwareSettings)
+            _mapper.CopyInto<ISoftwareSettings, SoftwareSettings>(settings, state.softwareSettings)
 
-            persistentStorage.set('softwareSettings', Mapper.Map<SoftwareSettings>(state.softwareSettings, SoftwareSettings))
+            persistentStorage.set('softwareSettings', _mapper.Map<SoftwareSettings>(state.softwareSettings, SoftwareSettings))
         },
         [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
             // state.stationSettings.propname = settings.propname doesn't work here
@@ -98,7 +99,7 @@ export default new Vuex.Store({
 
             state.connectionService.ChangeEvent()
 
-            persistentStorage.set('stationSettings', Mapper.Map<StationSettings>(state.stationSettings, StationSettings))
+            persistentStorage.set('stationSettings', _mapper.Map<StationSettings>(state.stationSettings, StationSettings))
         }
     },
     actions: {

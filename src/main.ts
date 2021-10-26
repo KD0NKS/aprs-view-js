@@ -25,10 +25,12 @@ new Vue({
     vuetify,
     render: (h) => h(App),
     created() {
+        const _mapper = new Mapper()
+
         // Load station settings.
-        const mapSettings = Mapper.Map<MapSettings>(persistentStorage.get('mapSettings'), MapSettings)
-        const softwareSettings = Mapper.Map<SoftwareSettings>(persistentStorage.get('softwareSettings'), SoftwareSettings)
-        const stationSettings = Mapper.Map<StationSettings>(persistentStorage.get('stationSettings'), StationSettings)
+        const mapSettings = _mapper.Map<MapSettings>(persistentStorage.get('mapSettings'), MapSettings)
+        const softwareSettings = _mapper.Map<SoftwareSettings>(persistentStorage.get('softwareSettings'), SoftwareSettings)
+        const stationSettings = _mapper.Map<StationSettings>(persistentStorage.get('stationSettings'), StationSettings)
 
         if(mapSettings) {
             this.$store.dispatch(ActionTypes.SET_MAP_SETTINGS, mapSettings)

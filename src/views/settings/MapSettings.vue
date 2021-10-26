@@ -76,16 +76,17 @@
     })
     export default class MapSettings extends Vue {
         private isMapSettingsValid: boolean = false
+        private _mapper = new Mapper()
         private mapSettings: vm = new vm()
 
         constructor() {
             super()
 
-            Mapper.CopyInto<vm, vm>(this.$store.state.mapSettings, this.mapSettings)
+            this._mapper.CopyInto<vm, vm>(this.$store.state.mapSettings, this.mapSettings)
         }
 
         private resetMapSettings() {
-            Mapper.CopyInto<vm, vm>(this.$store.state.mapSettings, this.mapSettings)
+            this._mapper.CopyInto<vm, vm>(this.$store.state.mapSettings, this.mapSettings)
         }
 
         private saveMapSettings() {

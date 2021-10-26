@@ -55,12 +55,13 @@
 
     @Component({})
     export default class ApplicationSettings extends Vue {
+        private _mapper = new Mapper()
         private softwareSettings: SoftwareSettings = new SoftwareSettings()
 
         constructor() {
             super()
 
-            Mapper.CopyInto<SoftwareSettings, SoftwareSettings>(this.$store.state.softwareSettings, this.softwareSettings)
+            this._mapper.CopyInto<SoftwareSettings, SoftwareSettings>(this.$store.state.softwareSettings, this.softwareSettings)
         }
 
         private get distanceUnitTypeOptions() {
@@ -88,7 +89,7 @@
         }
 
         private resetAppSettings() {
-            Mapper.CopyInto<SoftwareSettings, SoftwareSettings>(this.$store.state.softwareSettings, this.softwareSettings)
+            this._mapper.CopyInto<SoftwareSettings, SoftwareSettings>(this.$store.state.softwareSettings, this.softwareSettings)
         }
     }
 </script>
