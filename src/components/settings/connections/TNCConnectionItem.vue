@@ -8,6 +8,7 @@
                     item-value="path"
                     label="COM Port"
                     v-model="connection.comPort"
+                    v-on:focus="updateSerialPorts()"
                 ></v-select>
             </v-flex>
 
@@ -124,7 +125,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
+    import { Component, Prop, Vue } from 'vue-property-decorator'
     import draggable from 'vuedraggable'
 
     import _ from 'lodash'
@@ -156,18 +157,29 @@
         constructor() {
             super()
 
-            // Get all available serial ports
+            this.updateSerialPorts()
+        }
+
+        /**
+         * Gets all available serial ports in alphabetical order by path.
+         */
+        private async updateSerialPorts(): Promise<void> {
             SerialPortUtil.getAvailableSerialPorts().then((ports) => {
-                _.forEach(ports, port => {
-                    if(port.manufacturer
-                            || port.serialNumber
-                            || port.pnpId
-                            || port.locationId
-                            || port.productId
-                            || port.vendorId) {
-                        this.comPorts.push(port)
+                _.forEach(
+                    _.sortBy(ports, p=> p.path)
+                    , port => {
+                        if(port.manufacturer
+                                || port.serialNumber
+                                || port.pnpId
+                                || port.locationId
+                                || port.productId
+                                || port.vendorId) {
+                            this.comPorts.push(port)
+                        }
                     }
-                })
+                )
+
+                return
             })
         }
 
