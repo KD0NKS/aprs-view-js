@@ -43,7 +43,7 @@ TODO:
     - [ ] Output window styling? https://github.com/chinchang/screenlog.js
 * Maps
     - [ ] Make maps a plugin
-    - [ ] Trails
+    - [x] Trails* - There are potential issues
         - https://openlayers.org/workshop/en/vector/draw.html
         - https://gis.stackexchange.com/questions/323992/create-polyline-from-coordinates-array-in-ol-openlayers-5-3-2
         - routes while cool would display more data than is actually transmitted, but is a cool idea: https://gis.stackexchange.com/questions/147617/how-to-draw-route-from-osrm-on-right-road-using-openlayers
@@ -52,6 +52,8 @@ TODO:
     - [x] Properly handle objects - names, not moving stationary objects on duplicate src callsign, etc
     - [x] Heat maps on zoom out (aprs.fi)
     - [x] Remove old position reports
+    - Performance Resources- Ideas for improving
+        - https://dev.to/camptocamp-geo/integrating-an-openlayers-map-in-vue-js-a-step-by-step-guide-2n1p
     - Options
         - [x] Point lifetime
         - [ ] Number of points for a map?
@@ -60,16 +62,15 @@ TODO:
             - [ ] Tile Sources - Needs auth inputs
             - [ ] User defined maps
             - [ ] User defined layers
-            - [ ] Radar
-            - [ ] NWS watches/warnings
             - [ ] Opacity of layers
-        - [ ] Default
-        - [ ] User configured
-        - [ ] Pluggable?
-        - [ ] Weather station data layers
-        - [ ] Radar
-        - [ ] NWS watches/warnings
-        - [ ] Show trails
+            - [ ] User configured
+            - [ ] Default - ???
+            - [ ] Weather station data layers
+            - [ ] Radar
+                - https://openlayers.org/en/latest/examples/wms-time.html
+                - nowCoast
+            - [ ] NWS watches/warnings
+                - nowCoast
         - Location options
             - [ ] Restore location and zoom level when switching screens
             - [ ] Map start coordinates
@@ -84,7 +85,7 @@ TODO:
         - [ ] User defined maps
         - [ ] Track station/Track my station
     - ContextMenu
-        - [/] Clear all reports
+        - [x] Clear all reports
         - [ ] Set my station position
         - [ ] Create object (low priority also requires proper handling)
     - Helpful plugins
@@ -93,17 +94,22 @@ TODO:
         - [ ] Realtime framework - https://github.com/perliedman/leaflet-realtime
         - [ ] Leaflet plugins - https://github.com/shramov/leaflet-plugins
     - [ ] Overlays - https://vue2-leaflet.netlify.app/components/LImageOverlay.html#demo
-    - BUGS/ENHANCEMENTS:
-        - [ ] Clearing all markers currently doesn't work properly.  Working with kefir/bacon may help mitigate this
-        - [ ] Repeater icons may have multiple locations with the same callsign
-        - [ ] Weather packets with no locations - if we know the location of the station already, update the id to get the latest when the icon is clicked?
-        - [ ] Overlays are not allowing newer markers to cover them
-        - [ ] APRSViewJS used Bacon/Kefir for filtering and packet types, can these be easily utilized to make packets easier to handle
+    - BUGS/ENHANCEMENTS (B/E):
+        - [x] B - Clearing all markers currently doesn't work properly.  Working with kefir/bacon may help mitigate this
+        - [x] B - Items/Objects may have multiple locations with the same callsign
+        - [ ] E - Items/Objects may have multiple locations with the same value, this will result in only 1 showing up
+        - [ ] E - Weather packets with no locations - if we know the location of the station already, update the id to get the latest when the icon is clicked?
+        - [ ] B - Overlays are not allowing newer markers to cover them
+        - [ ] E- APRSViewJS used Bacon/Kefir for filtering and packet types, can these be easily utilized to make packets easier to handle
         source/Vector.js
             - Is it possible to rewrite/extend VectorSource in openlayers to accept an observable array of features? https://github.com/openlayers/openlayers/blob/main/src/ol/
             - This could lead down a rabbit hole where the entire lib needs to be rewritten
             - Collection would likely need to be rewritten - https://github.com/openlayers/openlayers/blob/b7ccb68b02bd936373b1bd1d2f5ca445e1d286e0/src/ol/Collection.js
 - [ ] Messaging
+    - Receive
+    - Send
+    - ACK
+- Control packet support???
 - [ ] TNC Support - via js-aprs-tnc
     - [x] User defined commands
     - [ ] KISS
@@ -123,10 +129,13 @@ TODO:
     - [ ] Transmit position interval
     - [ ] Transmit position
 - Output Settings
+    - [ ] Clear output
+    - [ ] Pin to bottom (auto scrolling)
     - [ ] Foreground color
     - [ ] Background color
     - [ ] Font
     - [ ] Amount of data to display
+- [ ] ULS Offline Lookup
 
 # Copyright Info
 ## Symbols
