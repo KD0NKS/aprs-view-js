@@ -37,7 +37,7 @@ export class APRSSymbolService implements IAPRSSymbolService {
         this.symbols = [
               new APRSSymbol({ key: "/!"    , value: require('@/assets/symbols/PrimaryTable/PD.png'                         ), name: "Police Department"            , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/#'    , value: require('@/assets/symbols/PrimaryTable/Digipeater.png'                 ), name: "Digipeater"                   , isRotatable: false    , isMovable: false  })
-            , new APRSSymbol({ key: '/$'    , value: require('@/assets/symbols/PrimaryTable/Phone.png'                      ), name: "Phone"                        , isRotatable: false    , isMovable: false  })
+            , new APRSSymbol({ key: '/$'    , value: require('@/assets/symbols/PrimaryTable/Phone.png'                      ), name: "Phone"                        , isRotatable: false    , isMovable: true   })
             , new APRSSymbol({ key: '/%'    , value: require('@/assets/symbols/PrimaryTable/DX.png'                         ), name: "DX Station"                   , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/&'    , value: require('@/assets/symbols/PrimaryTable/Gateway.png'                    ), name: "Gateway"                      , isRotatable: false    , isMovable: false  })
             , new APRSSymbol({ key: '/\''   , value: require('@/assets/symbols/PrimaryTable/SmallAircraft.png'              ), name: "Small Aircraft"               , isRotatable: true     , isMovable: true   })
