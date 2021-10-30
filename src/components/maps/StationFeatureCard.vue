@@ -31,6 +31,19 @@
                 </span>
                 {{ packet.sourceCallsign }}
             </div>
+            <!-- Leave this little gem here for later use... move on, nothing to see
+            <div>
+                <v-btn
+                        class="ma-1"
+                        color="blue"
+                        text
+                        plain
+                        :to="{ name: 'stationHistory', params: { stationName: stationName } }"
+                        >
+                    History
+                </v-btn>
+            </div>
+            -->
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text style="max-height: 50vh">
@@ -91,6 +104,26 @@
 
     @Component({
         props: [ 'overlay', 'packet', 'symbol']
+        , computed: {
+            altitude() {
+                return ConversionUtil.metersFeetWithLabel(this.packet.altitude, this.$store.state.softwareSettings.distanceUnitType)
+            }
+            , speed() {
+                return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.$store.state.softwareSettings.distanceUnitType)
+            }
+            , stationName() {
+                return this.packet.itemname ?? this.packet.objectname ?? this.packet.sourceCallsign
+            }
+            , temperature() {
+                return ConversionUtil.getTemperatureWithLabel(parseFloat(this.packet.wx?.temp), this.$store.state.softwareSettings.temperatureUnitType)
+            }
+            , windGust() {
+                return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_gust), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
+            }
+            , windSpeed() {
+                return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_speed), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
+            }
+        }
     })
     export default class StationFeatureCard extends Vue {
         @Prop()
@@ -101,26 +134,6 @@
 
         @Prop()
         private symbol: APRSSymbol
-
-        private get altitude() {
-            return ConversionUtil.metersFeetWithLabel(this.packet.altitude, this.$store.state.softwareSettings.distanceUnitType)
-        }
-
-        private get speed() {
-            return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.$store.state.softwareSettings.distanceUnitType)
-        }
-
-        private get temperature() {
-            return ConversionUtil.getTemperatureWithLabel(parseFloat(this.packet.wx?.temp), this.$store.state.softwareSettings.temperatureUnitType)
-        }
-
-        private get windSpeed() {
-            return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_speed), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
-        }
-
-        private get windGust() {
-            return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_gust), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
-        }
     }
 </script>
 <style scoped lang="sass">
