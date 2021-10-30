@@ -50,6 +50,11 @@ const routes: Array<RouteConfig> = [
         , name: 'stationSettings'
         , component: () => import(/* webpackChunkName: "main" */ '../views/settings/StationSettings.vue')
     }
+    , {
+        path: '/stationHistory/:stationName'
+        , name: 'stationHistory'
+        , component: () => import(/* webpackChunkName: "main" */ '@/views/StationHistory.vue')
+    }
 ]
 
 const router = new VueRouter({

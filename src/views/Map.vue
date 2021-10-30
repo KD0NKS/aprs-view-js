@@ -31,6 +31,9 @@
     import Point from 'ol/geom/Point'
     import { Heatmap as HeatmapLayer, Tile as TileLayer } from 'ol/layer'
     import BaseLayer from 'ol/layer/Base'
+    import ImageLayer from 'ol/layer/Image'
+    //import ImageWMS from 'ol/source/ImageWMS'
+    import ImageArcGISRest from 'ol/source/ImageArcGISRest'
     import VectorLayer from 'ol/layer/Vector'
     import { fromLonLat, toLonLat } from 'ol/proj'
     import OSM from 'ol/source/OSM'
@@ -109,6 +112,7 @@
                 , "rgba(255 , 64    , 0     , 0.5)" // orange
                 , "rgba(0   , 0     , 102   , 0.5)" // navy
                 , "rgba(128 , 0     , 0     , 0.5)" // maroon
+                , "rgba(0   , 0     , 0     , 0.5)" // black
             ], c =>
                 new Style({
                     stroke : new Stroke({
@@ -149,6 +153,26 @@
                 new TileLayer({
                     source: new OSM()
                 })
+                // TODO: These need to be refreshed on an interval
+                //, new ImageLayer({
+                //    source: new ImageArcGISRest({
+                //        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer'
+                //        , params: {
+                //            'LAYERS': '1,3'
+                //            , 'FORMAT': 'PNG32'
+                //        }
+                //    })
+                //    , opacity: 0.5
+                //})
+                //, new ImageLayer({
+                //    source: new ImageArcGISRest({
+                //        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
+                //        , params: {
+                //            'FORMAT': 'PNG32'
+                //        }
+                //    })
+                //    , opacity: 0.5
+                //})
                 , new VectorLayer({
                     source: this.trailVector
                     , minZoom: 8

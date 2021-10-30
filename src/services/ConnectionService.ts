@@ -73,6 +73,11 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
         } else {
             try {
                 connection.isEnabled = false
+            } catch(error) {
+                console.log(error)
+            }
+
+            try {
                 connection.connection.removeAllListeners()
 
                 const newConnection = this._connectionFactory.create(viewModel)
@@ -123,6 +128,7 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
 
                     if(conn.isEnabled == true && !StringUtil.IsNullOrWhiteSpace((conn as TNCConnection).myCallCommand)) {
                         c.sendCommand(`${(conn as TNCConnection).myCallCommand} ${cs}`)
+                        // TODO: send init commands
                     }
                 }
             }

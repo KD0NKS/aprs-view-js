@@ -140,8 +140,11 @@ export default new Vuex.Store({
         }
         , [GetterTypes.GET_PACKET]: state => id => {
             return state.aprsPackets.find((packet) => packet.id == id)
-        },
-        [GetterTypes.MAP_SETTINGS](state) {
+        }
+        , [GetterTypes.GET_PACKETS_BY_NAME]: state => name => {
+            return _.filter(state.aprsPackets, p => (p.itemname == name || p.objectname == name || p.sourceCallsign == name))
+        }
+        , [GetterTypes.MAP_SETTINGS](state) {
             return state.mapSettings
         },
         [GetterTypes.SOFTWARE_SETTINGS](state) {
