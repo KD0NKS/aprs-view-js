@@ -1,6 +1,8 @@
 import { TerminalSettings, TerminalSocket } from "js-aprs-tnc"
 import { IConnection } from "./IConnection";
 import { AbstractConnection } from "./AbstractConnection"
+import { StringUtil } from "@/utils"
+import Store from '@/store'
 
 export class TNCConnection extends AbstractConnection {
     public autoOpen = false
@@ -14,8 +16,7 @@ export class TNCConnection extends AbstractConnection {
     public exitCommands = []
     public initCommands = []
     public comPort = ""
-    public myCallCommand = "MYCALL"
-
+    public myCallCommand = ""
 
     constructor(settings?: IConnection) {
         super(settings)
@@ -24,20 +25,28 @@ export class TNCConnection extends AbstractConnection {
         this.comPort = settings["comPort"] ?? ""
         this.exitCommands = settings["exitCommands"] ?? []
         this.initCommands = settings["initCommands"] ?? []
-        this.myCallCommand = settings["myCallCommand"] ?? "MYCALL"
+        this.myCallCommand = settings['myCallCommand'] ?? ""
 
         terminalSettings.autoOpen = settings['autoOpen'] ?? false
 
         if(settings) {
             terminalSettings.baudRate = settings["baudRate"]
+            terminalSettings.callsign = settings["callsign"]
             terminalSettings.charset = settings["charset"]
             terminalSettings.dataBits = settings["dataBits"]
+            terminalSettings.myCallCommand = this.myCallCommand ?? ""
             terminalSettings.parity = settings["parity"]
             terminalSettings.rtscts = settings["rtscts"]
             terminalSettings.stopBits = settings["stopBits"]
             terminalSettings.messageDelimeter = settings["messageDelimeter"]
             terminalSettings.exitCommands = settings["exitCommands"]
             terminalSettings.initCommands = settings["initCommands"]
+
+            terminalSettings.callsign = Store.state.stationSettings.callsign
+
+            if(StringUtil.IsNullOrWhiteSpace(Store.state.stationSettings.ssid)) {
+                terminalSettings.callsign = `${Store.state.stationSettings.callsign}-${Store.state.stationSettings.ssid}`
+            }
         }
 
         try {

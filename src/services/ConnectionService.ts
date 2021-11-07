@@ -122,14 +122,12 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
             } else if(conn.connectionType == 'SERIAL_TNC') {
                 // TODO: send callsign command
                 const c = conn.connection as TerminalSocket
+                console.log(c)
 
-                if(!StringUtil.IsNullOrWhiteSpace(callsign)) {
-                    const cs = this.getCallsign(callsign, ssid)
-
-                    if(conn.isEnabled == true && !StringUtil.IsNullOrWhiteSpace((conn as TNCConnection).myCallCommand)) {
-                        c.sendCommand(`${(conn as TNCConnection).myCallCommand} ${cs}`)
-                        // TODO: send init commands
-                    }
+                if(conn.isEnabled == true) {
+                    c.sendMyCallCommand()
+                    // TODO: send init commands
+                    // TODO: update settings on connection
                 }
             }
         })

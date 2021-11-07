@@ -66,7 +66,6 @@
     </v-expansion-panel>
 </template>
 
-
 <script lang="ts">
     import _ from 'lodash'
     import { Component, Prop, Vue } from 'vue-property-decorator'
@@ -77,7 +76,6 @@
     import ISConnectionItem from '@/components/settings/connections/ISConnectionItem.vue'
     import TNCConnectionItem from '@/components/settings/connections/TNCConnectionItem.vue'
     import '@mdi/font/css/materialdesignicons.css'
-
 
     @Component({
         props: ['connection']

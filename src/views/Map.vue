@@ -117,16 +117,34 @@
                 new Style({
                     stroke : new Stroke({
                         color: c
-                        , width: 5
+                        , width: 4
                     })
                 })
             )
 
         private oldPositionStyle: Style = new Style({
             image: new CircleStyle({
-                radius: 5
+                radius: 3
                 , fill: new Fill({ color: "red" })
             })
+        })
+
+        private whiteTextFill: Fill = new Fill({
+            color: 'white'
+        })
+
+        private blackTextFill: Fill = new Fill({
+            color: 'black'
+        })
+
+        private blackTextStroke: Stroke = new Stroke({
+            color: 'black'
+            , width: 2
+        })
+
+        private whiteTextStroke: Stroke = new Stroke({
+            color: 'white'
+            , width: 4
         })
 
         constructor() {
@@ -145,6 +163,9 @@
             //EventBus.$off('increment', this.incrementCount)
             bus.$off(BusEventTypes.PACKET_ADDED)
             bus.$off(BusEventTypes.PACKETS_REMOVED)
+            this.genericPointVector.dispose()
+            this.stationPositionVector.dispose()
+            this.trailVector.dispose()
             this.map.dispose()
         }
 
@@ -291,7 +312,7 @@
                     _.compact(
                         _.uniq(
                             _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
-                                result.push(value.get('label'))
+                                result.push(value.get('nameIdentifier'))
                                 return result
                             }, [])
                         )
@@ -302,7 +323,7 @@
                         // 2.  Generate trails for all stations regardless of movability, then add only the latest packet to the station position vector
                         let existingFeatures = _.sortBy(
                             _.filter(this.stationPositionVector.getFeatures(), f => {
-                                return (f.get('label') == c)
+                                return (f.get('nameIdentifier') == c)
                             })
                             , f => f.get('receivedTime')
                         )
@@ -366,6 +387,7 @@
                         name: packet.sourceCallsign
                         , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                         , receivedTime: packet.receivedTime
+                        , nameIdentifier: `${ packet.itemname ?? packet.objectname ?? '' }:${packet.sourceCallsign}`
                     })
 
                     feature.setStyle(await styles)
@@ -375,14 +397,15 @@
                 if(symbols['symbol'].isMovable) {
                     await this.addGenericPoint(packet)
 
-                    if(isGenerateTrail == true)
-                        this.generateTrail(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                    if(isGenerateTrail == true) {
+                        this.generateTrail(`${packet.itemname ?? packet.objectname ?? ''}:${packet.sourceCallsign}`)
+                    }
                 } else {
                     const genericPointIds = _.reduce(
                         _.filter(
                             this.genericPointVector.getFeatures()
                             , f => {
-                                return f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                                return f.get('nameIdentifier') == `${packet.itemname ?? packet.objectname ?? ''}:${packet.sourceCallsign}`
                             }
                         )
                         , (result, value) => {
@@ -409,19 +432,22 @@
         }
 
         private async addGenericPoint(packet: aprsPacket): Promise<void> {
-            let feature = new Feature({
-                geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
-            })
+            if(this.mapSettings.isShowTrails == true) {
+                let feature = new Feature({
+                    geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
+                })
 
-            feature.setId(packet.id)
-            feature.setProperties({
-                name: packet.sourceCallsign
-                , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
-                , receivedTime: packet.receivedTime
-            })
+                feature.setId(packet.id)
+                feature.setProperties({
+                    name: packet.sourceCallsign
+                    , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
+                    , receivedTime: packet.receivedTime
+                    , nameIdentifier: `${ packet.itemname ?? packet.objectname ?? '' }:${packet.sourceCallsign}`
+                })
 
-            feature.setStyle(this.oldPositionStyle)
-            this.genericPointVector.addFeature(feature)
+                feature.setStyle(this.oldPositionStyle)
+                this.genericPointVector.addFeature(feature)
+            }
 
             return
         }
@@ -436,7 +462,7 @@
                             vector.removeFeature(f)
 
                             if(isGenerateTrail == true) {
-                                this.generateTrail(f.get('label'))
+                                this.generateTrail(f.get('nameIdentifier'))
                             }
                         }
                     })
@@ -448,14 +474,14 @@
             return
         }
 
-        private async generateTrail(label: string) {
+        private async generateTrail(nameIdentifier: string) {
             if(this.mapSettings.isShowTrails == true) {
                 //TODO: force this to be serial processing? https://gist.github.com/joeytwiddle/37d2085425c049629b80956d3c618971
                 const coords = _.reduce(
                     _.sortBy(
                         _.compact(
                             _.filter(this.genericPointVector.getFeatures(), f => {
-                                return (f.get('label') == label)
+                                return (f.get('nameIdentifier') == nameIdentifier)
                             })
                         )
                         , f => f.get('receivedTime')
@@ -468,7 +494,7 @@
                 )
 
                 if(coords != undefined) {
-                    const trail = this.trailVector.getFeatureById(label)
+                    const trail = this.trailVector.getFeatureById(nameIdentifier)
 
                     if(trail != undefined) {
                         (trail.getGeometry() as LineString).setCoordinates(coords)
@@ -479,8 +505,8 @@
                             geometry: ls
                         })
 
-                        f.setId(label)
-                        f.setStyle(this.trailStyles[Math.floor(Math.random() * this.trailStyles.length)]) // get a random trail style/color
+                        f.setId(nameIdentifier)
+                        f.setStyle(this.getTrailStyle()) // get a random trail style/color
 
                         this.trailVector.addFeature(f)
                     }
@@ -519,13 +545,8 @@
                 shadowStyle.setText(
                     new Text({
                         text: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
-                        , fill: new Fill({
-                            color: 'black'
-                        })
-                        , stroke: new Stroke({
-                            color: 'white'
-                            , width: 4
-                        })
+                        , fill: this.blackTextFill
+                        , stroke: this.whiteTextStroke
                         , offsetX: 10
                         , offsetY: -15
                         , font: 'bold 12px/1 Verdana'
@@ -540,13 +561,8 @@
                 const overlayStyle = new Style({
                     text: new Text({
                         text: packet.symboltable
-                        , fill: new Fill({
-                            color: 'white'
-                        })
-                        , stroke: new Stroke({
-                            color: 'black'
-                            , width: 2
-                        })
+                        , fill: this.whiteTextFill
+                        , stroke: this.blackTextStroke
                         , font: 'normal 16px/1 Verdana'
                         , textAlign: 'center'
                     })
