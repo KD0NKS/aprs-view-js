@@ -31,17 +31,15 @@
     import Point from 'ol/geom/Point'
     import { Heatmap as HeatmapLayer, Tile as TileLayer } from 'ol/layer'
     import BaseLayer from 'ol/layer/Base'
-    import ImageLayer from 'ol/layer/Image'
     //import ImageWMS from 'ol/source/ImageWMS'
-    import ImageArcGISRest from 'ol/source/ImageArcGISRest'
     import VectorLayer from 'ol/layer/Vector'
     import { fromLonLat, toLonLat } from 'ol/proj'
     import OSM from 'ol/source/OSM'
     import VectorSource from 'ol/source/Vector'
     import { Style, Fill, Stroke, Text } from 'ol/style'
     import Icon from 'ol/style/Icon'
-    import { APRSSymbolService } from '@/services'
-    import { NumberUtil, StringUtil } from '@/utils'
+    import { APRSSymbolService, MapService } from '@/services'
+    import { NumberUtil, PacketUtil } from '@/utils'
     import { Component, Vue } from 'vue-property-decorator'
     import { mapState } from 'vuex'
     import GetterTypes from '@/GetterTypes'
@@ -54,7 +52,6 @@
     import Geometry from 'ol/geom/Geometry'
     import { APRSSymbol, MapSettings } from '@/models'
     import LineString from 'ol/geom/LineString'
-    import CircleStyle from 'ol/style/Circle'
 
     /**
      * Note: only 1 base layer is allowed
@@ -81,13 +78,15 @@
         private contextMenuX: number = 0
         private contextMenuY: number = 0
         private mapSettings!: MapSettings
+        private mapService: MapService
+        private packetUtil: PacketUtil
         private symbolService: APRSSymbolService
         private trailVector: VectorSource<Geometry>
         private genericPointVector: VectorSource<Geometry>
         private stationPositionVector: VectorSource<Geometry>
         private isShowStationInfo: boolean = false
         private stationInfoPacket: string = ''
-        private trailStyleIndex = 0
+
         // Fake vue out and set a default overlay for the info card to make it reactive
         private stationIconOverlay: APRSSymbol = new APRSSymbol({
                     key: "logo"
@@ -102,55 +101,12 @@
                     })
         private map: OLMap
 
-        // Enhancement: make trail colors a selectable user configuration?
-        private trailStyles: Style[] = _.map([
-                  "rgba(125 , 0     , 255   , 0.5)" // purple
-                , "rgba(0   , 0     , 255   , 0.5)" // blue
-                , "rgba(255 , 0     , 255   , 0.5)" // hot pink-ish
-                , "rgba(255 , 0     , 0     , 0.5)" // red
-                , "rgba(0   , 225   , 255   , 0.5)" // teal
-                , "rgba(255 , 64    , 0     , 0.5)" // orange
-                , "rgba(0   , 0     , 102   , 0.5)" // navy
-                , "rgba(128 , 0     , 0     , 0.5)" // maroon
-                , "rgba(0   , 0     , 0     , 0.5)" // black
-            ], c =>
-                new Style({
-                    stroke : new Stroke({
-                        color: c
-                        , width: 4
-                    })
-                })
-            )
-
-        private oldPositionStyle: Style = new Style({
-            image: new CircleStyle({
-                radius: 3
-                , fill: new Fill({ color: "red" })
-            })
-        })
-
-        private whiteTextFill: Fill = new Fill({
-            color: 'white'
-        })
-
-        private blackTextFill: Fill = new Fill({
-            color: 'black'
-        })
-
-        private blackTextStroke: Stroke = new Stroke({
-            color: 'black'
-            , width: 2
-        })
-
-        private whiteTextStroke: Stroke = new Stroke({
-            color: 'white'
-            , width: 4
-        })
-
         constructor() {
             super()
 
             this.genericPointVector = new VectorSource({})
+            this.mapService = new MapService()
+            this.packetUtil = new PacketUtil()
             this.trailVector = new VectorSource({})
             this.symbolService = new APRSSymbolService()
             this.stationPositionVector = new VectorSource({})
@@ -266,7 +222,7 @@
 
             bus.$on(BusEventTypes.PACKET_ADDED, async (p: aprsPacket) => {
                 if(p.alive == null || p.alive == true) {
-                    this.addPacket(p, true)
+                    this.addPacket(p, this.mapSettings.isShowTrails)
                 } else {
                     // Remove "killed" objects/items
                     const toRemove = _.compact(
@@ -296,11 +252,8 @@
             })
 
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data: number[] | string[]) => {
-                this.removePoints(this.genericPointVector, true, data)
-
-                if(this.mapSettings.isShowTrails == true) {
-                    this.removePoints(this.stationPositionVector, true, data)
-                }
+                this.removePoints(this.genericPointVector, data)
+                this.removePoints(this.stationPositionVector, data)
             });
 
             await Promise.all(_.map(this.getAllLocationPackets(), async (p) => {
@@ -312,7 +265,7 @@
                     _.compact(
                         _.uniq(
                             _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
-                                result.push(value.get('nameIdentifier'))
+                                result.push(value.get('label'))
                                 return result
                             }, [])
                         )
@@ -323,7 +276,7 @@
                         // 2.  Generate trails for all stations regardless of movability, then add only the latest packet to the station position vector
                         let existingFeatures = _.sortBy(
                             _.filter(this.stationPositionVector.getFeatures(), f => {
-                                return (f.get('nameIdentifier') == c)
+                                return (f.get('label') == c)
                             })
                             , f => f.get('receivedTime')
                         )
@@ -361,11 +314,11 @@
 
         // icon generation stuffz
         private async addPacket(packet: aprsPacket, isGenerateTrail: boolean): Promise<void> {
-            if(this.isValidPacket(packet) == true) {
+            if(this.packetUtil.isValidPacket(packet) == true) {
                 // TODO: For some reason this doesn't work on initial load
                 let existingFeatures = await _.filter(this.stationPositionVector.getFeatures(), f => {
                     return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
-                                    && f.get('receivedTime') < packet.receivedTime
+                                    && f.get('receivedTime') <= packet.receivedTime
                 })
 
                 var mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
@@ -387,35 +340,38 @@
                         name: packet.sourceCallsign
                         , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                         , receivedTime: packet.receivedTime
-                        , nameIdentifier: `${ packet.itemname ?? packet.objectname ?? '' }:${packet.sourceCallsign}`
                     })
 
                     feature.setStyle(await styles)
                     await this.stationPositionVector.addFeature(feature)
                 }
 
-                if(symbols['symbol'].isMovable) {
+                if(symbols['symbol'].isMovable == true) {
                     await this.addGenericPoint(packet)
 
                     if(isGenerateTrail == true) {
-                        this.generateTrail(`${packet.itemname ?? packet.objectname ?? ''}:${packet.sourceCallsign}`)
+                        this.generateTrail(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
                     }
                 } else {
-                    const genericPointIds = _.reduce(
-                        _.filter(
-                            this.genericPointVector.getFeatures()
-                            , f => {
-                                return f.get('nameIdentifier') == `${packet.itemname ?? packet.objectname ?? ''}:${packet.sourceCallsign}`
+                    const genericPointIds = _.compact(
+                        _.reduce(
+                            _.filter(
+                                this.genericPointVector.getFeatures()
+                                , f => {
+                                    return f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                                }
+                            )
+                            , (result, value) => {
+                                result.push((value as Feature<Geometry>).getId())
+                                return result
                             }
+                            , []
                         )
-                        , (result, value) => {
-                            result.push(value.getId())
-                            return result
-                        }
-                        , []
                     )
 
-                    this.removePoints(this.genericPointVector, isGenerateTrail, genericPointIds)
+                    if(genericPointIds && genericPointIds != null && genericPointIds.length > 0) {
+                        this.removePoints(this.genericPointVector, genericPointIds)
+                    }
                 }
 
                 if(existingFeatures && existingFeatures != undefined && existingFeatures != null && existingFeatures.length > 0) {
@@ -442,17 +398,16 @@
                     name: packet.sourceCallsign
                     , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                     , receivedTime: packet.receivedTime
-                    , nameIdentifier: `${ packet.itemname ?? packet.objectname ?? '' }:${packet.sourceCallsign}`
                 })
 
-                feature.setStyle(this.oldPositionStyle)
+                feature.setStyle(MapService.oldPositionStyle)
                 this.genericPointVector.addFeature(feature)
             }
 
             return
         }
 
-        private async removePoints(vector: VectorSource<Geometry>, isGenerateTrail: boolean, ids?: number[] | string[]): Promise<void> {
+        private async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]): Promise<void> {
             if(ids != null && ids.length > 0) {
                 const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
@@ -461,9 +416,7 @@
                         if(f != undefined) {
                             vector.removeFeature(f)
 
-                            if(isGenerateTrail == true) {
-                                this.generateTrail(f.get('nameIdentifier'))
-                            }
+                            this.generateTrail(f.get('label'))
                         }
                     })
 
@@ -474,14 +427,14 @@
             return
         }
 
-        private async generateTrail(nameIdentifier: string) {
+        private async generateTrail(label: string) {
             if(this.mapSettings.isShowTrails == true) {
                 //TODO: force this to be serial processing? https://gist.github.com/joeytwiddle/37d2085425c049629b80956d3c618971
                 const coords = _.reduce(
                     _.sortBy(
                         _.compact(
                             _.filter(this.genericPointVector.getFeatures(), f => {
-                                return (f.get('nameIdentifier') == nameIdentifier)
+                                return (f.get('label') == label)
                             })
                         )
                         , f => f.get('receivedTime')
@@ -493,10 +446,10 @@
                     , []
                 )
 
-                if(coords != undefined) {
-                    const trail = this.trailVector.getFeatureById(nameIdentifier)
+                if(coords != null) {
+                    const trail = this.trailVector.getFeatureById(label)
 
-                    if(trail != undefined) {
+                    if(trail != null) {
                         (trail.getGeometry() as LineString).setCoordinates(coords)
                     } else {
                         const ls = new LineString(coords)
@@ -505,8 +458,8 @@
                             geometry: ls
                         })
 
-                        f.setId(nameIdentifier)
-                        f.setStyle(this.getTrailStyle()) // get a random trail style/color
+                        f.setId(label)
+                        f.setStyle(this.mapService.getTrailStyle()) // get a random trail style/color
 
                         this.trailVector.addFeature(f)
                     }
@@ -545,8 +498,8 @@
                 shadowStyle.setText(
                     new Text({
                         text: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
-                        , fill: this.blackTextFill
-                        , stroke: this.whiteTextStroke
+                        , fill: MapService.blackTextFill
+                        , stroke: MapService.whiteTextStroke
                         , offsetX: 10
                         , offsetY: -15
                         , font: 'bold 12px/1 Verdana'
@@ -561,8 +514,8 @@
                 const overlayStyle = new Style({
                     text: new Text({
                         text: packet.symboltable
-                        , fill: this.whiteTextFill
-                        , stroke: this.blackTextStroke
+                        , fill: MapService.whiteTextFill
+                        , stroke: MapService.blackTextStroke
                         , font: 'normal 16px/1 Verdana'
                         , textAlign: 'center'
                     })
@@ -578,27 +531,12 @@
             return _.compact(
                 _.sortBy(
                     _.filter(this.aprsPackets, (p) => {
-                        return this.isValidPacket(p)
+                        return this.packetUtil.isValidPacket(p)
                             && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
                     })
                     , p => (p as aprsPacket).receivedTime
                 )
             )
-        }
-
-        private isValidPacket(packet: aprsPacket) {
-            return (packet.latitude && packet.latitude != null && packet.latitude != undefined)
-                        && (packet.longitude && packet.latitude != null && packet.longitude != undefined)
-                        && StringUtil.IsNullOrWhiteSpace(packet.resultCode)
-                        && StringUtil.IsNullOrWhiteSpace(packet.resultMessage)
-        }
-
-        private getTrailStyle() {
-            if(this.trailStyleIndex >= this.trailStyles.length) {
-                this.trailStyleIndex = 0
-            }
-
-            return this.trailStyles[this.trailStyleIndex++]
         }
     }
 </script>
