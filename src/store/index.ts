@@ -136,7 +136,7 @@ export default new Vuex.Store({
     },
     getters: {
         [GetterTypes.APP_ID]() {
-            return 'js-aprs-view 1.0.0'
+            return 'js-aprs-view 0.0.1'
         }
         , [GetterTypes.GET_PACKET]: state => id => {
             return state.aprsPackets.find((packet) => packet.id == id)

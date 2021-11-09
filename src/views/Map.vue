@@ -225,16 +225,15 @@
                     this.addPacket(p, this.mapSettings.isShowTrails)
                 } else {
                     // Remove "killed" objects/items
-                    const toRemove = _.compact(
-                        _.filter(
-                            this.stationPositionVector.getFeatures()
-                            , f =>
-                                f.get('label') == p.itemname || f.get('label') == p.objectname
-                            )
-                    )
-
-                    if(toRemove != null && toRemove.length > 0) {
-                        _.map(toRemove, f => {
+                    _.map(
+                        _.compact(
+                            _.filter(
+                                this.stationPositionVector.getFeatures()
+                                , f =>
+                                    f.get('label') == p.itemname || f.get('label') == p.objectname
+                                )
+                        )
+                        , f => {
                             try {
                                 if(f != undefined)
                                     this.stationPositionVector.removeFeature(f)
@@ -246,8 +245,8 @@
                             } catch(e) {
                                 console.log(e)
                             }
-                        })
-                    }
+                        }
+                    )
                 }
             })
 
@@ -256,10 +255,41 @@
                 this.removePoints(this.stationPositionVector, data)
             });
 
-            await Promise.all(_.map(this.getAllLocationPackets(), async (p) => {
+            this.loadMapData()
+        }
+
+        private async loadMapData() {
+            return Promise.all(_.map(this.getAllLocationPackets(), async (p) => {
                 await this.addPacket(p, false)
-                return
+                return p
             })).then(() => {
+
+                // Because adding all the packets runs async, let's clean up the map a little... this is a dirty hack until a better solution is found
+                // TODO: clean this up, it should be a group by callsign grabbing all but the most recent feature
+                _.map(
+                    _.compact(
+                        _.uniq(
+                            _.reduce(this.stationPositionVector.getFeatures(), (result, value) => {
+                                result.push(value.get('label'))
+                                return result
+                            }, [])
+                        )
+                    )
+                    , (label) => {
+                        const existingFeatures =_.filter(this.stationPositionVector.getFeatures(), (f) => f.get('label') == label)
+
+                        var mostRecentTime = _.max(_.reduce(existingFeatures, (result, value) => {
+                            result.push(value.get('receivedTime'))
+                            return result
+                        }, []))
+
+                        _.map(existingFeatures, f => {
+                            if(f.get('receivedTime') != mostRecentTime)
+                                this.stationPositionVector.removeFeature(f)
+                        })
+                    }
+                )
+
                 // Get unique non null or empty callsigns, then generate a trail based on callsign
                 _.map(
                     _.compact(
@@ -271,26 +301,6 @@
                         )
                     )
                     , c => {
-                        // Because adding all the packets runs async, let's clean up the map a little... this is a dirty hack until a better solution is found
-                        // 1.  Get the aprs symbol before even processing, then process generic and latest (station) points individually
-                        // 2.  Generate trails for all stations regardless of movability, then add only the latest packet to the station position vector
-                        let existingFeatures = _.sortBy(
-                            _.filter(this.stationPositionVector.getFeatures(), f => {
-                                return (f.get('label') == c)
-                            })
-                            , f => f.get('receivedTime')
-                        )
-
-                        var mostRecentTime = _.max(_.reduce(existingFeatures, (result, value) => {
-                            result.push(value.get('receivedTime'))
-                            return result
-                        }, []))
-
-                        _.map(existingFeatures, f => {
-                            if(f.get('receivedTime') != mostRecentTime)
-                                this.stationPositionVector.removeFeature(f)
-                        })
-
                         // Let's finally generate the trail!
                         this.generateTrail(c)
                         return

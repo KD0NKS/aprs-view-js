@@ -118,6 +118,7 @@ TODO:
     - [ ] Themes
         - [ ] Dark Theme
         - [ ] Use OS theme?
+            - https://medium.com/missive-app/make-your-electron-app-dark-mode-compatible-c23dcfdd0dfa
 - Filters
     - [ ] Heard by my station (no digis)
     - [ ] Station Type
