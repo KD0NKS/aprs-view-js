@@ -243,7 +243,7 @@
                                 if(trail && trail != undefined)
                                     this.trailVector.removeFeature(trail)
                             } catch(e) {
-                                console.log(e)
+                                console.log(`Failed to add packet: ${e}`)
                             }
                         }
                     )
@@ -253,7 +253,7 @@
             bus.$on(BusEventTypes.PACKETS_REMOVED, (data: number[] | string[]) => {
                 this.removePoints(this.genericPointVector, data)
                 this.removePoints(this.stationPositionVector, data)
-            });
+            })
 
             this.loadMapData()
         }

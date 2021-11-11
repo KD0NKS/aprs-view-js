@@ -9,6 +9,7 @@
                     label="COM Port"
                     v-model="connection.comPort"
                     v-on:focus="updateSerialPorts()"
+                    :rules="[ rules.required ]"
                 ></v-select>
             </v-flex>
 
@@ -23,6 +24,7 @@
                     :items="dataBitOptions"
                     label="Data Bit"
                     v-model="connection.dataBits"
+                    :rules="[ rules.required ]"
                     >
                 </v-select>
             </v-flex>
@@ -43,6 +45,7 @@
                     :items="parityOptions"
                     label="Parity"
                     v-model="connection.parity"
+                    :rules="[ rules.required ]"
                     >
                 </v-select>
             </v-flex>
@@ -52,6 +55,7 @@
                     :items="charSetOptions"
                     label="Character Set"
                     v-model="connection.charset"
+                    :rules="[ rules.required ]"
                     >
                 </v-select>
             </v-flex>
@@ -68,6 +72,7 @@
                     item-value="value"
                     label="EOL Character"
                     v-model="connection.messageDelimeter"
+                    :rules="[ rules.required ]"
                     >
                 </v-select>
             </v-flex>
@@ -83,6 +88,7 @@
                             <!-- TODO: Deep copying may not need to be done in the parent if this had a key?... works for now -->
                             <TNCCommand :command.sync="connection.initCommands[index]"
                                     v-on:removeCommand="removeCommand(connection.initCommands, index)"
+                                    :rules = "rules"
                                     />
                         </div>
                     </draggable>
@@ -104,6 +110,7 @@
                             <!-- TODO: Deep copying may not need to be done in the parent if this had a key?... works for now -->
                             <TNCCommand :command.sync="connection.exitCommands[index]"
                                     v-on:removeCommand="removeCommand(connection.exitCommands, index)"
+                                    :rules = "rules"
                                     />
                         </div>
                     </draggable>

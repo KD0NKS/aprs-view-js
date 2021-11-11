@@ -122,7 +122,7 @@ export class ConnectionService extends EventEmitter { //implements IObserver {
             } else if(conn.connectionType == 'SERIAL_TNC') {
                 // TODO: send callsign command
                 const c = conn.connection as TerminalSocket
-                console.log(c)
+                //console.log(c)
 
                 if(conn.isEnabled == true) {
                     c.sendMyCallCommand()
