@@ -11,7 +11,8 @@
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "rebuild": "electron-rebuild -f -w serialport",
-    "tsc": "./node_modules/.bin/tsc"
+    "tsc": "./node_modules/.bin/tsc",
+    "update:browser": "npx browserslist@latest --update-db"
   },
   "main": "background.js",
   "dependencies": {
