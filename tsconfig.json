@@ -1,48 +1,35 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "strict": false,
-    "jsx": "preserve",
-    "importHelpers": true,
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "outDir": "dist",
-    "sourceMap": true,
-    "baseUrl": ".",
-    "noImplicitAny": false,
-    "declaration": true,
-    "types": [
-      "webpack-env",
-      "vuetify"
-    ],
-    "paths": {
+  "extends": "@quasar/app/tsconfig-preset"
+  , "compilerOptions": {
+    "allowSyntheticDefaultImports": true
+    , "baseUrl": "."
+    , "declaration": true
+    , "esModuleInterop": true
+    , "jsx": "preserve"
+    , "importHelpers": true
+    , "module": "esnext"
+    , "moduleResolution": "node"
+    , "noImplicitAny": false
+    , "sourceMap": true
+    , "strict": false
+    , "target": "esnext"
+    , "paths": {
       "@/*": [
         "src/*"
       ]
-    },
-    "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable",
-      "scripthost"
-    ]
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
-  ],
-  "exclude": [
-    "bin",
-    "coverage",
-    "node_modules",
-    "dist",
-    ".nyc_output"
+    }
+  }
+  ,"include": [
+    "src/**/*.ts"
+    , "src/**/*.tsx"
+    , "src/**/*.vue"
+    , "tests/**/*.ts"
+    , "tests/**/*.tsx"
+  ]
+  , "exclude": [
+    ".github"
+    , ".quasar"
+    , ".vscode"
+    , "node_modules"
   ]
 }

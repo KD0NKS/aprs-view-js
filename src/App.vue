@@ -1,24 +1,36 @@
 <template>
-  <v-app>
-    <Navigation/>
-    <v-main class="fill-height">
-        <router-view></router-view>
-    </v-main>
-  </v-app>
+    <router-view />
 </template>
 
-<script>
-    import Vue from "vue";
-    import Navigation from "./components/Navigation";
-    import 'vuetify/dist/vuetify.min.css';
-    import 'material-design-icons-iconfont/dist/material-design-icons.css'
-    import '@mdi/font/css/materialdesignicons.css'
+<script lang="ts">
+    import { defineComponent } from 'vue'
+    import { useStore } from '@/store'
+    import { LocalStorage } from 'quasar'
 
-    export default Vue.extend({
-        name: "App",
-        components: {
-            Navigation
-        },
-        data: () => ({})
+    import { ActionTypes, StorageKeys } from '@/enums'
+
+    export default defineComponent({
+        name: 'App',
+        setup() {
+            const $store = useStore()
+
+            try {
+                $store.dispatch(ActionTypes.SET_MAP_SETTINGS, LocalStorage.getItem(StorageKeys.MAP_SETTINGS))
+            } catch {
+                console.log('Could not load map settings.')
+            }
+
+            try {
+                $store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, LocalStorage.getItem(StorageKeys.SOFTWARE_SETTINGS))
+            } catch {
+                console.log('Could not load software settings.')
+            }
+
+            try {
+                $store.dispatch(ActionTypes.SET_STATION_SETTINGS , LocalStorage.getItem(StorageKeys.STATION_SETTINGS))
+            } catch {
+                console.log('Could not load station settings.')
+            }
+        }
     })
 </script>

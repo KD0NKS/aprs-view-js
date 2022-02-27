@@ -1,130 +1,190 @@
-import * as _ from 'lodash'
-import ActionTypes from '../ActionTypes'
-import { bus } from '@/main'
-import { ConnectionService } from '@/services'
-import GetterTypes from '../GetterTypes'
-import Store from 'electron-store'
-import MutationTypes from '../MutationTypes'
-import Vue from 'vue'
-import Vuex from 'vuex'
-import { Connection, IConnection, IMapSettings, IStationSettings, MapSettings, StationSettings } from '@/models'
-import { aprsPacket } from 'js-aprs-fap'
-import { ConnectionViewModel } from '@/models/ConnectionViewModel'
+import _ from 'lodash'
+import { LocalStorage } from 'quasar'
+
+
+import { createStore, Store as VuexStore, useStore as vuexUseStore } from 'vuex'
+import { store } from 'quasar/wrappers'
+import { InjectionKey } from 'vue'
+
+import { ActionTypes, GetterTypes, MutationTypes, StorageKeys } from '@/enums'
 import { Mapper } from '@/utils/mappers'
-import { stat } from 'original-fs'
-import { BusEventTypes } from '@/enums'
-import { SoftwareSettings } from '@/models/SoftwareSettings'
-import { ISoftwareSettings } from '@/models/ISoftwareSettings'
 
-Vue.use(Vuex)
+import { aprsPacket } from 'js-aprs-fap'
 
-const persistentStorage = new Store();
+import { IMapSettings, ISoftwareSettings, IStationSettings, MapSettings, SoftwareSettings, StationSettings } from '@/models/settings'
+import { ConnectionService } from '@/services/ConnectionService'
+import { IConnection } from '@/models/connections'
 
-export default new Vuex.Store({
-    state: {
-        aprsData: []
-        , aprsPackets: new Array<aprsPacket>()
-        , connectionService: new ConnectionService()
-        , mapSettings: new MapSettings()
-        , packetTimer: null
-        , softwareSettings: new SoftwareSettings()
-        , stationSettings: new StationSettings()
-    },
-    mutations: {
-        [MutationTypes.ADD_CONNECTION](state, connection: IConnection) {
-            state.connectionService.addConnection(connection)
+//import { ConnectionService } from '@/services'
 
-            persistentStorage.set(`connections.${connection.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
-        },
-        [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
-            state.connectionService.deleteConnection(connectionId)
-            persistentStorage.delete(`connections.${connectionId}`)
-        },
-        [MutationTypes.REMOVE_PACKETS](state, ids: string[]) {
-            _.remove(state.aprsPackets, function (p) { return _.includes(ids, p.id) })
-            bus.$emit(BusEventTypes.PACKETS_REMOVED, ids)
-        },
-        [MutationTypes.RESET_PACKET_TIMER](state, minutes) { // TODO: This is a terrible hack for now
-            // Clear the timer
-            if(state.packetTimer)
-                clearInterval(state.packetTimer)
+/*
+ * If not building with SSR mode, you can
+ * directly export the Store instantiation;
+ *
+ * The function below can be async too; either use
+ * async/await or return a Promise which resolves
+ * with the Store instance.
+ */
 
-            // Remove any packets that wouldn't fit the time filtering
-            this.commit(MutationTypes.REMOVE_PACKETS, state.aprsPackets.filter(packet => (new Date().getTime() - packet.receivedTime) >= (minutes * 60000)).map(p => p.id))
+const _mapper = new Mapper()
+const appId = 'js-aprs-view 0.0.1'
 
-            // Set the interval to the new time
-            state.packetTimer = setInterval(() => {
-                this.commit(MutationTypes.REMOVE_PACKETS, state.aprsPackets.filter(packet => (new Date().getTime() - packet.receivedTime) >= (minutes * 60000)).map(p => p.id))
-            }, 60000) // 60000ms per minute
-        },
-        [MutationTypes.SAVE_CONNECTION](state, connectionProps: ConnectionViewModel) {
-            const connection = state.connectionService.getConnection(connectionProps.id)
+export interface IState {
+    // Define your own store structure, using submodules if needed
+    // example: ExampleStateInterface;
+    // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
+    aprsData: string[]
+    , aprsPackets: Array<aprsPacket>
+    , connections: Array<IConnection>
+    , connectionService: ConnectionService
+    , packetTimer: any
+    , mapSettings: IMapSettings
+    , softwareSettings: ISoftwareSettings
+    , stationSettings: IStationSettings
+}
 
-            if(connection) {
-                Mapper.CopyInto<ConnectionViewModel, Connection>(connectionProps, connection)
-
-                persistentStorage.set(`connections.${connectionProps.id}`, Mapper.Map<ConnectionViewModel>(connection, ConnectionViewModel))
-            }
-        },
-        [MutationTypes.SET_MAP_SETTINGS](state, settings: IMapSettings) {
-            if(settings.pointLifetime != state.mapSettings.pointLifetime)
-                this.commit(MutationTypes.RESET_PACKET_TIMER, settings.pointLifetime)
-
-            Mapper.CopyInto<IMapSettings, MapSettings>(settings, state.mapSettings)
-
-            persistentStorage.set('mapSettings', state.mapSettings)
-        },
-        [MutationTypes.SET_SOFTWARE_SETTINGS](state, settings: ISoftwareSettings) {
-            Mapper.CopyInto<ISoftwareSettings, SoftwareSettings>(settings, state.softwareSettings)
-
-            persistentStorage.set('softwareSettings', Mapper.Map<SoftwareSettings>(state.softwareSettings, SoftwareSettings))
-        },
-        [MutationTypes.SET_STATION_SETTINGS](state, settings: IStationSettings) {
-            // state.stationSettings.propname = settings.propname doesn't work here
-            Vue.set(state.stationSettings, 'callsign', settings.callsign)
-            Vue.set(state.stationSettings, 'passcode', settings.passcode)
-            Vue.set(state.stationSettings, 'ssid', settings.ssid)
-            Vue.set(state.stationSettings, 'symbol', settings.symbol)
-            Vue.set(state.stationSettings, 'symbolOverlay', settings.symbolOverlay)
-
-            this.state.connectionService.ChangeEvent()
-
-            persistentStorage.set('stationSettings', Mapper.Map<StationSettings>(state.stationSettings, StationSettings))
-        }
-    },
-    actions: {
-        [ActionTypes.ADD_CONNECTION]({ commit }, connection: IConnection) {
-            commit(MutationTypes.ADD_CONNECTION, connection)
-        },
-        [ActionTypes.ADD_DATA]({ state }, packet: string) {
-            state.aprsData.push(packet)
-
-            // TODO: This should probably be a setting to cache x amount of data.
-            if(state.aprsData.length > 1000) {
-                state.aprsData.slice(100)
-            }
-        },
-        [ActionTypes.ADD_PACKET]({ state }, packet: aprsPacket) {
-            state.aprsPackets.push(packet)
-        },
-        [ActionTypes.REMOVE_PACKETS]({ state }, ids: string[]) {
-            this.commit(MutationTypes.REMOVE_PACKETS, ids)
-        }
-    },
-    getters: {
-        [GetterTypes.GET_PACKET]: state => id => {
-            return state.aprsPackets.find((packet) => packet.id == id)
-        },
-        [GetterTypes.MAP_SETTINGS](state) {
-            return state.mapSettings
-        },
-        [GetterTypes.SOFTWARE_SETTINGS](state) {
-            return state.softwareSettings
-        },
-        [GetterTypes.STATION_SETTINGS](state) {
-            return state.stationSettings
-        }
+// provide typings for `this.$store`
+declare module '@vue/runtime-core' {
+    interface ComponentCustomProperties {
+        $store: VuexStore<IState>;
     }
+}
+
+// provide typings for `useStore` helper
+export const storeKey: InjectionKey<VuexStore<IState>> = Symbol('vuex-key')
+
+export default store(function (/* { ssrContext } */) {
+    const Store = createStore<IState>({
+        state: {
+            aprsData: []
+            , aprsPackets: new Array<aprsPacket>()
+            , connections: new Array<IConnection>()
+            // TODO:
+            , connectionService: new ConnectionService(appId)
+            , mapSettings: new MapSettings()
+            , packetTimer: undefined
+            , softwareSettings: new SoftwareSettings()
+            , stationSettings: new StationSettings()
+        }
+        , mutations: {
+            [MutationTypes.ADD_CONNECTION](state: IState, settings: IConnection) {
+                this.state.connections.push(settings)
+            }
+            , [MutationTypes.CLEAR_OLD_PACKETS](state) {
+                const toRemove = _.filter(state.aprsPackets, packet => (new Date().getTime() - packet.receivedTime) >= (state.mapSettings.pointLifetime * 60000)).map(p => p.id)
+                this.dispatch(
+                    ActionTypes.REMOVE_PACKETS
+                    , toRemove)
+            }
+            , [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
+                const index = _.findIndex(state.connections, c => c.id === connectionId)
+
+                if(index > -1) {
+                    state.connections.splice(index, 1)
+                }
+            }
+            , [MutationTypes.REMOVE_PACKETS](state: IState, ids: string[]) {
+                _.remove(state.aprsPackets, function (p) { return _.includes(ids, p.id) })
+                //bus.$emit(BusEventTypes.PACKETS_REMOVED, ids)
+            }
+            , [MutationTypes.SET_MAP_SETTINGS](state: IState, settings: IMapSettings) {
+                if(!this.packetTimer) {
+                    // Set the interval to the new time
+                    this.packetTimer = setInterval(
+                        () => this.dispatch(ActionTypes.CLEAR_OLD_PACKETS)
+                        , 60000) // 60000ms per minute
+                }
+
+                if(settings.pointLifetime != state.mapSettings.pointLifetime) {
+                    this.dispatch(ActionTypes.CLEAR_OLD_PACKETS)
+                }
+
+                _mapper.CopyInto<IMapSettings, MapSettings>(settings, state.mapSettings)
+
+                LocalStorage.set(StorageKeys.MAP_SETTINGS, state.mapSettings)
+            }
+            , [MutationTypes.SAVE_CONNECTION](state: IState, settings: IConnection) {
+                if(settings && settings.id) {
+                    LocalStorage.set(`connections.${settings.id}`, settings)
+
+                    // TODO: update logic
+                }
+                // TODO: Error notification to tell user saving failed
+            }
+            , [MutationTypes.SET_SOFTWARE_SETTINGS](state: IState, settings: ISoftwareSettings) {
+                _mapper.CopyInto<ISoftwareSettings, SoftwareSettings>(settings, state.softwareSettings)
+
+                LocalStorage.set(StorageKeys.SOFTWARE_SETTINGS, state.softwareSettings)
+            }
+            , [MutationTypes.SET_STATION_SETTINGS](state: IState, settings: IStationSettings) {
+                // state.stationSettings.propname = settings.propname doesn't work here
+                state.stationSettings.callsign = settings.callsign
+                state.stationSettings.passcode = settings.passcode
+                state.stationSettings.ssid = settings.ssid
+                state.stationSettings.symbol = settings.symbol
+                state.stationSettings.symbolOverlay = settings.symbolOverlay
+
+                //state.connectionService.ChangeEvent()
+
+                LocalStorage.set(StorageKeys.STATION_SETTINGS, _mapper.Map<StationSettings>(state.stationSettings, StationSettings))
+            }
+        }
+        , actions: {
+            [ActionTypes.ADD_CONNECTION]({ commit}, connection: IConnection) {
+                commit(MutationTypes.ADD_CONNECTION, connection)
+            }
+            , [ActionTypes.CLEAR_OLD_PACKETS]({ commit }) {
+                commit(MutationTypes.CLEAR_OLD_PACKETS)
+            }
+            , [ActionTypes.DELETE_CONNECTION]({ commit }, connectionId: string) {
+                commit(MutationTypes.DELETE_CONNECTION, connectionId)
+            }
+            , [ActionTypes.REMOVE_PACKETS]({ commit }, ids: string[]) {
+                commit(MutationTypes.REMOVE_PACKETS, ids)
+            }
+            , [ActionTypes.SAVE_CONNECTION]({ commit }, settings: IConnection) {
+                commit(MutationTypes.SAVE_CONNECTION, settings)
+            }
+            , [ActionTypes.SET_MAP_SETTINGS]({ commit }, settings: IMapSettings) {
+                commit(MutationTypes.SET_MAP_SETTINGS, settings)
+            }
+            , [ActionTypes.SET_SOFTWARE_SETTINGS]({ commit }, settings: ISoftwareSettings) {
+                commit(MutationTypes.SET_SOFTWARE_SETTINGS, settings)
+            }
+            , [ActionTypes.SET_STATION_SETTINGS]({ commit }, settings: IStationSettings) {
+                commit(MutationTypes.SET_STATION_SETTINGS, settings)
+            }
+        }
+        , getters: {
+            [GetterTypes.APP_ID]() {
+                return appId
+            }
+            , [GetterTypes.GET_PACKET]: state => id => {
+                return _.find(state.aprsPackets, p => p.id == id)
+                //return state.aprsPackets.find((packet) => packet.id == id)
+            }
+            , [GetterTypes.GET_PACKETS_BY_NAME]: state => name => {
+                return _.filter(state.aprsPackets, p => (p.itemname == name || p.objectname == name || p.sourceCallsign == name))
+            }
+            , [GetterTypes.MAP_SETTINGS](state) {
+                return state.mapSettings
+            }
+            , [GetterTypes.SOFTWARE_SETTINGS](state) {
+                return state.softwareSettings
+            }
+            , [GetterTypes.STATION_SETTINGS](state) {
+                return state.stationSettings
+            }
+        }
+
+        // enable strict mode (adds overhead!)
+        // for dev mode and --debug builds onl
+        , strict: !!process.env.DEBUGGING,
+    })
+
+    return Store
 })
 
-
+export function useStore() {
+    return vuexUseStore(storeKey)
+}

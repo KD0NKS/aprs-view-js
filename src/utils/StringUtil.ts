@@ -7,8 +7,6 @@ export class StringUtil {
      * @returns boolean
      */
     public static IsNullOrWhiteSpace(val?: string): boolean {
-        return val == null || val.trim().length === 0;
+        return val == undefined || val == null || val.trim().length === 0;
     }
 }
-
-//export { StringUtil };

@@ -1,121 +1,118 @@
-<template id="Navigation">
-    <v-navigation-drawer
-            v-model="drawer"
-            :mini-variant.sync="mini"
-            :mini-variant-width="60"
-            permanent
-            app>
-        <v-list>
-            <v-list-item :class="mini && 'px-2'">
-                <v-list-item-avatar tile>
-                    <v-img
-                        :key="symbol.key"
-                        :src="symbol.value"
-                        class="my-3"
-                        contain>
-                    </v-img>
-                </v-list-item-avatar>
+<template>
+    <q-drawer v-model="drawer"
+            :mini="!drawer || miniState"
+            @click.capture="drawerClick"
+            show-if-above
+            bordered
+            :width="200"
+            :breakpoint="500"
+            mini-width="70"
+            >
+        <q-scroll-area class="fit">
+            <q-list>
+                <q-item clickable>
+                    <q-item-section avatar>
+                        <q-img height="33px" width="33px" contain :src="stationSymbol.value" />
+                    </q-item-section>
 
-                <v-list-item-content>
-                    <v-list-item-title>{{ callsign }}</v-list-item-title>
-                </v-list-item-content>
+                    <q-item-section>
+                        {{ callsign }}
+                    </q-item-section>
+                </q-item>
 
-                <v-list-item-action>
-                    <v-btn text icon @click.stop="mini = !mini">
-                        <v-icon>chevron_left</v-icon>
-                    </v-btn>
-                </v-list-item-action>
-            </v-list-item>
+                <q-separator />
 
-            <div v-for="item in items" :key="item.title">
-                <v-list-item
-                        v-if="!item.subLinks"
-                        :key="item.title"
-                        :to="item.action"
-                        >
-                    <v-list-item-action>
-                        <v-icon>{{ item.icon }}</v-icon>
-                    </v-list-item-action>
+                <template v-for="link in essentialLinks" :key="link.title">
+                    <essential-link v-bind="link" />
+                </template>
+            </q-list>
+        </q-scroll-area>
 
-                    <v-list-item-content>
-                        <v-list-item-title>{{ item.title }}</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
-
-                <v-list-group
-                        v-else
-                        :key="item.title"
-                        no-action
-                        :prepend-icon="item.icon"
-                        :value="false">
-                    <template v-slot:activator>
-                        <v-list-item-title>{{ item.title }}</v-list-item-title>
-                    </template>
-
-                    <v-list-item
-                            v-for="sublink in item.subLinks"
-                            :key="sublink.title"
-                            :to="sublink.action"
-                            >
-                        <v-list-item-content>
-                            <v-list-item-title>{{ sublink.title }}</v-list-item-title>
-                        </v-list-item-content>
-                    </v-list-item>
-                </v-list-group>
-            </div>
-        </v-list>
-    </v-navigation-drawer>
+        <div class="q-mini-drawer-hide absolute" style="top: 15px; right: -17px">
+            <q-btn
+                dense
+                round
+                unelevated
+                color="primary"
+                icon="chevron_left"
+                @click="miniState = true"
+                >
+            </q-btn>
+        </div>
+    </q-drawer>
 </template>
 
 <script lang="ts">
-    import { APRSSymbol } from '@/models'
-    import { APRSSymbolService } from '@/services'
-    import Component from 'vue-class-component'
-    import store from '@/store'
-    import Vue from 'vue'
-    import { StringUtil } from '@/utils'
+    import { defineComponent, ref } from "vue"
+    import { useStore } from '@/store'
 
-    @Component({})
-    export default class Navigation extends Vue {
-        private symbolSvc: APRSSymbolService = new APRSSymbolService()
-        private drawer = true
-        private items = [
-            /*
-            { title: 'Dashboard', icon: 'dashboard', action: "/" }
-            , { title: 'Messages', icon: 'message', action: "/messages" }
-            */
-            { title: 'Map', icon: 'map', action: '/map' }
-            , { title: 'Output', icon: 'mdi-console-line', action: "/output" }
-            , { title: 'Settings', icon: 'settings'
-                , subLinks: [
-                    { title: 'Station', action: '/stationSettings' }
-                    , { title: 'Connections', action: '/connectionSettings' }
-                    , { title: 'Map', action: '/mapSettings' }
-                    , { title: 'Application', action: '/applicationSettings' }
-                ]
-            }
-            , { title: 'About', icon: 'info', action: "/about" }
-        ]
-        private mini = true
+    import { StringUtil } from "@/utils"
 
-        private get callsign(): string {
-            if(!StringUtil.IsNullOrWhiteSpace(store.state?.stationSettings?.ssid)) {
-                return `${store?.state?.stationSettings?.callsign}-${store.state.stationSettings.ssid}`
-            }
+    import EssentialLink from 'components/EssentialLink.vue'
+    import { APRSSymbol } from "@/models"
+    import { APRSSymbolService } from "@/services"
 
-            return store?.state?.stationSettings?.callsign ?? ''
+    const items = [
+        { title: "Map", icon: "map", action: "/map" }
+        , { title: "Output", icon: "terminal", action: "/output" }
+        , {
+            title: "Settings"
+            , icon: "settings"
+            , subLinks: [
+                { title: 'Station', action: '/stationSettings' },
+                { title: 'Connections', action: '/connectionSettings' },
+                { title: 'Map', action: '/mapSettings' },
+                { title: 'Application', action: '/applicationSettings' },
+            ],
         }
+        , { title: "About", icon: "info", action: "/about" }
+    ]
 
-        private get symbol(): APRSSymbol {
-            if(StringUtil.IsNullOrWhiteSpace(store?.state?.stationSettings?.symbol)) {
-                return new APRSSymbol({
-                    key: "logo"
-                    , value: require('@/assets/radio-tower.png')
-                    , name: "Radio Tower"
+    export default defineComponent({
+        name: "Navigation"
+        , components: {
+            EssentialLink
+        }
+        , setup() {
+            const miniState = ref(false)
+            const symbolSvc = new APRSSymbolService()
+            const $store = useStore()
+
+            return {
+                drawer: ref(false)
+                , miniState
+                , essentialLinks: items
+                , symbolSvc
+                , drawerClick(e: any) {
+                    // if in "mini" state and user
+                    // click on drawer, we switch it to "normal" mode
+                    if(miniState.value) {
+                        miniState.value = false
+
+                        e.stopPropagation()
+                    }
+                }
+            }
+        }
+        , computed: {
+            callsign(): string {
+                if(!StringUtil.IsNullOrWhiteSpace(this.$store.state?.stationSettings?.ssid)) {
+                    return `${this.$store.state.stationSettings.callsign}-${this.$store.state.stationSettings.ssid}`
+                }
+
+                return this.$store.state?.stationSettings?.callsign
+            }
+            , stationSymbol(): APRSSymbol { // TODO: move this to store
+                if(StringUtil.IsNullOrWhiteSpace(this.$store.state?.stationSettings?.symbol)) {
+                    return new APRSSymbol({
+                        key: "logo"
+                        , value: require("@/assets/radio-tower.png")
+                        , name: "Radio Tower"
                     })
-            } else {
-                return this.symbolSvc.GetSymbolByKey(store.state.stationSettings.symbol)
+                }
+
+                return this.symbolSvc.GetSymbolByKey(this.$store.state.stationSettings.symbol)
             }
         }
-    }
+    })
 </script>

@@ -1,7 +1,5 @@
-import { APRSSymbolService } from '@/services/APRSSymbolService'
-import { ConnectionService } from '@/services/ConnectionService'
+import { APRSSymbolService } from './APRSSymbolService'
 
 export {
     APRSSymbolService
-    , ConnectionService
 }
