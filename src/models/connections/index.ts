@@ -5,7 +5,7 @@ import { TNCConnection } from "@/models/connections/TNCConnection"
 
 export {
     AbstractConnection
-    , IConnection
+    , type IConnection
     , ISConnection
     , TNCConnection
 }

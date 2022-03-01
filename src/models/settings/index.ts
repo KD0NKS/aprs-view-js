@@ -6,10 +6,10 @@ import { IStationSettings } from '@/models/settings/IStationSettings'
 import { StationSettings } from '@/models/settings/StationSettings'
 
 export {
-    IMapSettings
+    type IMapSettings
     , MapSettings
-    , ISoftwareSettings
+    , type ISoftwareSettings
     , SoftwareSettings
-    , IStationSettings
+    , type IStationSettings
     , StationSettings
 }
