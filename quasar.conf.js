@@ -216,11 +216,23 @@ module.exports = configure(function (ctx) {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'aprs-view-js',
+        appId: 'aprs-view-js'
+      },
+
+      // optional; webpack config Object for
+      // the Preload Process ONLY (/src-electron/main-process/electron-preload.js)
+      extendWebpackPreload(cfg) {
+        // directly change props of cfg;
+        // no need to return anything
+
+        cfg.resolve.alias = {
+            ...cfg.resolve.alias,
+            '@': path.resolve(__dirname, "./src")
+        }
       },
 
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
-      chainWebpack(/* chain */) {
+      chainWebpack(/*chain*/) {
         // do something with the Electron main process Webpack cfg
         // extendWebpackMain also available besides this chainWebpackMain
       },

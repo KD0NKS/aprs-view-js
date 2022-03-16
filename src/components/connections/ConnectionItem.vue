@@ -17,7 +17,7 @@
 
         <q-card class="q-pa-md">
             <q-form dense
-                    greedy="false"
+                    :greedy="false"
                     @reset="onReset"
                     @submit="onSubmit">
                 <div class="q-gutter-md row" dense>
@@ -48,7 +48,7 @@
 
 <script lang="ts">
     import { defineComponent, ref } from "vue"
-    import { useStore } from "vuex"
+    import { useStore } from '@/store'
     import _ from "lodash"
 
     import { ActionTypes, ConnectionTypes } from "@/enums"
@@ -72,7 +72,7 @@
         }
         , setup(props, { emit }) {
             const mapper = new Mapper()
-            const $store = useStore()
+            const store = useStore()
             let model = ref(null)
 
             if(props.connection.connectionType == 'IS_SOCKET') {
@@ -88,7 +88,7 @@
             return {
                 mapper
                 , model
-                , $store
+                , store
                 , rules: {
                     required: value => !!value || 'Required.'
                 }
@@ -109,7 +109,7 @@
                     }
                     // TODO: Else throw error
                     */
-                   this.$store.dispatch(ActionTypes.SAVE_CONNECTION, model.value)
+                    store.dispatch(ActionTypes.SAVE_CONNECTION, model.value)
                 }
             }
         }
@@ -128,8 +128,6 @@
         }
         , methods: {
             changeConnectionType(value) {
-                console.log(this.model.value)
-
                 if(value == 'IS_SOCKET') {
                     let conn = new ISConnection()
 
@@ -161,7 +159,7 @@
                 }
             }
             , deleteConnection() {
-                this.$store.dispatch(ActionTypes.DELETE_CONNECTION, this.model.id)
+                this.store.dispatch(ActionTypes.DELETE_CONNECTION, this.model.id)
             }
         }
     })

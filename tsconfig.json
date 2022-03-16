@@ -10,6 +10,7 @@
     , "module": "esnext"
     , "moduleResolution": "node"
     , "noImplicitAny": false
+    , "outDir": ".quasar"
     , "sourceMap": true
     , "strict": false
     , "target": "esnext"
@@ -23,6 +24,8 @@
     "src/**/*.ts"
     , "src/**/*.tsx"
     , "src/**/*.vue"
+    //, "src-electron/**/*.ts"
+    //, "src-electron/**/*.tsx"
     , "tests/**/*.ts"
     , "tests/**/*.tsx"
   ]

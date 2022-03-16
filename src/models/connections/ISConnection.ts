@@ -1,3 +1,5 @@
+import _ from "lodash"
+
 import { AbstractConnection, IConnection } from "@/models/connections"
 
 export class ISConnection extends AbstractConnection {
@@ -13,5 +15,15 @@ export class ISConnection extends AbstractConnection {
             this.port = connectionSettings["port"] ?? 0
             this.filter = connectionSettings["filter"] ?? null
         }
+    }
+
+    public toJSON() {
+        const jsonObj = super.toJSON()
+
+        jsonObj["host"] = this.host
+        jsonObj["port"] = this.port
+        jsonObj["filter"] = this.filter
+
+        return jsonObj
     }
 }

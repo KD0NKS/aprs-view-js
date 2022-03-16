@@ -12,32 +12,32 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.12.5",
+    "@quasar/extras": "^1.13.1",
     "core-js": "^3.21.1",
     "js-aprs-fap": "^1.1.5",
     "js-aprs-is": "1.1.0-alpha.1",
     "js-aprs-tnc": "^0.0.2",
     "lodash": "^4.17.21",
-    "ol": "^6.12.0",
-    "quasar": "^2.5.5",
+    "ol": "^6.13.0",
+    "quasar": "^2.6.0",
     "serialport": "^10.3.0",
     "vue": "^3.2.31",
-    "vue-router": "^4.0.12",
+    "vue-router": "^4.0.14",
     "vuex": "^4.0.2"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.13.14",
+    "@babel/eslint-parser": "^7.17.0",
     "@quasar/app": "^3.3.3",
-    "@types/lodash": "^4.14.179",
+    "@types/lodash": "^4.14.180",
     "@types/node": "^17.0.21",
-    "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "^5.10.0",
-    "electron": "^17.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.14.0",
+    "@typescript-eslint/parser": "^5.14.0",
+    "electron": "^17.1.2",
     "electron-rebuild": "^3.2.7",
     "eslint": "^7.14.0",
-    "eslint-config-prettier": "^8.1.0",
+    "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-vue": "^7.0.0",
-    "typescript": "^4.5.5"
+    "typescript": "^4.6.2"
   },
   "browserslist": [
     "last 10 Chrome versions",

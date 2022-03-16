@@ -7,6 +7,7 @@
 
     import { defineComponent, onMounted } from 'vue'
     import OSM from 'ol/source/OSM'
+    import XYZ from 'ol/source/XYZ'
     import BaseLayer from 'ol/layer/Base'
     import { Heatmap as HeatmapLayer, Tile as TileLayer } from 'ol/layer'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
@@ -21,8 +22,22 @@
 
             onMounted(() => {
                 const layers: BaseLayer[] = [
+                    //new TileLayer({
+                    //    className: 'osm-base-layer'
+                    //    , source: new OSM({
+                    //        attributions: [
+                    //            '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    //        ]
+                    //        , cacheSize: 100
+                    //    })
+                    //})
                     new TileLayer({
-                        source: new OSM()
+                        source: new XYZ({
+                            attributions: [
+                                'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+                            ]
+                            , url: 'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg'
+                        })
                     })
                 ]
 
@@ -42,5 +57,5 @@
 <style scoped lang="sass">
 #map
     height: 100vh
-    widows: 100%
+    width: 100%
 </style>

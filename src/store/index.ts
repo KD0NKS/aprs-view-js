@@ -12,7 +12,6 @@ import { Mapper } from '@/utils/mappers'
 import { aprsPacket } from 'js-aprs-fap'
 
 import { IMapSettings, ISoftwareSettings, IStationSettings, MapSettings, SoftwareSettings, StationSettings } from '@/models/settings'
-import { ConnectionService } from '@/services/ConnectionService'
 import { IConnection } from '@/models/connections'
 
 //import { ConnectionService } from '@/services'
@@ -36,7 +35,6 @@ export interface IState {
     aprsData: string[]
     , aprsPackets: Array<aprsPacket>
     , connections: Array<IConnection>
-    , connectionService: ConnectionService
     , packetTimer: any
     , mapSettings: IMapSettings
     , softwareSettings: ISoftwareSettings
@@ -59,8 +57,6 @@ export default store(function (/* { ssrContext } */) {
             aprsData: []
             , aprsPackets: new Array<aprsPacket>()
             , connections: new Array<IConnection>()
-            // TODO:
-            , connectionService: new ConnectionService(appId)
             , mapSettings: new MapSettings()
             , packetTimer: undefined
             , softwareSettings: new SoftwareSettings()
@@ -68,7 +64,15 @@ export default store(function (/* { ssrContext } */) {
         }
         , mutations: {
             [MutationTypes.ADD_CONNECTION](state: IState, settings: IConnection) {
-                this.state.connections.push(settings)
+                const connection = _.find(state.connections, { id: settings.id })
+
+                if(connection != null) {
+                    this.state.connections[settings.id] = settings
+                } else {
+                    this.state.connections.push(settings)
+                }
+
+                global.connectionService.addConnection(settings)
             }
             , [MutationTypes.CLEAR_OLD_PACKETS](state) {
                 const toRemove = _.filter(state.aprsPackets, packet => (new Date().getTime() - packet.receivedTime) >= (state.mapSettings.pointLifetime * 60000)).map(p => p.id)
@@ -77,10 +81,11 @@ export default store(function (/* { ssrContext } */) {
                     , toRemove)
             }
             , [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
-                const index = _.findIndex(state.connections, c => c.id === connectionId)
+                const index = _.findIndex(state.connections, c => c.id == connectionId)
 
                 if(index > -1) {
                     state.connections.splice(index, 1)
+                    LocalStorage.remove(`connections.${connectionId}`)
                 }
             }
             , [MutationTypes.REMOVE_PACKETS](state: IState, ids: string[]) {
@@ -104,10 +109,13 @@ export default store(function (/* { ssrContext } */) {
                 LocalStorage.set(StorageKeys.MAP_SETTINGS, state.mapSettings)
             }
             , [MutationTypes.SAVE_CONNECTION](state: IState, settings: IConnection) {
-                if(settings && settings.id) {
-                    LocalStorage.set(`connections.${settings.id}`, settings)
+                let connection = _.find(state.connections, c => c.id == settings.id)
 
-                    // TODO: update logic
+                if(connection != null) {
+                    LocalStorage.set(`connections.${settings.id}`, settings.toJSON())
+
+                    _mapper.CopyInto<IConnection, IConnection>(settings, connection)
+                    global.connectionService.updateConnection(_.clone(settings))
                 }
                 // TODO: Error notification to tell user saving failed
             }
@@ -124,9 +132,9 @@ export default store(function (/* { ssrContext } */) {
                 state.stationSettings.symbol = settings.symbol
                 state.stationSettings.symbolOverlay = settings.symbolOverlay
 
-                //state.connectionService.ChangeEvent()
-
                 LocalStorage.set(StorageKeys.STATION_SETTINGS, _mapper.Map<StationSettings>(state.stationSettings, StationSettings))
+
+                global.connectionService.updateStationSettings(_.clone(settings))
             }
         }
         , actions: {

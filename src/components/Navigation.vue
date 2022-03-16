@@ -3,10 +3,10 @@
             :mini="!drawer || miniState"
             @click.capture="drawerClick"
             show-if-above
+            :breakpoint="0"
             bordered
             :width="200"
-            :breakpoint="500"
-            mini-width="70"
+            :mini-width="70"
             >
         <q-scroll-area class="fit">
             <q-list>

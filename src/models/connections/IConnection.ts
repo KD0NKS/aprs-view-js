@@ -4,4 +4,6 @@ export interface IConnection {
     name: string
 
     connectionType: string
+
+    toJSON()
 }

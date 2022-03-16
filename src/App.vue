@@ -7,7 +7,10 @@
     import { useStore } from '@/store'
     import { LocalStorage } from 'quasar'
 
+    import _ from 'lodash'
+
     import { ActionTypes, StorageKeys } from '@/enums'
+    import { IConnection, ISConnection, TNCConnection } from '@/models/connections'
 
     export default defineComponent({
         name: 'App',
@@ -27,9 +30,30 @@
             }
 
             try {
-                $store.dispatch(ActionTypes.SET_STATION_SETTINGS , LocalStorage.getItem(StorageKeys.STATION_SETTINGS))
+                $store.dispatch(ActionTypes.SET_STATION_SETTINGS, LocalStorage.getItem(StorageKeys.STATION_SETTINGS))
             } catch {
                 console.log('Could not load station settings.')
+            }
+
+            try {
+                _.each(_.filter(LocalStorage.getAllKeys(), x => x.startsWith('connection')), x => {
+                    let settings = LocalStorage.getItem(x) as IConnection
+                    let connection = null
+
+                    if(settings.connectionType == 'IS_SOCKET') {
+                        connection = new ISConnection(settings)
+                    } else if(settings.connectionType == 'SERIAL_TNC') {
+                        connection = new TNCConnection(settings)
+                    }
+                    // TODO: Throw error if neither of these
+
+                    if(connection != null) {
+                        $store.dispatch(ActionTypes.ADD_CONNECTION, connection)
+                    }
+                })
+
+            } catch(e: any) {
+                console.log(`Could not load connections.\r ${e}`)
             }
         }
     })

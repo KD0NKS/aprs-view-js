@@ -22,13 +22,13 @@
     export default defineComponent({
         name: 'ConnectionSettings'
         , setup() {
-            const $store = useStore()
+            const store = useStore()
 
-            const connections = ref($store.state.connections)
+            const connections = ref(store.state.connections)
 
             return {
                 connections
-                , $store
+                , store
             }
         }
         , components: {
@@ -45,7 +45,7 @@
                 newConnection.port = 14580
                 newConnection.filter = "r/39.00/-91.00/1000"
 
-                this.$store.dispatch(ActionTypes.ADD_CONNECTION, newConnection)
+                this.store.dispatch(ActionTypes.ADD_CONNECTION, newConnection)
             }
         }
     })

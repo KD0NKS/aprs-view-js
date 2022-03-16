@@ -1,7 +1,6 @@
 import { StringUtil } from "@/utils"
 import { uid } from "quasar"
 
-import { ConnectionTypes } from "@/enums"
 import { IConnection } from "@/models/connections"
 
 export abstract class AbstractConnection {
@@ -18,5 +17,15 @@ export abstract class AbstractConnection {
             this.name = settings["name"] ?? "Default"
             this.connectionType = settings["connectionType"] ?? "IS_SOCKET"
         }
+    }
+
+    public toJSON() {
+        const jsonObj = {}
+
+        jsonObj["id"] = this.id
+        jsonObj["name"] = this.name
+        jsonObj["connectionType"] = this.connectionType
+
+        return jsonObj
     }
 }

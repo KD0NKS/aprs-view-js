@@ -33,4 +33,23 @@ export class TNCConnection extends AbstractConnection {
             this.messageDelimeter = settings["messageDelimeter"] = "\r"
         }
     }
+
+    public toJSON() {
+        const jsonObj = super.toJSON()
+
+        jsonObj["autoOpen"] = this.autoOpen
+        jsonObj["comPort"] = this.comPort
+        jsonObj["exitCommands"] = this.exitCommands
+        jsonObj["initCommands"] = this.initCommands
+        jsonObj["myCallCommand"] = this.myCallCommand
+        jsonObj["baudRate"] = this.baudRate
+        jsonObj["charset"] = this.charset
+        jsonObj["dataBits"] = this.dataBits
+        jsonObj["parity"] = this.parity
+        jsonObj["rtscts"] = this.rtscts
+        jsonObj["stopBits"] = this.stopBits
+        jsonObj["messageDelimeter"] = this.messageDelimeter
+
+        return jsonObj
+    }
 }

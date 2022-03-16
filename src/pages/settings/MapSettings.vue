@@ -4,7 +4,7 @@
 
         <q-card class="q-pa-md">
             <q-form class="q-gutter-md"
-                    greedy="false"
+                    :greedy="false"
                     @reset="onReset"
                     @submit="onSubmit">
                 <div class="q-gutter-md row items-start">
