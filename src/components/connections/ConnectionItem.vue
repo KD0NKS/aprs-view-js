@@ -2,8 +2,8 @@
     <q-expansion-item expand-separator>
         <template v-slot:header>
             <q-item-section avatar>
-                <!--<q-icon color="green" name="link" />-->
-                <q-icon color="red" name="link_off" />
+                <q-icon color="green" name="link" v-if="connection.isConnected == true" />
+                <q-icon color="red" name="link_off" v-if="connection.isConnected == false" />
             </q-item-section>
 
             <q-item-section>
@@ -11,7 +11,7 @@
             </q-item-section>
 
             <q-item-section side>
-                <q-toggle v-model="connection.isConnected" />
+                <q-toggle v-model="model.isEnabled" @click="setConnectionStatus" />
             </q-item-section>
         </template>
 
@@ -157,6 +157,9 @@
 
                     this.model = conn
                 }
+            }
+            , setConnectionStatus() {
+                this.store.dispatch(ActionTypes.SET_CONNECTION_STATUS, { connectionId: this.model.id, isEnabled: this.model.isEnabled })
             }
             , deleteConnection() {
                 this.store.dispatch(ActionTypes.DELETE_CONNECTION, this.model.id)

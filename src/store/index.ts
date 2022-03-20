@@ -119,6 +119,14 @@ export default store(function (/* { ssrContext } */) {
                 }
                 // TODO: Error notification to tell user saving failed
             }
+            , [MutationTypes.SET_CONNECTION_STATUS](state: IState,  { connectionId, isEnabled }) {
+                let connection = _.find(state.connections, c => c.id == connectionId)
+
+                if(connection != null) {
+                    connection.isEnabled = isEnabled
+                    global.connectionService.setConnectionStatus(connectionId, isEnabled)
+                }
+            }
             , [MutationTypes.SET_SOFTWARE_SETTINGS](state: IState, settings: ISoftwareSettings) {
                 _mapper.CopyInto<ISoftwareSettings, SoftwareSettings>(settings, state.softwareSettings)
 
@@ -152,6 +160,9 @@ export default store(function (/* { ssrContext } */) {
             }
             , [ActionTypes.SAVE_CONNECTION]({ commit }, settings: IConnection) {
                 commit(MutationTypes.SAVE_CONNECTION, settings)
+            }
+            , [ActionTypes.SET_CONNECTION_STATUS]({ commit }, { connectionId, isEnabled}) {
+                commit(MutationTypes.SET_CONNECTION_STATUS, { connectionId: connectionId, isEnabled: isEnabled })
             }
             , [ActionTypes.SET_MAP_SETTINGS]({ commit }, settings: IMapSettings) {
                 commit(MutationTypes.SET_MAP_SETTINGS, settings)

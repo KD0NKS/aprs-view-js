@@ -4699,12 +4699,13 @@ js-aprs-fap@^1.1.5:
   resolved "https://registry.npmjs.org/js-aprs-fap/-/js-aprs-fap-1.1.5.tgz"
   integrity sha512-pP+Gh0JuiG/mv35KpCUAmTHnSdv6PvZLn4GpT8s3KMF204gRkTg+FUDzeez+MgqWE84pBywCATgnqiQu1RCEyQ==
 
-js-aprs-is@1.1.0-alpha.1:
-  version "1.1.0-alpha.1"
-  resolved "https://registry.npmjs.org/js-aprs-is/-/js-aprs-is-1.1.0-alpha.1.tgz"
-  integrity sha512-lvPFEYCr03PpsvvIbnlHABcvchh41akmC08wItBMuOoIn/THWWiDh+YaH79EaSXDTwc/j3mc+49oBbPiTsfU4g==
+js-aprs-is@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/js-aprs-is/-/js-aprs-is-1.1.0.tgz#ba44a0058b40c8220703e312e7fd79426b0d4cfd"
+  integrity sha512-Bh7P7KZ492+pBahWSAeahYsexEq7FtbfrJS0ijxHaXWnZAqZXmKyaBmadfvCHCdGHKBdD1T6HG9OyRFGhAC93w==
   dependencies:
     "@types/node" "^17.0.21"
+    uuid "^8.3.2"
 
 js-aprs-tnc@^0.0.2:
   version "0.0.2"
@@ -6708,9 +6709,9 @@ serialize-javascript@^6.0.0:
   dependencies:
     randombytes "^2.1.0"
 
-serialport@^10.3.0:
+serialport@^10.4.0:
   version "10.4.0"
-  resolved "https://registry.npmjs.org/serialport/-/serialport-10.4.0.tgz"
+  resolved "https://registry.yarnpkg.com/serialport/-/serialport-10.4.0.tgz#93c95ecccc0e314d5bbee3f06cde2c70be70e671"
   integrity sha512-PszPM5SnFMgSXom60PkKS2A9nMlNbHkuoyRBlzdSWw9rmgOn258+V0dYbWMrETJMM+TJV32vqBzjg5MmmUMwMw==
   dependencies:
     "@serialport/binding-mock" "10.2.2"

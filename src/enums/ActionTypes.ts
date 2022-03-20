@@ -7,6 +7,7 @@ export enum ActionTypes {
     , DELETE_CONNECTION = 'deleteConnection'
     , REMOVE_PACKETS = 'removePackets'
     , SAVE_CONNECTION = 'saveConnection'
+    , SET_CONNECTION_STATUS = 'setConnectionStatus'
     , SET_MAP_SETTINGS = 'setMapSettings'
     , SET_SOFTWARE_SETTINGS = 'setSoftwareSettings'
     , SET_STATION_SETTINGS = 'setStationSettings'

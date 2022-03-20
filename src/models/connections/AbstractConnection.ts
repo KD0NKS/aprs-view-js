@@ -8,8 +8,8 @@ export abstract class AbstractConnection {
     public name: string = "Default"
     public connectionType: string = 'IS_SOCKET'
 
-    public isConnected = false
-    public isEnabled = false
+    public isConnected: boolean = false
+    public isEnabled: boolean = false
 
     constructor(settings?: IConnection) {
         if(settings) {

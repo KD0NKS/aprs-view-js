@@ -7,6 +7,7 @@ export enum MutationTypes {
     , REMOVE_PACKETS = 'removePackets'
     , RESET_PACKET_TIMER = 'resetPacketTimer'
     , SAVE_CONNECTION = 'saveConnection'
+    , SET_CONNECTION_STATUS = 'setConnectionStatus'
     , SET_MAP_SETTINGS = 'setMapSettings'
     , SET_SOFTWARE_SETTINGS = 'setSoftwareSettings'
     , SET_STATION_SETTINGS = 'setStationSettings'
