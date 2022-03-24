@@ -994,10 +994,10 @@
   resolved "https://registry.npmjs.org/@mapbox/unitbezier/-/unitbezier-0.0.0.tgz"
   integrity sha1-FWUb1VOme4WB+zmIEMmK2Go0Uk4=
 
-"@mdi/font@^5.9.55":
-  version "5.9.55"
-  resolved "https://registry.npmjs.org/@mdi/font/-/font-5.9.55.tgz"
-  integrity sha512-jswRF6q3eq8NWpWiqct6q+6Fg/I7nUhrxYJfiEM8JJpap0wVJLQdbKtyS65GdlK7S7Ytnx3TTi/bmw+tBhkGmg==
+"@mdi/font@^6.6.95":
+  version "6.6.95"
+  resolved "https://registry.yarnpkg.com/@mdi/font/-/font-6.6.95.tgz#668e023f19aa3cab1549088c767df055387c6b8a"
+  integrity sha512-WAQfnO/eqZEwXd+wD4mFV/Vna9RrVEyOdYKFa2H+sqf+PJ/a/803pPacEioOAuzGfXUVScm8cdZi8KqyeCCs1Q==
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
