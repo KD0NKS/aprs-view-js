@@ -27,6 +27,7 @@ export class ConnectionService extends EventEmitter {
         this._connections = new Array<ISSocket | TerminalSocket>()
     }
 
+    // NOTE: This expects the front end is always creating an IS Socket.  To change it to any other type, you have to update the connection.
     public addConnection(setting: IConnection): void {
         if(setting.connectionType == 'IS_SOCKET') {
             const connection = new ISSocket(setting["host"], setting["port"], this._callsign, this._passcode, setting["filter"], this.appId, setting["id"] ?? uid())
@@ -49,15 +50,14 @@ export class ConnectionService extends EventEmitter {
                 }
             })
 
-            connection?.on(DataEventTypes.DATA, (data: string) => {
+            connection.on(DataEventTypes.DATA, (data: string) => {
                 this.emit(DataEventTypes.DATA, data)
+                //console.log(data.toString())
             })
 
             if(setting.isEnabled === true) {
                 (connection as ISSocket).connect()
             }
-        } else if(setting.connectionType == 'TERMINAL_SOCKET') {
-            //this._connections.push(new TerminalSocket())
         }
 
         // TODO: Else throw error
@@ -110,16 +110,23 @@ export class ConnectionService extends EventEmitter {
         }
 
         if(isUpdated == true) {
+            let fullCall = this._callsign
+
+            if(!StringUtil.IsNullOrWhiteSpace(this._ssid)) {
+                fullCall = `${this._callsign}-${this._ssid}`
+            }
+
             _.each(this._connections, conn => {
                 if(conn instanceof ISSocket) {
-                    conn.callsign = this._callsign
-
-                    if(!StringUtil.IsNullOrWhiteSpace(this._ssid)) {
-                        conn.callsign = `${this._callsign}-${this._ssid}`
-                    }
-
+                    conn.callsign = fullCall
                     conn.passcode = this._passcode
+
+                    conn.sendLine(conn.userLogin)
                 }
+                //else if(conn instanceof TerminalSocket) {
+                //    // TODO: Need to be able to access and update terminal settings options and resend mycall command
+                //    console.log('test')
+                //}
 
                 // TODO: Handle non supported connection types
             })

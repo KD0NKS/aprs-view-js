@@ -1,5 +1,16 @@
 <template>
-    <div id="map"></div>
+    <div id="map">
+        <q-dialog v-model="isShowStationInfo">
+            <station-feature-card
+                :packet="stationInfoPacket"
+                :symbol="stationIcon"
+                :overlay="stationIconOverlay"
+                />
+        </q-dialog>
+        <map-context-menu>
+
+        </map-context-menu>
+    </div>
 </template>
 
 <script lang="ts">
@@ -26,14 +37,16 @@
     import VectorLayer from 'ol/layer/Vector'
     import { GetterTypes } from '@/enums'
     import LineString from 'ol/geom/LineString'
+    import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
+    import MapContextMenu from '@/components/maps/MapContextMenu.vue'
 
     const map = null
     let packetListener = null
 
     export default defineComponent({
+    components: { StationFeatureCard, MapContextMenu },
         name: 'Map'
         , setup() {
-
             const store = useStore()
 
             const packetUtil: PacketUtil = new PacketUtil()
@@ -44,16 +57,35 @@
             const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
             const symbolService: APRSSymbolService = new APRSSymbolService()
             const trailVector: VectorSource<Geometry> = new VectorSource({})
+
             //const map: OLMap = ref(null)
 
+            const stationInfoPacket = ref(null)
+            const stationIconOverlay = ref(new APRSSymbol({
+                    key: "logo"
+                    , value: require('@/assets/radio-tower.png')
+                    , name: "Radio Tower"
+                    }))
+
+            const stationIcon = ref(new APRSSymbol({
+                    key: "logo"
+                    , value: require('@/assets/radio-tower.png')
+                    , name: "Radio Tower"
+                    }))
+
             return {
-                packetUtil
+                store
+                , isShowStationInfo: ref(false)
+                , packetUtil
                 , genericPointVector
                 , mapService
                 , mapSettings
                 , stationPositionVector
                 , symbolService
                 , trailVector
+                , stationIcon
+                , stationIconOverlay
+                , stationInfoPacket
             }
         }
         , beforeUnmount() {
@@ -79,22 +111,25 @@
                     })
                 })
                 , new VectorLayer({
-                    source: this.trailVector
+                    declutter: true
                     , minZoom: 8
+                    , source: this.trailVector
                 })
                 , new VectorLayer({
-                    source: this.genericPointVector
+                    declutter: true
                     , minZoom: 8
+                    , source: this.genericPointVector
                 })
                 , new VectorLayer({
-                    source: this.stationPositionVector
+                    declutter: false
                     , minZoom: 8
+                    , source: this.stationPositionVector
                 })
                 , new HeatmapLayer({
-                    source: this.stationPositionVector
+                    gradient: [ '#600', '#900', '#C00', '#F00'   ]
                     , maxZoom: 8
+                    , source: this.stationPositionVector
                     , weight: '1'
-                    , gradient: [ '#600', '#900', '#C00', '#F00'   ]
                 })
             ]
 
@@ -107,42 +142,22 @@
                 })
             })
 
-            await this.addPacket({
-                "id": "97147565-e4ba-4767-823d-3dc7cc964b3e",
-                "alive": true,
-                "body": ";146.61-Ja*111111z3558.31N/09310.57WrWB5CYX 146.61- No PL",
-                "comment": "WB5CYX 146.61- No PL",
-                "destCallsign": "APRX29",
-                "digipeaters": [
-                    {
-                        "callsign": "TCPIP",
-                        "wasDigipeated": true
-                    },
-                    {
-                        "callsign": "qAC",
-                        "wasDigipeated": false
-                    },
-                    {
-                        "callsign": "T2STRAS",
-                        "wasDigipeated": false
-                    }
-                ],
-                "format": "uncompressed",
-                "header": "WB5CYX-1>APRX29,TCPIP*,qAC,T2STRAS",
-                "latitude": 35.971833333333336,
-                "longitude": -93.17616666666666,
-                "objectname": "146.61-Ja",
-                "origpacket": "WB5CYX-1>APRX29,TCPIP*,qAC,T2STRAS:;146.61-Ja*111111z3558.31N/09310.57WrWB5CYX 146.61- No PL",
-                "posambiguity": 0,
-                "posresolution": 18.52,
-                "receivedTime": 1647697592627,
-                "sourceCallsign": "WB5CYX-1",
-                "symbolcode": "r",
-                "symboltable": "/",
-                "timestamp": 1646997060,
-                "type": "object"
-            }, true)
+            // display popup on click
+            map.on('singleclick', async (evt) => {
+                // TODO: This seems to be getting the one on the bottom of the pile
+                var feature = _.filter(map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")[0]
 
+                // Prevent trying to fetch data if a trail is clicked
+                if(feature && feature.getGeometry().getType() != "LineString") {
+                    let pkt = this.store.getters[GetterTypes.GET_PACKET](feature.getId())
+                    const icon = this.symbolService.GetAPRSSymbol(pkt.symbolcode, pkt.symboltable)
+                    this.stationIcon = ref(icon['symbol'])
+                    this.stationIconOverlay = ref(icon['overlay'])
+
+                    this.stationInfoPacket = pkt
+                    this.isShowStationInfo = true
+                }
+            })
             packetListener = global.connectionService.getPacketStream((packet) => {
                 this.addPacket(packet, true)
             })
@@ -333,6 +348,25 @@
 
                             this.trailVector.addFeature(f)
                         }
+                    }
+                }
+
+                return
+            }
+            , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]): Promise<void> {
+                if(ids != null && ids.length > 0) {
+                    const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
+
+                    if(toRemove != null && toRemove.length > 0) {
+                        _.map(toRemove, f => {
+                            if(f != undefined) {
+                                vector.removeFeature(f)
+
+                                this.generateTrail(f.get('label'))
+                            }
+                        })
+
+                        return
                     }
                 }
 

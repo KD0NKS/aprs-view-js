@@ -21,7 +21,6 @@ import { DataEventTypes } from './enums/DataEventTypes'
 import { IConnection } from '../src/models/connections/IConnection'
 import { IStationSettings } from '../src/models/settings/IStationSettings'
 import { ConnectionService } from './services/connections/ConnectionService'
-import { connect } from 'http2'
 
 const connectionService = new ConnectionService()
 

@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import { LocalStorage } from 'quasar'
 
-
 import { createStore, Store as VuexStore, useStore as vuexUseStore } from 'vuex'
 import { store } from 'quasar/wrappers'
 import { InjectionKey } from 'vue'
@@ -73,6 +72,9 @@ export default store(function (/* { ssrContext } */) {
                 }
 
                 global.connectionService.addConnection(settings)
+            }
+            , [MutationTypes.ADD_PACKET](state, packet: aprsPacket) {
+                state.aprsPackets.push(packet)
             }
             , [MutationTypes.CLEAR_OLD_PACKETS](state) {
                 const toRemove = _.filter(state.aprsPackets, packet => (new Date().getTime() - packet.receivedTime) >= (state.mapSettings.pointLifetime * 60000)).map(p => p.id)
@@ -149,6 +151,9 @@ export default store(function (/* { ssrContext } */) {
             [ActionTypes.ADD_CONNECTION]({ commit}, connection: IConnection) {
                 commit(MutationTypes.ADD_CONNECTION, connection)
             }
+            , [ActionTypes.ADD_PACKET]({ commit }, packet: aprsPacket) {
+                commit(MutationTypes.ADD_PACKET, packet)
+            }
             , [ActionTypes.CLEAR_OLD_PACKETS]({ commit }) {
                 commit(MutationTypes.CLEAR_OLD_PACKETS)
             }
@@ -180,7 +185,6 @@ export default store(function (/* { ssrContext } */) {
             }
             , [GetterTypes.GET_PACKET]: state => id => {
                 return _.find(state.aprsPackets, p => p.id == id)
-                //return state.aprsPackets.find((packet) => packet.id == id)
             }
             , [GetterTypes.GET_PACKETS_BY_NAME]: state => name => {
                 return _.filter(state.aprsPackets, p => (p.itemname == name || p.objectname == name || p.sourceCallsign == name))
@@ -199,6 +203,10 @@ export default store(function (/* { ssrContext } */) {
         // enable strict mode (adds overhead!)
         // for dev mode and --debug builds onl
         , strict: !!process.env.DEBUGGING,
+    })
+
+    let packetListener = global.connectionService.getPacketStream((packet) => {
+        Store.dispatch(ActionTypes.ADD_PACKET, packet)
     })
 
     return Store

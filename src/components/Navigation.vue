@@ -12,11 +12,13 @@
             <q-list>
                 <q-item clickable>
                     <q-item-section avatar>
-                        <q-img height="33px" width="33px" contain :src="stationSymbol.value" />
+                        <q-img height="33px" width="33px" contain :src="aprsSymbol['symbol'].value">
+                            <q-img contain v-if="aprsSymbol['overlay']" :src="aprsSymbol['overlay'].value" :img-style="{ background: none }" height="33px" width="33px" />
+                        </q-img>
                     </q-item-section>
 
                     <q-item-section>
-                        {{ callsign }}
+                        <span style="font-size: 16px">{{ callsign }}</span>
                     </q-item-section>
                 </q-item>
 
@@ -102,16 +104,18 @@
 
                 return this.$store.state?.stationSettings?.callsign
             }
-            , stationSymbol(): APRSSymbol { // TODO: move this to store
+            , aprsSymbol() {
                 if(StringUtil.IsNullOrWhiteSpace(this.$store.state?.stationSettings?.symbol)) {
-                    return new APRSSymbol({
-                        key: "logo"
-                        , value: require("@/assets/radio-tower.png")
-                        , name: "Radio Tower"
-                    })
+                    return {
+                        symbol: new APRSSymbol({
+                            key: "logo"
+                            , value: require("@/assets/radio-tower.png")
+                            , name: "Radio Tower"
+                        })
+                    }
                 }
 
-                return this.symbolSvc.GetSymbolByKey(this.$store.state.stationSettings.symbol)
+                return this.symbolSvc.GetAPRSSymbol(this.$store.state.stationSettings.symbol, this.$store.state.stationSettings.symbolOverlay)
             }
         }
     })
