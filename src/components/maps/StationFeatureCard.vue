@@ -2,8 +2,8 @@
     <q-card>
         <q-toolbar>
             <q-avatar square>
-                <q-img contain v-if="symbol" :src="symbol.value" height="33px" width="33px">
-                    <q-img contain v-if="overlay" :src="overlay.value" :img-style="{ background: none }" height="33px" width="33px" />
+                <q-img contain v-if="symbol" :src="symbol.value" class="avatar-img" height="33px" width="33px">
+                    <q-img contain v-if="overlay" :src="overlay.value" class="avatar-img" height="33px" width="33px" />
                 </q-img>
             </q-avatar>
 
@@ -17,35 +17,38 @@
 
             <q-btn flat round dense icon="close" v-close-popup />
         </q-toolbar>
+
+        <q-separator inset />
+
         <q-card-section style="max-height: 50vh">
             <div v-if="packet">
-                <p>
+                <p class="text-caption">
                     {{ packet.origpacket }}
                 </p>
                 <p>
-                    <label>Received Time:</label> {{ new Date(packet.receivedTime).toLocaleString() }}
+                    <label style="font-weight: bold">Received Time:</label> {{ new Date(packet.receivedTime).toLocaleString() }}
                 </p>
                 <p v-if="packet.speed">
-                    <label>Speed:</label> {{ speed }}
+                    <label style="font-weight: bold">Speed:</label> {{ speed }}
                 </p>
                 <p v-if="packet.course">
-                    <label>Course:</label> {{ packet.course }}&#730;
+                    <label style="font-weight: bold">Course:</label> {{ packet.course }}&#730;
                 </p>
                 <p v-if="packet.altitude">
-                    <label>Altitude:</label> {{ altitude }}
+                    <label style="font-weight: bold">Altitude:</label> {{ altitude }}
                 </p>
                 <div v-if="packet.wx">
                     <p v-if="packet.wx.temp">
-                        <label>Temperature:</label> {{ temperature }}
+                        <label style="font-weight: bold">Temperature:</label> {{ temperature }}
                     </p>
                     <p v-if="packet.wx.humidity">
-                        <label>Humidity:</label> {{ packet.wx.humidity }}%
+                        <label style="font-weight: bold">Humidity:</label> {{ packet.wx.humidity }}%
                     </p>
                     <p v-if="packet.wx.wind_speed">
-                        <label>Wind Speed:</label> {{ windSpeed }}
+                        <label style="font-weight: bold">Wind Speed:</label> {{ windSpeed }}
                     </p>
                     <p v-if="packet.wx.wind_gust">
-                        <label>Wind Gust:</label> {{ windGust }}
+                        <label style="font-weight: bold">Wind Gust:</label> {{ windGust }}
                     </p>
                 </div>
             </div>
@@ -58,6 +61,8 @@
 
 <script lang="ts">
     import { defineComponent, ref } from "vue"
+    import { ConversionUtil } from "@/utils"
+
     import { APRSSymbol } from "@/models"
     import { aprsPacket } from "js-aprs-fap"
 
@@ -69,7 +74,7 @@
                 , required: false
             }
             , packet: {
-                type: aprsPacket
+                type: Object
                 , required: true
             }
             , symbol: {
@@ -77,5 +82,30 @@
                 , required: true
             }
         }
+        , computed: {
+            altitude() {
+                return ConversionUtil.metersFeetWithLabel(this.packet.altitude, this.$store.state.softwareSettings.distanceUnitType)
+            }
+            , speed() {
+                return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.$store.state.softwareSettings.distanceUnitType)
+            }
+            , stationName() {
+                return this.packet.itemname ?? this.packet.objectname ?? this.packet.sourceCallsign
+            }
+            , temperature() {
+                return ConversionUtil.getTemperatureWithLabel(parseFloat(this.packet.wx?.temp), this.$store.state.softwareSettings.temperatureUnitType)
+            }
+            , windGust() {
+                return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_gust), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
+            }
+            , windSpeed() {
+                return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_speed), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
+            }
+        }
     })
 </script>
+
+<style scoped lang="sass">
+.avatar-img
+    background: transparent
+</style>

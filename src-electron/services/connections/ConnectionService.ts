@@ -51,8 +51,7 @@ export class ConnectionService extends EventEmitter {
             })
 
             connection.on(DataEventTypes.DATA, (data: string) => {
-                this.emit(DataEventTypes.DATA, data)
-                //console.log(data.toString())
+                this.emit(DataEventTypes.DATA, data.toString())
             })
 
             if(setting.isEnabled === true) {

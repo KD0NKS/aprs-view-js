@@ -5,11 +5,11 @@
                 :packet="stationInfoPacket"
                 :symbol="stationIcon"
                 :overlay="stationIconOverlay"
+                style="max-width: 50%"
                 />
         </q-dialog>
-        <map-context-menu>
 
-        </map-context-menu>
+        <map-context-menu></map-context-menu>
     </div>
 </template>
 
@@ -41,7 +41,6 @@
     import MapContextMenu from '@/components/maps/MapContextMenu.vue'
 
     const map = null
-    let packetListener = null
 
     export default defineComponent({
     components: { StationFeatureCard, MapContextMenu },
@@ -57,6 +56,10 @@
             const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
             const symbolService: APRSSymbolService = new APRSSymbolService()
             const trailVector: VectorSource<Geometry> = new VectorSource({})
+
+            const packets = store.getters[GetterTypes.GET_PACKETS]
+            const packetAddedListener = ref(null)
+            const packetRemovedListener = ref(null)
 
             //const map: OLMap = ref(null)
 
@@ -80,6 +83,9 @@
                 , genericPointVector
                 , mapService
                 , mapSettings
+                , packets
+                , packetAddedListener
+                , packetRemovedListener
                 , stationPositionVector
                 , symbolService
                 , trailVector
@@ -89,7 +95,8 @@
             }
         }
         , beforeUnmount() {
-            packetListener()
+            this.packets.removeListener('add', this.packetAddedListener)
+            this.packets.removeListener('remove', this.packetRemovedListener)
         }
         , async mounted() {
             const layers: BaseLayer[] = [
@@ -154,13 +161,51 @@
                     this.stationIcon = ref(icon['symbol'])
                     this.stationIconOverlay = ref(icon['overlay'])
 
-                    this.stationInfoPacket = pkt
+                    this.stationInfoPacket = pkt as aprsPacket
                     this.isShowStationInfo = true
                 }
+
+                return
             })
-            packetListener = global.connectionService.getPacketStream((packet) => {
-                this.addPacket(packet, true)
+
+            this.loadMapData()
+
+            this.packetAddedListener = this.packets.on('add', (packet) => {
+                if(packet.alive == null || packet.alive == true) {
+                    this.addPacket(packet, this.mapSettings.isShowTrails)
+                } else {
+                    // Remove "killed" objects/items
+                    _.map(
+                        _.compact(
+                            _.filter(
+                                this.stationPositionVector.getFeatures()
+                                , f =>
+                                    f.get('label') == packet.itemname || f.get('label') == packet.objectname
+                                )
+                        )
+                        , f => {
+                            try {
+                                if(f != undefined)
+                                    this.stationPositionVector.removeFeature(f)
+
+                                // TODO: remove the entire trail... assume it won't be used again
+                                const trail = this.trailVector.getFeatureById(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                                if(trail && trail != undefined)
+                                    this.trailVector.removeFeature(trail)
+                            } catch(e) {
+                                console.log(`Failed to add packet: ${e}`)
+                            }
+                        }
+                    )
+                }
             })
+
+            this.packetRemovedListener = this.packets.on('remove', (packet) => {
+                this.removePoints(this.genericPointVector, [ packet.id ])
+                this.removePoints(this.stationPositionVector, [ packet.id ])
+            })
+
+            return
         }
         , methods: {
             async addPacket(packet: aprsPacket, isGenerateTrail: boolean) {
@@ -352,6 +397,66 @@
                 }
 
                 return
+            }
+            , getAllLocationPackets(): aprsPacket[] {
+                return _.compact(
+                    _.sortBy(
+                        _.filter(this.store.getters[GetterTypes.GET_PACKETS], (p) => {
+                            return this.packetUtil.isValidPacket(p)
+                                && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
+                        })
+                        , p => (p as aprsPacket).receivedTime
+                    )
+                )
+            }
+            , async loadMapData() {
+                return Promise.all(_.map(this.getAllLocationPackets(), async (p) => {
+                    this.addPacket(p, false)
+                    return p
+                })).then(() => {
+                    // Because adding all the packets runs async, let's clean up the map a little... this is a dirty hack until a better solution is found
+                    // TODO: clean this up, it should be a group by callsign grabbing all but the most recent feature
+                    _.map(
+                        _.compact(
+                            _.uniq(
+                                _.reduce(this.stationPositionVector.getFeatures(), (result, value) => {
+                                    result.push(value.get('label'))
+                                    return result
+                                }, [])
+                            )
+                        )
+                        , (label) => {
+                            const existingFeatures =_.filter(this.stationPositionVector.getFeatures(), (f) => f.get('label') == label)
+
+                            var mostRecentTime = _.max(_.reduce(existingFeatures, (result, value) => {
+                                result.push(value.get('receivedTime'))
+                                return result
+                            }, []))
+
+                            _.map(existingFeatures, f => {
+                                if(f.get('receivedTime') != mostRecentTime)
+                                    this.stationPositionVector.removeFeature(f)
+                            })
+                        }
+                    )
+
+                    // Get unique non null or empty callsigns, then generate a trail based on callsign
+                    _.map(
+                        _.compact(
+                            _.uniq(
+                                _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
+                                    result.push(value.get('label'))
+                                    return result
+                                }, [])
+                            )
+                        )
+                        , c => {
+                            // Let's finally generate the trail!
+                            this.generateTrail(c)
+                            return
+                        }
+                    )
+                })
             }
             , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]): Promise<void> {
                 if(ids != null && ids.length > 0) {

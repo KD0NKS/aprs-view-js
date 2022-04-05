@@ -12,6 +12,8 @@ import { aprsPacket } from 'js-aprs-fap'
 
 import { IMapSettings, ISoftwareSettings, IStationSettings, MapSettings, SoftwareSettings, StationSettings } from '@/models/settings'
 import { IConnection } from '@/models/connections'
+import { PacketUtil } from '@/utils'
+import { EventedArray } from '@/models/arrays/EventedArray'
 
 //import { ConnectionService } from '@/services'
 
@@ -32,7 +34,7 @@ export interface IState {
     // example: ExampleStateInterface;
     // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
     aprsData: string[]
-    , aprsPackets: Array<aprsPacket>
+    //, aprsPackets: Array<aprsPacket>
     , connections: Array<IConnection>
     , packetTimer: any
     , mapSettings: IMapSettings
@@ -49,12 +51,17 @@ declare module '@vue/runtime-core' {
 
 // provide typings for `useStore` helper
 export const storeKey: InjectionKey<VuexStore<IState>> = Symbol('vuex-key')
+const packetUtil: PacketUtil = new PacketUtil()
+const maxDataLength = 200
+
+/* NOTE!  For performance reasons, DO NOT use a state level array for this! */
+const aprsPackets = new EventedArray<aprsPacket>()
 
 export default store(function (/* { ssrContext } */) {
     const Store = createStore<IState>({
         state: {
             aprsData: []
-            , aprsPackets: new Array<aprsPacket>()
+            //, aprsPackets: new Array<aprsPacket>()
             , connections: new Array<IConnection>()
             , mapSettings: new MapSettings()
             , packetTimer: undefined
@@ -73,14 +80,28 @@ export default store(function (/* { ssrContext } */) {
 
                 global.connectionService.addConnection(settings)
             }
-            , [MutationTypes.ADD_PACKET](state, packet: aprsPacket) {
-                state.aprsPackets.push(packet)
+            , async [MutationTypes.ADD_DATA](state, data: string) {
+                state.aprsData.push(data)
+
+                // TODO: This should probably be a setting to cache x amount of data.
+                if(state.aprsData.length > maxDataLength) {
+                    state.aprsData.slice(100)
+                }
+
+                return
             }
-            , [MutationTypes.CLEAR_OLD_PACKETS](state) {
-                const toRemove = _.filter(state.aprsPackets, packet => (new Date().getTime() - packet.receivedTime) >= (state.mapSettings.pointLifetime * 60000)).map(p => p.id)
-                this.dispatch(
-                    ActionTypes.REMOVE_PACKETS
-                    , toRemove)
+            , async [MutationTypes.ADD_PACKET](state, packet: aprsPacket) {
+                aprsPackets.push(packet)
+                return
+            }
+            , async [MutationTypes.CLEAR_OLD_PACKETS](state) {
+                // DO NOT! use lodash here.  Its internal bowels use Array.prototype.splice rather than the given array's overridden version.
+                aprsPackets.remove(packet => (
+                    (new Date().getTime() - packet.receivedTime) >= (state.mapSettings.pointLifetime * 60000)
+                    && (packet.latitude != null || packet.longitude != null)
+                ))
+
+                return
             }
             , [MutationTypes.DELETE_CONNECTION](state, connectionId: string) {
                 const index = _.findIndex(state.connections, c => c.id == connectionId)
@@ -89,10 +110,6 @@ export default store(function (/* { ssrContext } */) {
                     state.connections.splice(index, 1)
                     LocalStorage.remove(`connections.${connectionId}`)
                 }
-            }
-            , [MutationTypes.REMOVE_PACKETS](state: IState, ids: string[]) {
-                _.remove(state.aprsPackets, function (p) { return _.includes(ids, p.id) })
-                //bus.$emit(BusEventTypes.PACKETS_REMOVED, ids)
             }
             , [MutationTypes.SET_MAP_SETTINGS](state: IState, settings: IMapSettings) {
                 if(!this.packetTimer) {
@@ -151,17 +168,20 @@ export default store(function (/* { ssrContext } */) {
             [ActionTypes.ADD_CONNECTION]({ commit}, connection: IConnection) {
                 commit(MutationTypes.ADD_CONNECTION, connection)
             }
-            , [ActionTypes.ADD_PACKET]({ commit }, packet: aprsPacket) {
-                commit(MutationTypes.ADD_PACKET, packet)
+            , async [ActionTypes.ADD_DATA]({ commit }, packet: string) {
+                commit(MutationTypes.ADD_DATA, packet)
+                return
             }
-            , [ActionTypes.CLEAR_OLD_PACKETS]({ commit }) {
+            , async [ActionTypes.ADD_PACKET]({ commit }, packet: aprsPacket) {
+                commit(MutationTypes.ADD_PACKET, packet)
+                return
+            }
+            , async [ActionTypes.CLEAR_OLD_PACKETS]({ commit }) {
                 commit(MutationTypes.CLEAR_OLD_PACKETS)
+                return
             }
             , [ActionTypes.DELETE_CONNECTION]({ commit }, connectionId: string) {
                 commit(MutationTypes.DELETE_CONNECTION, connectionId)
-            }
-            , [ActionTypes.REMOVE_PACKETS]({ commit }, ids: string[]) {
-                commit(MutationTypes.REMOVE_PACKETS, ids)
             }
             , [ActionTypes.SAVE_CONNECTION]({ commit }, settings: IConnection) {
                 commit(MutationTypes.SAVE_CONNECTION, settings)
@@ -183,21 +203,12 @@ export default store(function (/* { ssrContext } */) {
             [GetterTypes.APP_ID]() {
                 return appId
             }
-            , [GetterTypes.GET_PACKET]: state => id => {
-                return _.find(state.aprsPackets, p => p.id == id)
-            }
-            , [GetterTypes.GET_PACKETS_BY_NAME]: state => name => {
-                return _.filter(state.aprsPackets, p => (p.itemname == name || p.objectname == name || p.sourceCallsign == name))
-            }
-            , [GetterTypes.MAP_SETTINGS](state) {
-                return state.mapSettings
-            }
-            , [GetterTypes.SOFTWARE_SETTINGS](state) {
-                return state.softwareSettings
-            }
-            , [GetterTypes.STATION_SETTINGS](state) {
-                return state.stationSettings
-            }
+            , [GetterTypes.GET_PACKET]: state => id => _.find(aprsPackets, p => p.id == id)
+            , [GetterTypes.GET_PACKETS]: state => aprsPackets
+            , [GetterTypes.GET_PACKETS_BY_NAME]: state => name => _.filter(aprsPackets, p => (p.itemname == name || p.objectname == name || p.sourceCallsign == name))
+            , [GetterTypes.MAP_SETTINGS]: state => state.mapSettings
+            , [GetterTypes.SOFTWARE_SETTINGS]: state => state.softwareSettings
+            , [GetterTypes.STATION_SETTINGS]: state => state.stationSettings
         }
 
         // enable strict mode (adds overhead!)
@@ -205,9 +216,18 @@ export default store(function (/* { ssrContext } */) {
         , strict: !!process.env.DEBUGGING,
     })
 
+    let dataListener = global.connectionService.getDataStream((data) => {
+        Store.dispatch(ActionTypes.ADD_DATA, data.toString())
+    })
+
     let packetListener = global.connectionService.getPacketStream((packet) => {
         Store.dispatch(ActionTypes.ADD_PACKET, packet)
     })
+
+    onbeforeunload = () => {
+        dataListener()
+        packetListener()
+    }
 
     return Store
 })

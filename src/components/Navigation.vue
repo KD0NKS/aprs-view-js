@@ -12,8 +12,8 @@
             <q-list>
                 <q-item clickable>
                     <q-item-section avatar>
-                        <q-img height="33px" width="33px" contain :src="aprsSymbol['symbol'].value">
-                            <q-img contain v-if="aprsSymbol['overlay']" :src="aprsSymbol['overlay'].value" :img-style="{ background: none }" height="33px" width="33px" />
+                        <q-img :src="aprsSymbol['symbol'].value" class="avatar-img" height="33px" width="33px">
+                            <q-img v-if="aprsSymbol['overlay']" :src="aprsSymbol['overlay'].value" class="avatar-img" height="33px" width="33px" />
                         </q-img>
                     </q-item-section>
 
@@ -120,3 +120,8 @@
         }
     })
 </script>
+
+<style scoped lang="sass">
+.avatar-img
+    background: transparent
+</style>
