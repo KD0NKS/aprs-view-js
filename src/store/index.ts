@@ -52,7 +52,7 @@ declare module '@vue/runtime-core' {
 // provide typings for `useStore` helper
 export const storeKey: InjectionKey<VuexStore<IState>> = Symbol('vuex-key')
 const packetUtil: PacketUtil = new PacketUtil()
-const maxDataLength = 200
+const maxDataLength = 100
 
 /* NOTE!  For performance reasons, DO NOT use a state level array for this! */
 const aprsPackets = new EventedArray<aprsPacket>()
@@ -85,7 +85,7 @@ export default store(function (/* { ssrContext } */) {
 
                 // TODO: This should probably be a setting to cache x amount of data.
                 if(state.aprsData.length > maxDataLength) {
-                    state.aprsData.slice(100)
+                    state.aprsData.shift()
                 }
 
                 return

@@ -1,11 +1,18 @@
 <template>
-    <q-page class="q-pa-md">
-        <h1>Output</h1>
+    <q-page class="q-pa-md column" style="height: 100vh">
+        <div class="col col-xs-1">
+            <h1>Output</h1>
+        </div>
 
-        <q-card style="height: 100vh">
-            <q-card-section class="q-pa-none">
-                <q-scroll-area class="console" style="height: 100vh">
-                    <div class="console" v-for="(data, i) in aprsData" :key="i">
+        <q-card class="col fill">
+            <q-card-section class="q-pa-none" style="height: 100%">
+                <q-scroll-area
+                        class="q-pa-md bg-dark text-green rounded-borders"
+                        style="height: 100%"
+                        :bar-style="{ borderRadius: '5px', background: 'lightgray', width: '10px', opacity: 0.8 }"
+                        :thumb-style="{ borderRadius: '5px', background: 'black', width: '10px', opacity: 0.5 }"
+                        >
+                    <div v-for="(data, i) in aprsData" :key="i">
                         {{ data }}
                     </div>
                 </q-scroll-area>
@@ -26,12 +33,3 @@
         }
     })
 </script>
-
-<style scoped lang="sass">
-.console
-    background-color: #000
-    color: #7CFC00
-    font-family: monospace
-    padding: 10px
-    wrap: hard
-</style>

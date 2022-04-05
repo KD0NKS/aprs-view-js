@@ -7,6 +7,8 @@
             bordered
             :width="200"
             :mini-width="70"
+            side="left"
+            behavior="desktop"
             >
         <q-scroll-area class="fit">
             <q-list>
@@ -78,7 +80,6 @@
         , setup() {
             const miniState = ref(false)
             const symbolSvc = new APRSSymbolService()
-            const $store = useStore()
 
             return {
                 drawer: ref(false)

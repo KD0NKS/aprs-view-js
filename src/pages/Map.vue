@@ -118,17 +118,20 @@
                     })
                 })
                 , new VectorLayer({
-                    declutter: true
+                    className: 'trail-layer'
+                    , declutter: true
                     , minZoom: 8
                     , source: this.trailVector
                 })
                 , new VectorLayer({
-                    declutter: true
+                    className: 'generic-point-layer'
+                    , declutter: true
                     , minZoom: 8
                     , source: this.genericPointVector
                 })
                 , new VectorLayer({
-                    declutter: false
+                    className: 'station-position-layer'
+                    , declutter: false
                     , minZoom: 8
                     , source: this.stationPositionVector
                 })
@@ -168,8 +171,6 @@
                 return
             })
 
-            this.loadMapData()
-
             this.packetAddedListener = this.packets.on('add', (packet) => {
                 if(packet.alive == null || packet.alive == true) {
                     this.addPacket(packet, this.mapSettings.isShowTrails)
@@ -203,6 +204,10 @@
             this.packetRemovedListener = this.packets.on('remove', (packet) => {
                 this.removePoints(this.genericPointVector, [ packet.id ])
                 this.removePoints(this.stationPositionVector, [ packet.id ])
+            })
+
+            this.$nextTick(function() {
+                this.loadMapData()
             })
 
             return
@@ -410,53 +415,11 @@
                 )
             }
             , async loadMapData() {
-                return Promise.all(_.map(this.getAllLocationPackets(), async (p) => {
-                    this.addPacket(p, false)
-                    return p
-                })).then(() => {
-                    // Because adding all the packets runs async, let's clean up the map a little... this is a dirty hack until a better solution is found
-                    // TODO: clean this up, it should be a group by callsign grabbing all but the most recent feature
-                    _.map(
-                        _.compact(
-                            _.uniq(
-                                _.reduce(this.stationPositionVector.getFeatures(), (result, value) => {
-                                    result.push(value.get('label'))
-                                    return result
-                                }, [])
-                            )
-                        )
-                        , (label) => {
-                            const existingFeatures =_.filter(this.stationPositionVector.getFeatures(), (f) => f.get('label') == label)
+                for(const p of this.getAllLocationPackets()) {
+                    await this.addPacket(p, true)
+                }
 
-                            var mostRecentTime = _.max(_.reduce(existingFeatures, (result, value) => {
-                                result.push(value.get('receivedTime'))
-                                return result
-                            }, []))
-
-                            _.map(existingFeatures, f => {
-                                if(f.get('receivedTime') != mostRecentTime)
-                                    this.stationPositionVector.removeFeature(f)
-                            })
-                        }
-                    )
-
-                    // Get unique non null or empty callsigns, then generate a trail based on callsign
-                    _.map(
-                        _.compact(
-                            _.uniq(
-                                _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
-                                    result.push(value.get('label'))
-                                    return result
-                                }, [])
-                            )
-                        )
-                        , c => {
-                            // Let's finally generate the trail!
-                            this.generateTrail(c)
-                            return
-                        }
-                    )
-                })
+                return
             }
             , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]): Promise<void> {
                 if(ids != null && ids.length > 0) {
