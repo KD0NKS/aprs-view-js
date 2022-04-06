@@ -5,13 +5,13 @@ import { createStore, Store as VuexStore, useStore as vuexUseStore } from 'vuex'
 import { store } from 'quasar/wrappers'
 import { InjectionKey } from 'vue'
 
-import { ActionTypes, GetterTypes, MutationTypes, StorageKeys } from '@/enums'
+import { ActionTypes, ConnectionEventTypes, GetterTypes, MutationTypes, StorageKeys } from '@/enums'
 import { Mapper } from '@/utils/mappers'
 
 import { aprsPacket } from 'js-aprs-fap'
 
 import { IMapSettings, ISoftwareSettings, IStationSettings, MapSettings, SoftwareSettings, StationSettings } from '@/models/settings'
-import { IConnection } from '@/models/connections'
+import { AbstractConnection, IConnection, ISConnection } from '@/models/connections'
 import { PacketUtil } from '@/utils'
 import { EventedArray } from '@/models/arrays/EventedArray'
 
@@ -109,6 +109,8 @@ export default store(function (/* { ssrContext } */) {
                 if(index > -1) {
                     state.connections.splice(index, 1)
                     LocalStorage.remove(`connections.${connectionId}`)
+
+                    global.connectionService.removeConnection(connectionId)
                 }
             }
             , [MutationTypes.SET_MAP_SETTINGS](state: IState, settings: IMapSettings) {
@@ -163,6 +165,9 @@ export default store(function (/* { ssrContext } */) {
 
                 global.connectionService.updateStationSettings(_.clone(settings))
             }
+            , [MutationTypes.UPDATE_CONNECTION_STATUS](state: IState, args) {
+                (_.find(state.connections, { id: args['id'] }) as AbstractConnection).isConnected = args['status'] == ConnectionEventTypes.CONNECTED
+            }
         }
         , actions: {
             [ActionTypes.ADD_CONNECTION]({ commit}, connection: IConnection) {
@@ -198,6 +203,9 @@ export default store(function (/* { ssrContext } */) {
             , [ActionTypes.SET_STATION_SETTINGS]({ commit }, settings: IStationSettings) {
                 commit(MutationTypes.SET_STATION_SETTINGS, settings)
             }
+            , [ActionTypes.UPDATE_CONNECTION_STATUS]({ commit }, args) {
+                commit(MutationTypes.UPDATE_CONNECTION_STATUS, args)
+            }
         }
         , getters: {
             [GetterTypes.APP_ID]() {
@@ -224,7 +232,12 @@ export default store(function (/* { ssrContext } */) {
         Store.dispatch(ActionTypes.ADD_PACKET, packet)
     })
 
+    let connectionStatusListener = global.connectionService.getConnectionStatusStream((e, connectionId) => {
+        Store.dispatch(ActionTypes.UPDATE_CONNECTION_STATUS, { id: connectionId, status: e })
+    })
+
     onbeforeunload = () => {
+        connectionStatusListener()
         dataListener()
         packetListener()
     }

@@ -10,4 +10,5 @@ export enum ActionTypes {
     , SET_MAP_SETTINGS = 'setMapSettings'
     , SET_SOFTWARE_SETTINGS = 'setSoftwareSettings'
     , SET_STATION_SETTINGS = 'setStationSettings'
+    , UPDATE_CONNECTION_STATUS = 'updateConnectionStatus'
 }

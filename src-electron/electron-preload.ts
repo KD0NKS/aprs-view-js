@@ -21,12 +21,16 @@ import { DataEventTypes } from './enums/DataEventTypes'
 import { IConnection } from '../src/models/connections/IConnection'
 import { IStationSettings } from '../src/models/settings/IStationSettings'
 import { ConnectionService } from './services/connections/ConnectionService'
+import { ConnectionEventTypes } from '../src/enums/ConnectionEventTypes'
 
 const connectionService = new ConnectionService()
 
 contextBridge.exposeInMainWorld('connectionService', {
     addConnection: (settings: IConnection) => {
         connectionService.addConnection(settings)
+    }
+    , deleteConnection: (connectionId: string | number) => {
+        connectionService.deleteConnection(connectionId)
     }
     , setConnectionStatus(connectionId, isEnabled) {
         connectionService.updateConnectionStatus(connectionId, isEnabled)
@@ -39,6 +43,18 @@ contextBridge.exposeInMainWorld('connectionService', {
     }
     , updateStationSettings: (settings: IStationSettings) => {
         connectionService.updateStationSettings(settings)
+    }
+    , getConnectionStatusStream: (fn) => {
+        const subscription = (evt: string, id: string | number) => fn(evt, id)
+
+        // NOTE: passing params to the subscription is causing each event to fire twice
+        connectionService.on(ConnectionEventTypes.CONNECTED, id => subscription(ConnectionEventTypes.CONNECTED, id))
+        connectionService.on(ConnectionEventTypes.DISCONNECTED, id => subscription(ConnectionEventTypes.DISCONNECTED, id))
+
+        return () => {
+            connectionService.removeListener(ConnectionEventTypes.CONNECTED, subscription)
+            connectionService.removeListener(ConnectionEventTypes.DISCONNECTED, subscription)
+        }
     }
     , getDataStream: (fn) => {
         const subscription = (data: string) => fn(data)

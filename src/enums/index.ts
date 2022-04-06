@@ -1,4 +1,5 @@
 import { ActionTypes } from "@/enums/ActionTypes"
+import { ConnectionEventTypes } from "@/enums/ConnectionEventTypes"
 import { ConnectionTypes } from "@/enums/ConnectionTypes"
 import { DistanceUnitTypes } from "@/enums/DistanceUnitTypes"
 import { EolCharEnum } from "@/enums/EolCharEnum"
@@ -9,6 +10,7 @@ import { TemperatureUnitTypes } from "@/enums/TemperatureUnitTypes"
 
 export {
     ActionTypes
+    , ConnectionEventTypes
     , ConnectionTypes
     , DistanceUnitTypes
     , EolCharEnum
