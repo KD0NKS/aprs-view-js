@@ -8,7 +8,6 @@
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
     "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\" --ignore-path .gitignore",
-    "rebuild": "electron-rebuild -f -w serialport",
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {

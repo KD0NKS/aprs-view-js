@@ -1,9 +1,15 @@
-import { app, BrowserWindow, nativeTheme } from 'electron'
+import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron'
 import path from 'path'
 import os from 'os'
 
+import { IpcEventTypes } from './enums/IpcEventTypes'
+import { ConnectionService } from './services/connections/ConnectionService'
+import { ConnectionEventTypes } from '../src/enums/ConnectionEventTypes'
+import { DataEventTypes } from './enums/DataEventTypes'
+
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
+const connectionService = new ConnectionService()
 
 try {
   if (platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
@@ -60,4 +66,50 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow()
   }
+})
+
+// addConnection
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_ADD_CONNECTION, async (event, settings) => {
+    connectionService.addConnection(settings)
+})
+
+// deleteConnection
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_DELETE_CONNECTION, async (event, connectionId) => {
+    connectionService.deleteConnection(connectionId)
+})
+
+// setConnectionStatus
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_SET_CONNECTION_STATUS, async (event, connectionId, isEnabled) => {
+    connectionService.updateConnectionStatus(connectionId, isEnabled)
+})
+
+// updateConnection
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_UPDATE_CONNECTION, async (event, settings) => {
+    connectionService.updateConnection(settings)
+})
+
+// updateConnectionStatus
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_UPDATE_CONNECTION_STATUS, async (event, connectionId, isEnabled) => {
+    connectionService.updateConnectionStatus(connectionId, isEnabled)
+})
+
+// updateStationSettings
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_UPDATE_STATION_SETTINGS, async (event, settings) => {
+    connectionService.updateStationSettings(settings)
+})
+
+connectionService.on(ConnectionEventTypes.CONNECTED, id => {
+    mainWindow.webContents.send(ConnectionEventTypes.CONNECTED, id)
+})
+
+connectionService.on(ConnectionEventTypes.DISCONNECTED, id => {
+    mainWindow.webContents.send(ConnectionEventTypes.DISCONNECTED, id)
+})
+
+connectionService.on(DataEventTypes.DATA, data => {
+    mainWindow.webContents.send(DataEventTypes.DATA, data)
+})
+
+connectionService.on(DataEventTypes.PACKET, packet => {
+    mainWindow.webContents.send(DataEventTypes.PACKET, packet)
 })

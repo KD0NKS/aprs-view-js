@@ -2,7 +2,7 @@
     <div class="q-pa-md">
         <h1>Connection Settings</h1>
 
-        <q-list bordered v-for="(item, id) in connections" :key="id">
+        <q-list bordered v-for="(item) in connections" :key="item.id">
             <connection-item :connection="item" />
         </q-list>
 

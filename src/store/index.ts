@@ -110,7 +110,7 @@ export default store(function (/* { ssrContext } */) {
                     state.connections.splice(index, 1)
                     LocalStorage.remove(`connections.${connectionId}`)
 
-                    global.connectionService.removeConnection(connectionId)
+                    global.connectionService.deleteConnection(connectionId)
                 }
             }
             , [MutationTypes.SET_MAP_SETTINGS](state: IState, settings: IMapSettings) {

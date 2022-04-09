@@ -431,6 +431,9 @@
                                 vector.removeFeature(f)
 
                                 this.generateTrail(f.get('label'))
+
+                                f = null
+                                f.dispose()
                             }
                         })
 

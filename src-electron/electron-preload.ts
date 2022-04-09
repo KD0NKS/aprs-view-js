@@ -15,63 +15,63 @@
  *     doAThing: () => {}
  *   })
  */
-import { contextBridge } from 'electron'
-import { DataEventTypes } from './enums/DataEventTypes'
+import { contextBridge, ipcMain, ipcRenderer } from 'electron'
+import { ConnectionEventTypes } from '../src/enums/ConnectionEventTypes'
 
 import { IConnection } from '../src/models/connections/IConnection'
 import { IStationSettings } from '../src/models/settings/IStationSettings'
-import { ConnectionService } from './services/connections/ConnectionService'
-import { ConnectionEventTypes } from '../src/enums/ConnectionEventTypes'
+import { DataEventTypes } from './enums/DataEventTypes'
+import { IpcEventTypes } from './enums/IpcEventTypes'
 
-const connectionService = new ConnectionService()
+//const connectionService = new ConnectionService()
 
+// TODO/NOTE: connection service may need to be in main
 contextBridge.exposeInMainWorld('connectionService', {
     addConnection: (settings: IConnection) => {
-        connectionService.addConnection(settings)
+        ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_ADD_CONNECTION, settings)
     }
     , deleteConnection: (connectionId: string | number) => {
-        connectionService.deleteConnection(connectionId)
+        ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_DELETE_CONNECTION, connectionId)
     }
     , setConnectionStatus(connectionId, isEnabled) {
-        connectionService.updateConnectionStatus(connectionId, isEnabled)
+        ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_SET_CONNECTION_STATUS, connectionId, isEnabled)
     }
     , updateConnection: (settings: IConnection) => {
-        connectionService.updateConnection(settings)
+        ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_CONNECTION, settings)
     }
     , updateConnectionStatus: (id: string, isEnabled: boolean) => {
-        connectionService.updateConnectionStatus(id, isEnabled)
+        ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_CONNECTION_STATUS, id, isEnabled)
     }
     , updateStationSettings: (settings: IStationSettings) => {
-        connectionService.updateStationSettings(settings)
+        ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_STATION_SETTINGS, settings)
     }
     , getConnectionStatusStream: (fn) => {
         const subscription = (evt: string, id: string | number) => fn(evt, id)
 
-        // NOTE: passing params to the subscription is causing each event to fire twice
-        connectionService.on(ConnectionEventTypes.CONNECTED, id => subscription(ConnectionEventTypes.CONNECTED, id))
-        connectionService.on(ConnectionEventTypes.DISCONNECTED, id => subscription(ConnectionEventTypes.DISCONNECTED, id))
+        ipcRenderer.on(ConnectionEventTypes.CONNECTED, (event, arg) => subscription(ConnectionEventTypes.CONNECTED, arg))
+        ipcRenderer.on(ConnectionEventTypes.DISCONNECTED, (event, arg) => subscription(ConnectionEventTypes.DISCONNECTED, arg))
 
         return () => {
-            connectionService.removeListener(ConnectionEventTypes.CONNECTED, subscription)
-            connectionService.removeListener(ConnectionEventTypes.DISCONNECTED, subscription)
+            ipcRenderer.removeListener(ConnectionEventTypes.CONNECTED, subscription)
+            ipcRenderer.removeListener(ConnectionEventTypes.DISCONNECTED, subscription)
         }
     }
     , getDataStream: (fn) => {
-        const subscription = (data: string) => fn(data)
-        connectionService.on(DataEventTypes.DATA, subscription)
+        const subscription = (evt, data: string) => fn(data)
+        ipcRenderer.on(DataEventTypes.DATA, subscription)
 
         // Return a function to kill the event listener
         return () => {
-            connectionService.removeListener(DataEventTypes.DATA, fn)
+            ipcRenderer.removeListener(DataEventTypes.DATA, fn)
         }
     }
     , getPacketStream: (fn) => {
-        const subscription = (packet: string) => fn(packet)
-        connectionService.on(DataEventTypes.PACKET, subscription)
+        const subscription = (evt, packet: string) => fn(packet)
+        ipcRenderer.on(DataEventTypes.PACKET, subscription)
 
         // Return a function to kill the event listener
         return () => {
-            connectionService.removeListener(DataEventTypes.PACKET, subscription)
+            ipcRenderer.removeListener(DataEventTypes.PACKET, subscription)
         }
     }
 })
