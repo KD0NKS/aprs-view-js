@@ -5,4 +5,5 @@ export enum IpcEventTypes{
     , CONNECTION_SERVICE_UPDATE_CONNECTION = 'connection-service.update-connection'
     , CONNECTION_SERVICE_UPDATE_CONNECTION_STATUS = 'connection-service.update-connection-status'
     , CONNECTION_SERVICE_UPDATE_STATION_SETTINGS = 'connection-service.update-station-settings'
+    , GET_COM_PORTS = 'get-comm-ports'
 }

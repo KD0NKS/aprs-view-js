@@ -62,9 +62,11 @@
 <script lang="ts">
     import { defineComponent, ref } from "vue"
     import { ConversionUtil } from "@/utils"
+    import { useStore } from "@/store"
 
     import { APRSSymbol } from "@/models"
     import { aprsPacket } from "js-aprs-fap"
+    import { GetterTypes } from "@/enums"
 
     export default defineComponent({
         name: "MapContextMenu"
@@ -82,24 +84,32 @@
                 , required: true
             }
         }
+        , setup() {
+            const store = useStore()
+            const softwareSettings = store.getters[GetterTypes.SOFTWARE_SETTINGS]
+
+            return {
+                softwareSettings
+            }
+        }
         , computed: {
             altitude() {
-                return ConversionUtil.metersFeetWithLabel(this.packet.altitude, this.$store.state.softwareSettings.distanceUnitType)
+                return ConversionUtil.metersFeetWithLabel(this.packet.altitude, this.softwareSettings.distanceUnitType)
             }
             , speed() {
-                return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.$store.state.softwareSettings.distanceUnitType)
+                return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.softwareSettings.distanceUnitType)
             }
             , stationName() {
                 return this.packet.itemname ?? this.packet.objectname ?? this.packet.sourceCallsign
             }
             , temperature() {
-                return ConversionUtil.getTemperatureWithLabel(parseFloat(this.packet.wx?.temp), this.$store.state.softwareSettings.temperatureUnitType)
+                return ConversionUtil.getTemperatureWithLabel(parseFloat(this.packet.wx?.temp), this.softwareSettings.temperatureUnitType)
             }
             , windGust() {
-                return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_gust), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
+                return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_gust), this.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
             }
             , windSpeed() {
-                return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_speed), this.$store.state.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
+                return ConversionUtil.windSpeedWithLabel(parseFloat(this.packet.wx?.wind_speed), this.softwareSettings.distanceUnitType, parseFloat(this.packet.wx?.wind_direction))
             }
         }
     })

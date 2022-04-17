@@ -6,6 +6,8 @@ import { IpcEventTypes } from './enums/IpcEventTypes'
 import { ConnectionService } from './services/connections/ConnectionService'
 import { ConnectionEventTypes } from '../src/enums/ConnectionEventTypes'
 import { DataEventTypes } from './enums/DataEventTypes'
+import { SerialPortUtil } from './tnc/utils/SerialPortUtil'
+import _ from 'lodash'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -96,6 +98,20 @@ ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_UPDATE_CONNECTION_STATUS, async 
 // updateStationSettings
 ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_UPDATE_STATION_SETTINGS, async (event, settings) => {
     connectionService.updateStationSettings(settings)
+})
+
+ipcMain.handle(IpcEventTypes.GET_COM_PORTS, async () => {
+    const ports = await SerialPortUtil.getAvailableSerialPorts()
+
+    // TODO: Path + friendly name objects
+    return _.reduce(
+        ports
+        , (result, value) => {
+            result.push(value.path)
+            return result
+        }
+        , []
+    )
 })
 
 connectionService.on(ConnectionEventTypes.CONNECTED, id => {

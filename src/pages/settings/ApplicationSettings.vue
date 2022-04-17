@@ -8,6 +8,13 @@
                     @reset="onReset"
                     @submit="onSubmit">
                 <div class="q-gutter-md row items-start">
+                    <q-toggle
+                        :label="themeLabel"
+                        v-model="settings.isDarkMode"
+                        >
+                    </q-toggle>
+                </div>
+                <div class="q-gutter-md row items-start">
                     <q-select label="Distance Units"
                             v-model="settings.distanceUnitType"
                             :options="distanceUnitTypeOptions"
@@ -22,6 +29,8 @@
                     <q-select label="Temperature Units"
                             v-model="settings.temperatureUnitType"
                             :options="temperatureUnitTypeOptions"
+                            :option-value="opt => Object(opt) === opt && 'value' in opt ? opt.value : null"
+                            :option-label="opt => Object(opt) === opt && 'label' in opt ? opt.label : null"
                             emit-value
                             map-options
                             class="col-6"
@@ -42,6 +51,7 @@
     import _ from 'lodash'
 
     import { defineComponent, ref } from 'vue'
+    import { useQuasar } from 'quasar'
     import { useStore } from '@/store'
 
     import { Mapper } from '@/utils/mappers'
@@ -54,17 +64,20 @@
         , setup() {
             const mapper = new Mapper()
             const settings = ref(new SoftwareSettings())
-            const $store = useStore()
+            const store = useStore()
+            const $q = useQuasar()
 
-            mapper.CopyInto<SoftwareSettings, SoftwareSettings>($store.getters[GetterTypes.SOFTWARE_SETTINGS], settings.value)
+            mapper.CopyInto<SoftwareSettings, SoftwareSettings>(store.getters[GetterTypes.SOFTWARE_SETTINGS], settings.value)
 
             return {
                 settings
                 , onSubmit() {
-                    $store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, settings.value)
+                    store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, settings.value)
+
+                    $q.dark.set(settings.value.isDarkMode)
                 }
                 , onReset() {
-                    mapper.CopyInto<SoftwareSettings, SoftwareSettings>($store.getters[GetterTypes.SOFTWARE_SETTINGS], settings.value)
+                    mapper.CopyInto<SoftwareSettings, SoftwareSettings>(store.getters[GetterTypes.SOFTWARE_SETTINGS], settings.value)
                 }
             }
         }
@@ -75,7 +88,7 @@
                     , key => {
                         return {
                             label: DistanceUnitTypes[key]
-                            , value: key
+                            , value: DistanceUnitTypes[key]
                         }
                     }
                 )
@@ -86,10 +99,13 @@
                     , key => {
                         return {
                             label: TemperatureUnitTypes[key]
-                            , value: key
+                            , value: TemperatureUnitTypes[key]
                         }
                     }
                 )
+            }
+            , themeLabel() {
+                return this.settings.isDarkMode ? 'Dark Mode' : 'Light Mode'
             }
         }
     })

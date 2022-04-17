@@ -45,6 +45,9 @@ contextBridge.exposeInMainWorld('connectionService', {
     , updateStationSettings: (settings: IStationSettings) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_STATION_SETTINGS, settings)
     }
+    , getComPorts: async () => {   // TODO: Make a system api
+        return  await ipcRenderer.invoke(IpcEventTypes.GET_COM_PORTS)
+    }
     , getConnectionStatusStream: (fn) => {
         const subscription = (evt: string, id: string | number) => fn(evt, id)
 

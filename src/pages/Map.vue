@@ -152,6 +152,8 @@
                 })
             })
 
+            // TODO: force handle nav/map resizing https://quasar.dev/vue-components/resize-observer
+
             // display popup on click
             map.on('singleclick', async (evt) => {
                 // TODO: This seems to be getting the one on the bottom of the pile
@@ -432,8 +434,8 @@
 
                                 this.generateTrail(f.get('label'))
 
-                                f = null
                                 f.dispose()
+                                f = null
                             }
                         })
 

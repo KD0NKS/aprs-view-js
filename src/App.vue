@@ -5,7 +5,7 @@
 <script lang="ts">
     import { defineComponent } from 'vue'
     import { useStore } from '@/store'
-    import { LocalStorage } from 'quasar'
+    import { Dark, LocalStorage } from 'quasar'
 
     import _ from 'lodash'
 
@@ -24,7 +24,12 @@
             }
 
             try {
-                $store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, LocalStorage.getItem(StorageKeys.SOFTWARE_SETTINGS))
+                const softwareSettings = LocalStorage.getItem(StorageKeys.SOFTWARE_SETTINGS)
+                $store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, softwareSettings)
+
+                if(softwareSettings != null && softwareSettings['isDarkMode'] != null) {
+                    Dark.set(softwareSettings['isDarkMode'])
+                }
             } catch {
                 console.log('Could not load software settings.')
             }
