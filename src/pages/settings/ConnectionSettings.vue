@@ -1,13 +1,15 @@
 <template>
-    <div class="q-pa-md">
-        <span class="text-h4 h4">Connection Settings</span>
+    <q-page class="q-pa-md">
+        <div style="padding-bottom: 10px">
+            <span class="text-h4 h4">Connection Settings</span>
+        </div>
 
         <q-list bordered v-for="(item) in connections" :key="item.id">
             <connection-item :connection="item" />
         </q-list>
 
         <q-btn flat @click="addConnection"><q-icon name="add" />Add Connection</q-btn>
-    </div>
+    </q-page>
 </template>
 
 <script lang="ts">

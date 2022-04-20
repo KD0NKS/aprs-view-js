@@ -59,6 +59,7 @@
     const items = [
         { title: "Map", icon: "map", action: "/map" }
         , { title: "Output", icon: "terminal", action: "/output" }
+        , { title: "Messages", icon: "message", action: "/messages" }
         , {
             title: "Settings"
             , icon: "settings"

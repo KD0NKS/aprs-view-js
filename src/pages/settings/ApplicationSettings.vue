@@ -1,6 +1,8 @@
 <template>
-    <div class="q-pa-md">
-        <span class="text-h4 h4">Application Settings</span>
+    <q-page class="q-pa-md">
+        <div style="padding-bottom: 10px">
+            <span class="text-h4 h4">Application Settings</span>
+        </div>
 
         <q-card class="q-pa-md">
             <q-form class="q-gutter-md"
@@ -44,7 +46,7 @@
                 </div>
             </q-form>
         </q-card>
-    </div>
+    </q-page>
 </template>
 
 <script lang="ts">

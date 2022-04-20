@@ -8,7 +8,7 @@ import { InjectionKey } from 'vue'
 import { ActionTypes, ConnectionEventTypes, GetterTypes, MutationTypes, StorageKeys } from '@/enums'
 import { Mapper } from '@/utils/mappers'
 
-import { aprsPacket } from 'js-aprs-fap'
+import { aprsPacket, PacketTypeEnum } from 'js-aprs-fap'
 
 import { IMapSettings, ISoftwareSettings, IStationSettings, MapSettings, SoftwareSettings, StationSettings } from '@/models/settings'
 import { AbstractConnection, IConnection, ISConnection } from '@/models/connections'
@@ -100,7 +100,13 @@ export default store(function (/* { ssrContext } */) {
                 // DO NOT! use lodash here.  Its internal bowels use Array.prototype.splice rather than the given array's overridden version.
                 aprsPackets.remove(packet => (
                     (new Date().getTime() - packet.receivedTime) >= (state.mapSettings.pointLifetime * 60000)
-                    && (packet.latitude != null || packet.longitude != null)
+                    && (
+                           packet.type == null
+                        || packet.type == undefined
+                        || packet.type == PacketTypeEnum.LOCATION
+                        || packet.type == PacketTypeEnum.OBJECT
+                        || packet.type == PacketTypeEnum.ITEM
+                    )
                 ))
 
                 return
@@ -181,7 +187,16 @@ export default store(function (/* { ssrContext } */) {
                 global.connectionService.updateStationSettings(_.clone(settings))
             }
             , [MutationTypes.UPDATE_CONNECTION_STATUS](state: IState, args) {
-                (_.find(state.connections, { id: args['id'] }) as AbstractConnection).isConnected = args['status'] == ConnectionEventTypes.CONNECTED
+                let connection = _.find(state.connections, { id: args['id'] }) as AbstractConnection
+
+                if(connection != null) {
+                    connection.isConnected = args['status'] == ConnectionEventTypes.CONNECTED
+
+                    // Make sure the connection shows it's enabled on the front end
+                    if(connection.isConnected) {
+                        connection.isEnabled = true
+                    }
+                }
             }
         }
         , actions: {
