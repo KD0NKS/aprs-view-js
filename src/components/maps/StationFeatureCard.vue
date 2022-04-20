@@ -13,7 +13,8 @@
                     <span v-if="packet.objectname">{{ packet.objectname }} via</span>
                     {{ packet.sourceCallsign}}
                 </span>
-                <span v-if="packet.comment" class="text-caption text-italic"> - {{ packet.comment }}</span>
+                <span v-if="packet.comment" class="text-caption text-bold text-italic">&nbsp;&nbsp;&nbsp;&nbsp;Comment:&nbsp;</span>
+                <span v-if="packet.comment" class="text-caption text-italic">{{ packet.comment }}</span>
             </q-toolbar-title>
 
             <q-btn flat round dense icon="close" v-close-popup />
@@ -28,9 +29,6 @@
                 </p>
                 <p>
                     <label style="font-weight: bold">Received Time:</label> {{ new Date(packet.receivedTime).toLocaleString() }}
-                </p>
-                <p v-if="packet.comment">
-                    <label style="font-weight: bold">Comment:</label> {{ packet.comment }}
                 </p>
                 <p v-if="packet.speed">
                     <label style="font-weight: bold">Speed:</label> {{ speed }}
