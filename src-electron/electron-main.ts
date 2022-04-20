@@ -114,6 +114,10 @@ ipcMain.handle(IpcEventTypes.GET_COM_PORTS, async () => {
     )
 })
 
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_GET_CONNECTION_STATUS, async(event, connectionId) => {
+    return connectionService.getConnectionStatus(connectionId)
+})
+
 connectionService.on(ConnectionEventTypes.CONNECTED, id => {
     mainWindow.webContents.send(ConnectionEventTypes.CONNECTED, id)
 })

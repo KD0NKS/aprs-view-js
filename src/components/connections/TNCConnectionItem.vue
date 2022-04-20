@@ -1,6 +1,14 @@
 <template>
     <div class="q-gutter-md row items-start">
-        <!-- TODO: COM PORT -->
+        <q-select label="COM Port"
+            :options="comPorts"
+            v-model="model.comPort"
+            :rules="[ rules.required ]"
+            @focus="updateSerialPorts"
+            class="col-6"
+            >
+        </q-select>
+
         <q-input label="Baud Rate" v-model="model.baudRate" type="number" class="col-5" />
     </div>
 
@@ -41,7 +49,7 @@
     </div>
 
     <div class="q-gutter-md row items-start">
-        <q-input label="MYCALL Command" v-model="model.mycallCommand" class="col-6" />
+        <q-input label="MYCALL Command" v-model="model.myCallCommand" class="col-6" />
         <q-select label="EOL Character"
             :options="eolCharOptions"
             v-model="model.messageDelimeter"
@@ -55,16 +63,27 @@
 
     <div class="row">
         <div class="col-6">
-            <q-list v-for="(item, index) in model.initCommands" :key="index" dense>
-                <TNCCommand :command="item" @removeCommand="removeCommand(model.initCommands, index)" />
+            <q-list dense>
+                <template v-for="(item, index) in model.initCommands" :key="index">
+                    <TNCCommand :command="model.initCommands[index]"
+                            @removeCommand="removeCommand(model.initCommands, index)"
+                            @updateCommand="updateCommand(model.initCommands, index, $event)"
+                            emit-value
+                            />
+                </template>
             </q-list>
 
             <q-btn flat @click="addCommand(model.initCommands)"><q-icon name="add" />Add INIT COMMAND</q-btn>
         </div>
 
         <div class="col-6">
-            <q-list v-for="(item, index) in model.exitCommands" :key="index" dense>
-                <TNCCommand :command="item" @removeCommand="removeCommand(model.exitCommands, index)" />
+            <q-list dense>
+                <template v-for="(item, index) in model.exitCommands" :key="index">
+                    <TNCCommand :command="model.exitCommands[index]"
+                            @removeCommand="removeCommand(model.exitCommands, index)"
+                            @updateCommand="updateCommand(model.exitCommands, index, $event)"
+                            />
+                </template>
             </q-list>
 
             <q-btn flat @click="addCommand(model.exitCommands)"><q-icon name="add" />Add INIT COMMAND</q-btn>
@@ -73,10 +92,11 @@
 </template>
 
 <script lang="ts">
-    import { defineComponent } from "vue"
+    import { defineComponent, ref } from "vue"
+    import { useStore } from '@/store'
     import _ from "lodash"
 
-    import { EolCharEnum } from "@/enums"
+    import { EolCharEnum, GetterTypes } from "@/enums"
     import { TNCConnection } from "@/models/connections"
 
     import TNCCommand from '@/components/connections/TNCCommand.vue'
@@ -92,15 +112,23 @@
             TNCCommand
         }
         , setup() {
+            const comPorts = ref<string[]>([])
+            const store = useStore()
+
             return {
-                charSetOptions: [ 'ascii', 'utf8', 'utf16le', 'ucs2', 'base64', 'binary', 'hex' ]
+                comPorts
+                , charSetOptions: [ 'ascii', 'utf8', 'utf16le', 'ucs2', 'base64', 'binary', 'hex' ]
                 , dataBitOptions: [ 5, 6, 7, 8 ]
-                , stopBitOptions: [ 1, 2 ]
                 , parityOptions: [ 'none', 'even', 'odd', 'mark', 'space' ]
                 , rules: {
                     required: value => !!value || 'Required.'
                 }
+                , stopBitOptions: [ 1, 2 ]
+                , store
             }
+        }
+        , mounted() {
+            this.updateSerialPorts()
         }
         , computed: {
             eolCharOptions() {
@@ -116,11 +144,18 @@
             }
         }
         , methods: {
-            addCommand(list): void {
+            addCommand(list: string[]): void {
                 list.push('')
             }
-            , removeCommand(list, index): void {
+            , removeCommand(list: string[], index: number): void {
                 list.splice(index, 1)
+            }
+            , updateCommand(list: string[], index: number, event: string): void {
+                list[index] = event
+            }
+            , async updateSerialPorts(): Promise<void> {
+                // TODO: Sort by name
+                this.comPorts = await this.store.getters[GetterTypes.GET_COM_PORTS]
             }
         }
         // TODO: May need watchers here

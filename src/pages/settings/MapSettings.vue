@@ -1,6 +1,6 @@
 <template>
     <div class="q-pa-md">
-        <h1>Map Settings</h1>
+        <span class="text-h4 h4">Map Settings</span>
 
         <q-card class="q-pa-md">
             <q-form class="q-gutter-md"

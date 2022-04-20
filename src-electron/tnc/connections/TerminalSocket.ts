@@ -6,9 +6,10 @@ import { DelimiterParser } from '@serialport/parser-delimiter'
 import { TerminalSettings } from '../configurations/TerminalSettings'
 
 export class TerminalSocket extends SerialPort {
-    private _pipe: any
-    private _options: TerminalSettings
     private _id: string | number
+    private _options: TerminalSettings
+    private _pipe: any
+    private _pipeListener = null
 
     // TODO: override callback
     constructor(options: TerminalSettings, openCallback?: any) {    // TODO: Any needs to be specific here
@@ -22,15 +23,25 @@ export class TerminalSocket extends SerialPort {
             if (err)
                 throw err
 
-            _.each(this._options.initCommands, (command: string) => {
-                this.sendCommand(command)
-            })
+            this.sendCommand(this._options.messageDelimeter)
 
-            this.sendCommand(this._options.myCallCommand)
-        })
+            // TODO: Setup loop that checks for data and executes until all data is drained?
 
-        this._pipe.on('data', (data: string) => {
-            this.emit('packet', data.toString().trim())
+            // Attempt to clear data from pipe
+            setTimeout(() => {
+                this.flush()
+                // TODO: Fix this
+                //this._pipeListener = this._pipe.on('data', (data: string) => {
+                this._pipe.on('data', (data: string) => {
+                    this.emit('packet', data.toString().trim())
+                })
+
+                for(let command of this._options.initCommands){
+                    this.sendCommand(command)
+                }
+
+                this.sendMyCallCommand()
+            }, 2000)
         })
 
         // TODO: Callback
@@ -38,6 +49,10 @@ export class TerminalSocket extends SerialPort {
 
     public get id(): string | number {
         return this._id
+    }
+
+    public setCallsign(callsign: string) {
+        this._options.callsign = callsign.trim()
     }
 
     public sendCommand(command: string, callback?: any) {   // TODO: Callback
@@ -56,7 +71,8 @@ export class TerminalSocket extends SerialPort {
                 && this._options.callsign != null
                 && this._options.callsign.trim().length > 0
                 ) {
-            this.sendCommand(this._options.myCallCommand, callback)
+            this.emit('sent', `${ this._options.myCallCommand.trim() } ${ this._options.callsign.trim() }${ this._options.messageDelimeter }`)
+            this.sendCommand(`${ this._options.myCallCommand.trim() } ${ this._options.callsign.trim() }${ this._options.messageDelimeter }`, callback)
         }
         /*
         else if(this._options.myCallCommand == null
@@ -76,6 +92,8 @@ export class TerminalSocket extends SerialPort {
             setTimeout(() => {
                 super.close(callback, disconnectError)
             }, 1000)
+
+            //this._pipe.removeListener('data', this._pipeListener)
         }
     }
 

@@ -1,6 +1,6 @@
 <template>
     <div class="q-pa-md">
-        <h1>Connection Settings</h1>
+        <span class="text-h4 h4">Connection Settings</span>
 
         <q-list bordered v-for="(item) in connections" :key="item.id">
             <connection-item :connection="item" />

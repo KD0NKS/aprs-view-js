@@ -33,6 +33,9 @@ contextBridge.exposeInMainWorld('connectionService', {
     , deleteConnection: (connectionId: string | number) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_DELETE_CONNECTION, connectionId)
     }
+    , getConnectionStatus: async (connectionId: string | number) => {
+        return await ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_GET_CONNECTION_STATUS, connectionId)
+    }
     , setConnectionStatus(connectionId, isEnabled) {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_SET_CONNECTION_STATUS, connectionId, isEnabled)
     }
@@ -46,7 +49,7 @@ contextBridge.exposeInMainWorld('connectionService', {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_STATION_SETTINGS, settings)
     }
     , getComPorts: async () => {   // TODO: Make a system api
-        return  await ipcRenderer.invoke(IpcEventTypes.GET_COM_PORTS)
+        return await ipcRenderer.invoke(IpcEventTypes.GET_COM_PORTS)
     }
     , getConnectionStatusStream: (fn) => {
         const subscription = (evt: string, id: string | number) => fn(evt, id)

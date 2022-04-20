@@ -70,13 +70,15 @@ export default store(function (/* { ssrContext } */) {
         }
         , mutations: {
             [MutationTypes.ADD_CONNECTION](state: IState, settings: IConnection) {
-                const connection = _.find(state.connections, { id: settings.id })
+                let connection = _.find(state.connections, { id: settings.id })
 
                 if(connection != null) {
-                    this.state.connections[settings.id] = settings
+                    connection = settings
                 } else {
                     this.state.connections.push(settings)
                 }
+
+                LocalStorage.set(`connections.${settings.id}`, settings)
 
                 global.connectionService.addConnection(settings)
             }
@@ -132,12 +134,25 @@ export default store(function (/* { ssrContext } */) {
             , [MutationTypes.SAVE_CONNECTION](state: IState, settings: IConnection) {
                 let connection = _.find(state.connections, c => c.id == settings.id)
 
-                if(connection != null) {
-                    LocalStorage.set(`connections.${settings.id}`, settings.toJSON())
-
+                if(connection.connectionType == settings.connectionType) {
                     _mapper.CopyInto<IConnection, IConnection>(settings, connection)
-                    global.connectionService.updateConnection(_.clone(settings))
+
+                    global.connectionService.updateConnection(_.cloneDeep(settings))
+                } else {
+                    const idx = _.findIndex(state.connections, c => c.id == settings.id)
+
+                    if(idx > -1) {
+                        state.connections.splice(idx, 1, settings)
+                    } else {
+                        state.connections.push(settings)
+                    }
+
+                    global.connectionService.deleteConnection(settings.id)
+                    global.connectionService.addConnection(_.cloneDeep(settings))
                 }
+
+                LocalStorage.set(`connections.${settings.id}`, settings.toJSON())
+
                 // TODO: Error notification to tell user saving failed
             }
             , [MutationTypes.SET_CONNECTION_STATUS](state: IState,  { connectionId, isEnabled }) {
@@ -210,6 +225,12 @@ export default store(function (/* { ssrContext } */) {
         , getters: {
             [GetterTypes.APP_ID]() {
                 return appId
+            }
+            , [GetterTypes.GET_CONNECTIONS]: state => {
+                return state.connections
+            }
+            , async [GetterTypes.GET_COM_PORTS]() {
+                return await global.connectionService.getComPorts()
             }
             , [GetterTypes.GET_PACKET]: state => id => _.find(aprsPackets, p => p.id == id)
             , [GetterTypes.GET_PACKETS]: state => aprsPackets

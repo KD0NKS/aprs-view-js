@@ -18,7 +18,7 @@ export class TNCConnection extends AbstractConnection {
     constructor(settings?: IConnection) {
         super(settings)
 
-        if(settings) {
+        if(settings && settings != null) {
             //this.autoOpen = settings["autoOpen"]
             this.comPort = settings["comPort"] ?? ""
             this.exitCommands = settings["exitCommands"] ?? []

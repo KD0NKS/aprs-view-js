@@ -35,5 +35,17 @@
                 }
             }
         }
+        , watch: {
+            command: {
+                handler: function (value) {
+                    this.localCommand = value
+                }
+            }
+            , localCommand: {
+                handler: function (value) {
+                    this.$emit('updateCommand', value)
+                }
+            }
+        }
     })
 </script>

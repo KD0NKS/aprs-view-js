@@ -37,7 +37,7 @@ export class Mapper {
                 // NOTE: Don't use typeof comparison here.  If one value is null and the other is not, the null value will be an object the other will be number for example.
                 // If  typeof objTo[k] == typeof objFrom[k]
                 if (_.has(objFrom, k)) {
-                    objTo[k] = objFrom[k] ?? null
+                    objTo[k] = _.cloneDeep(objFrom[k]) ?? null
                 }
             })
 

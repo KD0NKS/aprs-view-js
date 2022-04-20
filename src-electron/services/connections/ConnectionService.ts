@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { EventEmitter } from 'events'
 
 import { ISSocket } from 'js-aprs-is'
-import { TerminalSocket } from 'js-aprs-tnc'
+import { TerminalSocket } from '../../tnc/connections/TerminalSocket'
 
 import { StringUtil } from '../../../src/utils/StringUtil'
 
@@ -12,6 +12,7 @@ import { IStationSettings } from '../../../src/models/settings/IStationSettings'
 import { ConnectionEventTypes } from '../../../src/enums/ConnectionEventTypes'
 import { DataEventTypes } from '../../enums/DataEventTypes'
 import { aprsParser } from 'js-aprs-fap'
+import { TerminalSettings } from '../../tnc/configurations/TerminalSettings'
 
 export class ConnectionService extends EventEmitter {
     private _connections: Array<ISSocket | TerminalSocket>
@@ -20,7 +21,7 @@ export class ConnectionService extends EventEmitter {
     private _passcode = -1
     private _ssid = null
     private SOCKET_DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout']
-    private SOCKET_CONNECT_EVENTS: string[] = ['connect', 'ready']
+    private SOCKET_CONNECT_EVENTS: string[] = ['open', 'connect', 'ready']
 
     private readonly appId = 'js-aprs-view 0.0.1'
 
@@ -31,57 +32,54 @@ export class ConnectionService extends EventEmitter {
     }
 
     // NOTE: This expects the front end is always creating an IS Socket.  To change it to any other type, you have to update the connection.
-    public addConnection(setting: IConnection): ISSocket { // TODO: || TerminalSOcket
+    public addConnection(setting: IConnection): ISSocket | TerminalSocket {
+        let connection = null
+
         if(setting.connectionType == 'IS_SOCKET') {
-            const connection = new ISSocket(setting["host"], setting["port"], this._callsign, this._passcode, setting["filter"], this.appId, setting["id"] ?? uid())
+            connection = new ISSocket(setting["host"], setting["port"], this._callsign, this._passcode, setting["filter"], this.appId, setting["id"] ?? uid())
             this._connections.push(connection)
 
-            connection.on(DataEventTypes.PACKET, (data: string) => {
-                if(data.charAt(0) != '#') {
-                    try {
-                        const msg = this._parser.parseaprs(data.trim(), { accept_broken_mice: true })
-                        msg.id = uid()
-                        this.emit(DataEventTypes.PACKET, msg)
-                    } catch (err) {
-                        this.emit(DataEventTypes.ERROR, err)
-                    }
-                } else {
-                    this.emit(DataEventTypes.PACKET, data)
-                }
-            })
-
-            if(connection instanceof ISSocket) {
-                for(const e of this.SOCKET_DISCONNECT_EVENTS) {
-                    connection.on(e, () => {
-                        this.emit(ConnectionEventTypes.DISCONNECTED, connection.id)
-                    })
-                }
-
-                for(const e of this.SOCKET_CONNECT_EVENTS) {
-                    connection.on(e, () => {
-                        this.emit(ConnectionEventTypes.CONNECTED, connection.id)
-
-                        if(e == 'ready') {
-                            (connection as ISSocket).sendLine((connection as ISSocket).userLogin)
-                        }
-                    })
-                }
-            }
-
-            connection.on(DataEventTypes.DATA, (data: string) => {
-                this.emit(DataEventTypes.DATA, data.toString())
-            })
+            this.attachListeners(connection)
 
             if(setting.isEnabled === true) {
                 (connection as ISSocket).connect()
             }
+        } else if(setting.connectionType == 'SERIAL_TNC') {
+            const terminalSettings: TerminalSettings = new TerminalSettings()
 
-            return connection
+            terminalSettings.id = setting.id
+            terminalSettings.path = setting["comPort"]
+            terminalSettings.baudRate = setting["baudRate"] //? parseInt(setting["baudRate"]) : 9600
+            terminalSettings.charset = setting["charset"]
+            terminalSettings.dataBits = setting["dataBits"]
+            terminalSettings.myCallCommand = setting["myCallCommand"] ?? ""
+            terminalSettings.parity = setting["parity"]
+            terminalSettings.rtscts = setting["rtscts"]
+            terminalSettings.stopBits = setting["stopBits"]
+            terminalSettings.messageDelimeter = setting["messageDelimeter"]
+            terminalSettings.exitCommands = setting["exitCommands"]
+            terminalSettings.initCommands = setting["initCommands"]
+            terminalSettings.callsign = this._callsign
+
+            if(!StringUtil.IsNullOrWhiteSpace(this._ssid)) {
+                terminalSettings.callsign = `${this._callsign}-${this._ssid}`
+            }
+
+            connection = new TerminalSocket(terminalSettings)
+            this._connections.push(connection)
+
+            this.attachListeners(connection)
+
+            if(setting.isEnabled === true) {
+                (connection as TerminalSocket).open()
+            }
         }
 
         // TODO: Else throw error
 
-        return null
+
+
+        return connection
     }
 
     public deleteConnection(id: string | number): void {
@@ -94,12 +92,30 @@ export class ConnectionService extends EventEmitter {
         if(connection instanceof ISSocket) {
             (connection as ISSocket).removeAllListeners();
             (connection as ISSocket).disconnect();
+            connection.destroy()
+        } else if(connection instanceof TerminalSocket) {
+            (connection as TerminalSocket).removeAllListeners();
+            (connection as TerminalSocket).close();
+            (connection as TerminalSocket).destroy()
         }
-        // TODO: Handle terminal socket listeners
 
         _.remove(this._connections, { id: (connection as ISSocket).id })
 
         return
+    }
+
+    public getConnectionStatus(id: string | number): boolean {
+        const connection = this.findConnection(id)
+
+        if(connection && connection != null) {
+            if(connection instanceof ISSocket) {
+                return (connection as ISSocket).isConnected()
+            } else if(connection instanceof TerminalSocket) {
+                return connection.isOpen && connection.readable && connection.writable
+            }
+        }
+
+        return false
     }
 
     public updateConnection(setting: IConnection): void {
@@ -119,6 +135,9 @@ export class ConnectionService extends EventEmitter {
                     console.log('Connection not enabled, nothing to do.')
                 }
             }
+        } else if(connection instanceof TerminalSocket && setting.connectionType == 'SERIAL_TNC') {
+            this.deleteConnection(setting.id)
+            connection = this.addConnection(setting)
         } else {
             console.log('Changing Connection Type')
         }
@@ -134,9 +153,14 @@ export class ConnectionService extends EventEmitter {
                 } else {
                     connection.disconnect()
                 }
+            } else if(connection instanceof TerminalSocket) {
+                if(isEnabled) {
+                    connection.open()
+                } else {
+                    connection.close()
+                }
             }
 
-            // TODO: Handle TNC
             // TODO: Handle non supported connection types
         }
     }
@@ -174,16 +198,83 @@ export class ConnectionService extends EventEmitter {
                     conn.callsign = fullCall
                     conn.passcode = this._passcode
 
-                    conn.sendLine(conn.userLogin)
+                    if(conn.writable == true && conn.isConnected() == true) {
+                        conn.sendLine(conn.userLogin)
+                    }
+                } else if(conn instanceof TerminalSocket) {
+                    if(conn.writable == true && conn.isOpen == true) {
+                        conn.setCallsign(fullCall)
+                        conn.sendMyCallCommand()
+                    }
                 }
-                //else if(conn instanceof TerminalSocket) {
-                //    // TODO: Need to be able to access and update terminal settings options and resend mycall command
-                //    console.log('test')
-                //}
 
                 // TODO: Handle non supported connection types
             })
         }
+    }
+
+    private attachListeners(connection: ISSocket | TerminalSocket): void {
+        if(connection instanceof ISSocket) {
+            connection.on(DataEventTypes.PACKET, (data: string) => {
+                if(data.charAt(0) != '#') {
+                    try {
+                        const msg = this._parser.parseaprs(data.trim(), { accept_broken_mice: true })
+                        msg.id = uid()
+                        this.emit(DataEventTypes.PACKET, msg)
+                    } catch (err) {
+                        this.emit(DataEventTypes.ERROR, err)
+                    }
+                } else {
+                    this.emit(DataEventTypes.PACKET, data)
+                }
+            })
+
+            for(const e of this.SOCKET_DISCONNECT_EVENTS) {
+                connection.on(e, () => {
+                    this.emit(ConnectionEventTypes.DISCONNECTED, connection.id)
+                })
+            }
+
+            for(const e of this.SOCKET_CONNECT_EVENTS) {
+                connection.on(e, () => {
+                    this.emit(ConnectionEventTypes.CONNECTED, connection.id)
+
+                    if(e == 'ready') {
+                        (connection as ISSocket).sendLine((connection as ISSocket).userLogin)
+                    }
+                })
+            }
+
+            connection.on(DataEventTypes.DATA, (data: string) => {
+                this.emit(DataEventTypes.DATA, data.toString())
+            })
+        } else if(connection instanceof TerminalSocket) {
+            for(const e of this.SOCKET_CONNECT_EVENTS) {
+                connection.on(e, () => {
+                    this.emit(ConnectionEventTypes.CONNECTED, connection.id)
+                })
+            }
+
+            connection.on(DataEventTypes.PACKET, (data: string) => {
+                try {
+                    // TODO: The command should be a parameter set by the user to strip off the beginning of the packet
+                    data = data.trim().replace(/^[cmd:]*/, '')
+                    const msg = this._parser.parseaprs(data)
+                    msg.id = uid()
+                    this.emit(DataEventTypes.PACKET, msg)
+
+                    // Serial port on data event will emit character at a time.
+                    this.emit(DataEventTypes.DATA, data)
+                } catch (err) {
+                    this.emit(DataEventTypes.ERROR, err)
+                }
+            })
+        }
+
+        connection.on('error', (err: Error) => {
+            this.emit(DataEventTypes.ERROR, err)
+            connection.end()
+        })
     }
 
     private findConnection(id: string | number ): ISSocket | TerminalSocket {

@@ -73,15 +73,17 @@
         , setup(props, { emit }) {
             const mapper = new Mapper()
             const store = useStore()
-            let model = ref(null)
+            let temp = null
 
             if(props.connection.connectionType == 'IS_SOCKET') {
-                model = ref(new ISConnection())
-                mapper.CopyInto<ISConnection, ISConnection>(props.connection as ISConnection, model.value)
+                temp = new ISConnection()
+                mapper.CopyInto<ISConnection, ISConnection>(_.cloneDeep(props.connection) as ISConnection, temp)
             } else if(props.connection.connectionType == 'SERIAL_TNC') {
-                model = ref(new TNCConnection())
-                mapper.CopyInto<TNCConnection, TNCConnection>(props.connection as TNCConnection, model.value)
+                temp = new TNCConnection()
+                mapper.CopyInto<TNCConnection, TNCConnection>(_.cloneDeep(props.connection) as TNCConnection, temp)
             }
+
+            const model = ref(temp)
 
             // TODO: Else throw error
 
@@ -94,22 +96,14 @@
                 }
                 , onReset() {
                     if(props.connection.connectionType == 'IS_SOCKET') {
-                        mapper.CopyInto<ISConnection, ISConnection>(props.connection as ISConnection, model.value)
+                        mapper.CopyInto<ISConnection, ISConnection>(_.cloneDeep(props.connection) as ISConnection, model.value)
                     } else if(props.connection.connectionType == 'SERIAL_TNC') {
-                        mapper.CopyInto<TNCConnection, TNCConnection>(props.connection as TNCConnection, model.value)
+                        mapper.CopyInto<TNCConnection, TNCConnection>(_.cloneDeep(props.connection) as TNCConnection, model.value)
                     }
                     // TODO: Else throw error
                 }
                 , onSubmit() {
-                    /*
-                    if(props.connection.connectionType == 'IS_SOCKET') {
-                        mapper.CopyInto<ISConnection, ISConnection>(model.value, props.connection as ISConnection)
-                    } else if(props.connection.connectionType == 'SERIAL_TNC') {
-                        mapper.CopyInto<TNCConnection, TNCConnection>(model.value, props.connection as TNCConnection)
-                    }
-                    // TODO: Else throw error
-                    */
-                    store.dispatch(ActionTypes.SAVE_CONNECTION, model.value)
+                    store.dispatch(ActionTypes.SAVE_CONNECTION, _.cloneDeep(model.value))
                 }
             }
         }
@@ -138,7 +132,7 @@
                     conn.host = this.model['host'] ?? ''
                     conn.port = this.model['port'] ?? null
 
-                    this.model = ref(conn)
+                    this.model = conn
                 } else if(value == 'SERIAL_TNC') {
                     let conn = new TNCConnection()
 

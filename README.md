@@ -18,47 +18,158 @@ Please feel free to create a feature request in the issues.
 
 ## Global requirements
 Quasar CLI
+```bash
+npm i -g @quasar/cli
+```
 
 ## Building
 Clone the project.
 
-## Install the dependencies
+### Install the dependencies
 ```bash
-yarn
+yarn install
 ```
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
-
 ```bash
 quasar dev -m electron
 ```
 
-### Lint the files
-
-```bash
-yarn lint
-```
-
-### Format the files
-
-```bash
-yarn format
-```
-
 ### Build the app for production
+This is an example for building for windows.
 
 ```bash
-quasar build
+quasar build -m electron -T win32
 ```
 
 ### Customize the configuration
-
 See [Configuring quasar.conf.js](https://quasar.dev/quasar-cli/quasar-conf-js).
 
+TODO:
+* Vue3 Upgrade https://learnvue.co/2021/05/build-vue-3-desktop-apps-in-just-5-minutes-vite-electron-quick-start-guide/
+* UI
+    - [ ] Restore to size, screen and location on start
+    - [ ] Output window styling? https://github.com/chinchang/screenlog.js
+* Maps
+    - [ ] Make maps a plugin
+    - [x] Trails* - There are potential issues
+        - https://openlayers.org/workshop/en/vector/draw.html
+        - https://gis.stackexchange.com/questions/323992/create-polyline-from-coordinates-array-in-ol-openlayers-5-3-2
+        - routes while cool would display more data than is actually transmitted, but is a cool idea: https://gis.stackexchange.com/questions/147617/how-to-draw-route-from-osrm-on-right-road-using-openlayers
+    - [x] Rotated markers
+    - [x] Show labels
+    - [x] Properly handle objects - names, not moving stationary objects on duplicate src callsign, etc
+    - [x] Heat maps on zoom out (aprs.fi)
+    - [x] Remove old position reports
+    - Performance Resources- Ideas for improving
+        - https://dev.to/camptocamp-geo/integrating-an-openlayers-map-in-vue-js-a-step-by-step-guide-2n1p
+    - Options
+        - [x] Point lifetime
+        - [ ] Number of points for a map?
+        - Layers
+            - [ ] Layer Sources - Needs auth inputs
+            - [ ] Tile Sources - Needs auth inputs
+            - [ ] User defined maps
+            - [ ] User defined layers
+            - [ ] Opacity of layers
+            - [ ] User configured
+            - [ ] Default - ???
+            - [ ] Weather station data layers
+            - [ ] Radar
+                - https://openlayers.org/en/latest/examples/wms-time.html
+                - nowCoast
+            - [ ] NWS watches/warnings
+                - nowCoast
+        - Location options
+            - [ ] Restore location and zoom level when switching screens
+            - [ ] Map start coordinates
+            - [ ] Map zoom level
+            - [ ] Weather station data layers - lots of data can be extracted from weather stations
+        - Labels
+            - [x] Show labels
+            - [ ] Label options
+                - Object/Callsign
+                - Weather data
+        - [ ] Station info panel - see aprs.fi
+        - [ ] User defined maps
+        - [ ] Track station/Track my station
+    - ContextMenu
+        - [ ] Clear all reports
+        - [ ] Set my station position
+        - [ ] Create object (low priority also requires proper handling)
+    - Helpful plugins
+        - [ ] Offline - [outdated] https://github.com/tbicr/OfflineMap
+        - [ ] Search - https://github.com/stefanocudini/leaflet-search
+        - [ ] Realtime framework - https://github.com/perliedman/leaflet-realtime
+        - [ ] Leaflet plugins - https://github.com/shramov/leaflet-plugins
+    - [ ] Overlays - https://vue2-leaflet.netlify.app/components/LImageOverlay.html#demo
+    - BUGS/ENHANCEMENTS (B/E):
+        - [ ] B - Clearing all markers currently doesn't work properly.  Working with kefir/bacon may help mitigate this
+        - [x] B - Items/Objects may have multiple locations with the same callsign
+        - [ ] E - Items/Objects may have multiple locations with the same value, this will result in only 1 showing up
+        - [ ] E - Weather packets with no locations - if we know the location of the station already, update the id to get the latest when the icon is clicked?
+        - [ ] B - Overlays are not allowing newer markers to cover them
+        - [ ] E- APRSViewJS used Bacon/Kefir for filtering and packet types, can these be easily utilized to make packets easier to handle
+        source/Vector.js
+            - Is it possible to rewrite/extend VectorSource in openlayers to accept an observable array of features? https://github.com/openlayers/openlayers/blob/main/src/ol/
+            - This could lead down a rabbit hole where the entire lib needs to be rewritten
+            - Collection would likely need to be rewritten - https://github.com/openlayers/openlayers/blob/b7ccb68b02bd936373b1bd1d2f5ca445e1d286e0/src/ol/Collection.js
+- [ ] Messaging
+    - Receive
+    - Send
+    - ACK
+- Control packet support???
+- [ ] TNC Support - via js-aprs-tnc
+    - [x] User defined commands
+    - [ ] KISS
+- General app settings
+    - [x] Imperial/metric
+    - [ ] Themes
+        - [x] Dark Theme
+        - [ ] Use OS theme?
+            - https://medium.com/missive-app/make-your-electron-app-dark-mode-compatible-c23dcfdd0dfa
+- Filters
+    - [ ] Heard by my station (no digis)
+    - [ ] Station Type
+    - [ ] Packet Type
+    - [ ] Blocked stations
+- Connection Settings
+    - [ ] Allow Transmit
+- Station Settings
+    - [ ] Transmit position interval
+    - [ ] Transmit position
+- Output Settings
+    - [ ] Clear output
+    - [ ] Pin to bottom (auto scrolling)
+    - [ ] Foreground color
+    - [ ] Background color
+    - [ ] Font
+    - [ ] Amount of data to display
+- [ ] ULS Offline Lookup
 
+# Copyright Info
+## Symbols
+* Most symbols are derived from https://github.com/hessu/aprs-symbols
+* Primary Table
+    * Train engine - https://iconscout.com/icon/locomotive-engine-railway-steam-train-emoj-symbol
+    * House logos are color modified
+* Secondary Table
+    * Originals from http://www.aprs.org
+        * Blowing Snow
+        * Girl Scout
+        * Ham Store
+        * Pharmacy
+        * Rain/Drizzle
+        * Skywarn&reg;o
+        * Small Circle
+        * Wallcloud
+    * Originals derived from ?
+        * Obstruction
+        * Workzone
+* Overlays
+    * All are original
 
-
-
+# Other Notes for Quasar rewrite
 https://forum.quasar-framework.org/topic/1870/webpack-alias-in-quasar-conf-js-15/2
 https://blog.logrocket.com/building-app-electron-vue/
 https://lzomedia.com/blog/building-a-vue-3-desktop-app-with-pinia-electron-and-quasar/

@@ -9,23 +9,23 @@
 
     import _ from 'lodash'
 
-    import { ActionTypes, StorageKeys } from '@/enums'
+    import { ActionTypes, ConnectionEventTypes, GetterTypes, StorageKeys } from '@/enums'
     import { IConnection, ISConnection, TNCConnection } from '@/models/connections'
 
     export default defineComponent({
         name: 'App',
         setup() {
-            const $store = useStore()
+            const store = useStore()
 
             try {
-                $store.dispatch(ActionTypes.SET_MAP_SETTINGS, LocalStorage.getItem(StorageKeys.MAP_SETTINGS))
+                store.dispatch(ActionTypes.SET_MAP_SETTINGS, LocalStorage.getItem(StorageKeys.MAP_SETTINGS))
             } catch {
                 console.log('Could not load map settings.')
             }
 
             try {
                 const softwareSettings = LocalStorage.getItem(StorageKeys.SOFTWARE_SETTINGS)
-                $store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, softwareSettings)
+                store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, softwareSettings)
 
                 if(softwareSettings != null && softwareSettings['isDarkMode'] != null) {
                     Dark.set(softwareSettings['isDarkMode'])
@@ -35,7 +35,7 @@
             }
 
             try {
-                $store.dispatch(ActionTypes.SET_STATION_SETTINGS, LocalStorage.getItem(StorageKeys.STATION_SETTINGS))
+                store.dispatch(ActionTypes.SET_STATION_SETTINGS, LocalStorage.getItem(StorageKeys.STATION_SETTINGS))
             } catch {
                 console.log('Could not load station settings.')
             }
@@ -53,13 +53,27 @@
                     // TODO: Throw error if neither of these
 
                     if(connection != null) {
-                        $store.dispatch(ActionTypes.ADD_CONNECTION, connection)
+                        store.dispatch(ActionTypes.ADD_CONNECTION, connection)
                     }
                 })
-
             } catch(e: any) {
                 console.log(`Could not load connections.\r ${e}`)
             }
+
+            return { store }
+        }
+        , async mounted() {
+            for(let connection of this.store.getters[GetterTypes.GET_CONNECTIONS]) {
+                const status = await global.connectionService.getConnectionStatus(connection.id)
+
+                if(status == true) {
+                    this.store.dispatch(ActionTypes.UPDATE_CONNECTION_STATUS, { id: connection.id, status: ConnectionEventTypes.CONNECTED })
+                } else {
+                    this.store.dispatch(ActionTypes.UPDATE_CONNECTION_STATUS, { id: connection.id, status: ConnectionEventTypes.DISCONNECTED })
+                }
+            }
+
+            return
         }
     })
 </script>

@@ -1,5 +1,5 @@
 <template>
-    <q-card>
+    <q-card style="width: 50%; min-width: 350px">
         <q-toolbar>
             <q-avatar square>
                 <q-img contain v-if="symbol" :src="symbol.value" class="avatar-img" height="33px" width="33px">
@@ -13,6 +13,7 @@
                     <span v-if="packet.objectname">{{ packet.objectname }} via</span>
                     {{ packet.sourceCallsign}}
                 </span>
+                <span v-if="packet.comment" class="text-caption text-italic"> - {{ packet.comment }}</span>
             </q-toolbar-title>
 
             <q-btn flat round dense icon="close" v-close-popup />
@@ -22,11 +23,14 @@
 
         <q-card-section style="max-height: 50vh">
             <div v-if="packet">
-                <p class="text-caption">
+                <p class="text-caption text-italic">
                     {{ packet.origpacket }}
                 </p>
                 <p>
                     <label style="font-weight: bold">Received Time:</label> {{ new Date(packet.receivedTime).toLocaleString() }}
+                </p>
+                <p v-if="packet.comment">
+                    <label style="font-weight: bold">Comment:</label> {{ packet.comment }}
                 </p>
                 <p v-if="packet.speed">
                     <label style="font-weight: bold">Speed:</label> {{ speed }}
@@ -65,7 +69,6 @@
     import { useStore } from "@/store"
 
     import { APRSSymbol } from "@/models"
-    import { aprsPacket } from "js-aprs-fap"
     import { GetterTypes } from "@/enums"
 
     export default defineComponent({

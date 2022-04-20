@@ -1,6 +1,6 @@
 <template>
     <div class="q-pa-md">
-        <h1>About aprs-view-js</h1>
+        <span class="text-h4 h4">About aprs-view-js</span>
         <p>APRS is a registered trademark of APRS Software and Bob Bruninga, WB4APR.</p>
         <p>
             This is intended to be a fairly lightweight, cross platform desktop graphical APRS client.

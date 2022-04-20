@@ -1,7 +1,7 @@
 <template>
     <q-page class="q-pa-md column" style="height: 100vh">
         <div class="col col-xs-1">
-            <h1>Output</h1>
+            <span class="text-h4 h4">Output</span>
         </div>
 
         <q-card class="col fill">

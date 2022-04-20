@@ -21,7 +21,7 @@
     import { NumberUtil, PacketUtil } from '@/utils'
 
     import OSM from 'ol/source/OSM'
-    import XYZ from 'ol/source/XYZ'
+    import Stamen from 'ol/source/Stamen'
     import BaseLayer from 'ol/layer/Base'
     import { Heatmap as HeatmapLayer, Tile as TileLayer } from 'ol/layer'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
@@ -110,11 +110,9 @@
                 //    })
                 //})
                 new TileLayer({
-                    source: new XYZ({
-                        attributions: [
-                            'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
-                        ]
-                        , url: 'https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg'
+                    className: 'stamen-base-layer'
+                    , source: new Stamen({
+                        layer: 'toner-lite'
                     })
                 })
                 , new VectorLayer({
@@ -411,6 +409,8 @@
                         _.filter(this.store.getters[GetterTypes.GET_PACKETS], (p) => {
                             return this.packetUtil.isValidPacket(p)
                                 && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
+                                && (p.latitude != null && p.latitude != undefined)
+                                && (p.longitude != null && p.longitude != undefined)
                         })
                         , p => (p as aprsPacket).receivedTime
                     )
