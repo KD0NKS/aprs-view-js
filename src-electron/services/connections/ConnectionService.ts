@@ -77,14 +77,11 @@ export class ConnectionService extends EventEmitter {
         }
 
         // TODO: Else throw error
-
-
-
         return connection
     }
 
     public deleteConnection(id: string | number): void {
-        const connection = _.find(this._connections, c => { (c as ISSocket).id == id})
+        const connection = this.findConnection(id)
 
         if(connection == null) {
             return
@@ -136,11 +133,9 @@ export class ConnectionService extends EventEmitter {
                     console.log('Connection not enabled, nothing to do.')
                 }
             }
-        } else if(connection instanceof TerminalSocket && setting.connectionType == 'SERIAL_TNC') {
+        } else {    // It is easier to delete and re-add a TNC connection than to try and update it.  This else also applies for switching connection types.
             this.deleteConnection(setting.id)
             connection = this.addConnection(setting)
-        } else {
-            console.log('Changing Connection Type')
         }
     }
 

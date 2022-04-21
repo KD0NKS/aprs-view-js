@@ -140,24 +140,24 @@ export default store(function (/* { ssrContext } */) {
             , [MutationTypes.SAVE_CONNECTION](state: IState, settings: IConnection) {
                 let connection = _.find(state.connections, c => c.id == settings.id)
 
-                if(connection.connectionType == settings.connectionType) {
-                    _mapper.CopyInto<IConnection, IConnection>(settings, connection)
-
-                    global.connectionService.updateConnection(_.cloneDeep(settings))
-                } else {
-                    const idx = _.findIndex(state.connections, c => c.id == settings.id)
-
-                    if(idx > -1) {
-                        state.connections.splice(idx, 1, settings)
+                if(connection && connection != null) {
+                    if(connection.connectionType == settings.connectionType) {
+                        _mapper.CopyInto<IConnection, IConnection>(settings, connection)
                     } else {
-                        state.connections.push(settings)
+                        const idx = _.findIndex(state.connections, c => c.id == settings.id)
+
+                        if(idx > -1) {
+                            state.connections.splice(idx, 1, settings)
+                        } else {
+                            state.connections.push(settings)
+                        }
+
+
                     }
 
-                    global.connectionService.deleteConnection(settings.id)
-                    global.connectionService.addConnection(_.cloneDeep(settings))
+                    LocalStorage.set(`connections.${settings.id}`, settings.toJSON())
+                    global.connectionService.updateConnection(_.cloneDeep(settings))
                 }
-
-                LocalStorage.set(`connections.${settings.id}`, settings.toJSON())
 
                 // TODO: Error notification to tell user saving failed
             }

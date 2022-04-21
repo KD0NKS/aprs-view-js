@@ -26,25 +26,27 @@ export class TerminalSocket extends SerialPort {
             this.sendCommand(this._options.messageDelimeter)
 
             // Attempt to clear data from pipe
-            this.flush()
+            setTimeout(() => {
+                this.flush()
 
-            let flushedData = this.read()
-            while(flushedData != null) {
-                flushedData = this.read()
-            }
+                // Attempt to clear data from pipe
+                let flushedData = this.read()
+                while(flushedData != null) {
+                    flushedData = this.read()
+                }
 
-            // Set up data listener
-            this._pipeListener = (data) => {
-                this.emit('packet', data.toString().trim())
-            }
+                this._pipeListener = (data) => {
+                    this.emit('packet', data.toString().trim())
+                }
 
-            for(let command of this._options.initCommands){
-                this.sendCommand(command)
-            }
+                for(let command of this._options.initCommands){
+                    this.sendCommand(command)
+                }
 
-            this._pipe.on('data', this._pipeListener)
+                this._pipe.on('data', this._pipeListener)
 
-            this.sendMyCallCommand()
+                this.sendMyCallCommand()
+            }, 2000)
         })
     }
 
@@ -92,12 +94,16 @@ export class TerminalSocket extends SerialPort {
         try {
             this.runExitCommands()
         } finally {
-            setTimeout(() => {
-                super.close(callback, disconnectError)
-            }, 1000)
+            if(this.isOpen) {
+                setTimeout(() => {
+                    super.close(callback, disconnectError)
+                }, 1000)
+            }
 
             // clear internal data listener
-            this._pipe.removeListener('data', this._pipeListener)
+            if(this._pipeListener != null) {
+                this._pipe.removeListener('data', this._pipeListener)
+            }
         }
     }
 
