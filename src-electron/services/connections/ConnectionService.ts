@@ -49,7 +49,8 @@ export class ConnectionService extends EventEmitter {
 
             terminalSettings.id = setting.id
             terminalSettings.path = setting["comPort"]
-            terminalSettings.baudRate = setting["baudRate"] //? parseInt(setting["baudRate"]) : 9600
+            // For whatever reason, setting the datatype on the input to number isn't enough and passes it as a string.
+            terminalSettings.baudRate = setting["baudRate"] ? parseInt(setting["baudRate"]) : 9600
             terminalSettings.charset = setting["charset"]
             terminalSettings.dataBits = setting["dataBits"]
             terminalSettings.myCallCommand = setting["myCallCommand"] ?? ""
@@ -269,6 +270,12 @@ export class ConnectionService extends EventEmitter {
                     this.emit(DataEventTypes.ERROR, err)
                 }
             })
+
+            for(const e of this.SOCKET_DISCONNECT_EVENTS) {
+                connection.on(e, () => {
+                    this.emit(ConnectionEventTypes.DISCONNECTED, connection.id)
+                })
+            }
         }
 
         connection.on('error', (err: Error) => {

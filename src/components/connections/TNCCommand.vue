@@ -1,6 +1,6 @@
 <template>
     <q-item dense>
-        <q-item-section avatar>
+        <q-item-section avatar class="handle">
             <q-icon name="drag_indicator" />
         </q-item-section>
         <q-item-section class="col-10">

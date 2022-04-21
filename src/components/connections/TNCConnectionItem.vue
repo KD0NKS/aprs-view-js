@@ -64,13 +64,15 @@
     <div class="row">
         <div class="col-6">
             <q-list dense>
-                <template v-for="(item, index) in model.initCommands" :key="index">
-                    <TNCCommand :command="model.initCommands[index]"
-                            @removeCommand="removeCommand(model.initCommands, index)"
-                            @updateCommand="updateCommand(model.initCommands, index, $event)"
-                            emit-value
-                            />
-                </template>
+                <draggable v-model="model.initCommands" item-key="index" @start="drag=true" @end="drag=false" handle=".handle">
+                    <template #item="{ element, index }">
+                        <TNCCommand :command="element"
+                                @removeCommand="removeCommand(model.initCommands, index)"
+                                @updateCommand="updateCommand(model.initCommands, index, $event)"
+                                emit-value
+                                />
+                    </template>
+                </draggable>
             </q-list>
 
             <q-btn flat @click="addCommand(model.initCommands)"><q-icon name="add" />Add INIT COMMAND</q-btn>
@@ -78,12 +80,14 @@
 
         <div class="col-6">
             <q-list dense>
-                <template v-for="(item, index) in model.exitCommands" :key="index">
-                    <TNCCommand :command="model.exitCommands[index]"
-                            @removeCommand="removeCommand(model.exitCommands, index)"
-                            @updateCommand="updateCommand(model.exitCommands, index, $event)"
-                            />
-                </template>
+                <draggable v-model="model.exitCommands" item-key="index" @start="drag=true" @end="drag=false"  handle=".handle">
+                    <template #item="{ element, index }">
+                        <TNCCommand :command="element"
+                                @removeCommand="removeCommand(model.exitCommands, index)"
+                                @updateCommand="updateCommand(model.exitCommands, index, $event)"
+                                />
+                    </template>
+                </draggable>
             </q-list>
 
             <q-btn flat @click="addCommand(model.exitCommands)"><q-icon name="add" />Add INIT COMMAND</q-btn>
@@ -94,6 +98,7 @@
 <script lang="ts">
     import { defineComponent, ref } from "vue"
     import { useStore } from '@/store'
+    import draggable from 'vuedraggable'
     import _ from "lodash"
 
     import { EolCharEnum, GetterTypes } from "@/enums"
@@ -109,7 +114,8 @@
             }
         }
         , components: {
-            TNCCommand
+            draggable
+            , TNCCommand
         }
         , setup() {
             const comPorts = ref<string[]>([])

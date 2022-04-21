@@ -25,26 +25,27 @@ export class TerminalSocket extends SerialPort {
 
             this.sendCommand(this._options.messageDelimeter)
 
-            // TODO: Setup loop that checks for data and executes until all data is drained?
-
             // Attempt to clear data from pipe
-            setTimeout(() => {
-                this.flush()
-                // TODO: Fix this
-                //this._pipeListener = this._pipe.on('data', (data: string) => {
-                this._pipe.on('data', (data: string) => {
-                    this.emit('packet', data.toString().trim())
-                })
+            this.flush()
 
-                for(let command of this._options.initCommands){
-                    this.sendCommand(command)
-                }
+            let flushedData = this.read()
+            while(flushedData != null) {
+                flushedData = this.read()
+            }
 
-                this.sendMyCallCommand()
-            }, 2000)
+            // Set up data listener
+            this._pipeListener = (data) => {
+                this.emit('packet', data.toString().trim())
+            }
+
+            for(let command of this._options.initCommands){
+                this.sendCommand(command)
+            }
+
+            this._pipe.on('data', this._pipeListener)
+
+            this.sendMyCallCommand()
         })
-
-        // TODO: Callback
     }
 
     public get id(): string | number {
@@ -66,7 +67,9 @@ export class TerminalSocket extends SerialPort {
     }
 
     public sendMyCallCommand(callback?: any) {
-        if(this._options.myCallCommand != null
+        if(this.isOpen
+                && this.writable
+                && this._options.myCallCommand != null
                 && this._options.myCallCommand.trim().length > 0
                 && this._options.callsign != null
                 && this._options.callsign.trim().length > 0
@@ -93,7 +96,8 @@ export class TerminalSocket extends SerialPort {
                 super.close(callback, disconnectError)
             }, 1000)
 
-            //this._pipe.removeListener('data', this._pipeListener)
+            // clear internal data listener
+            this._pipe.removeListener('data', this._pipeListener)
         }
     }
 
