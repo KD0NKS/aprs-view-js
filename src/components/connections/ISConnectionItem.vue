@@ -6,6 +6,7 @@
     <div class="q-gutter-md row">
         <q-input label="Filter" v-model="model.filter" class="col-11" />
     </div>
+    <br />
 </template>
 
 <script lang="ts">

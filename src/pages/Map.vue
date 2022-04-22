@@ -1,5 +1,5 @@
 <template>
-    <div id="map">
+    <div id="map" style="position: relative;">
         <q-dialog v-model="isShowStationInfo">
             <station-feature-card
                 :packet="stationInfoPacket"
@@ -9,7 +9,7 @@
                 />
         </q-dialog>
 
-        <map-context-menu></map-context-menu>
+        <map-context-menu v-on:clearAll="clearAllStations()"></map-context-menu>
     </div>
 </template>
 
@@ -23,7 +23,7 @@
     import OSM from 'ol/source/OSM'
     import Stamen from 'ol/source/Stamen'
     import BaseLayer from 'ol/layer/Base'
-    import { Heatmap as HeatmapLayer, Tile as TileLayer } from 'ol/layer'
+    import { Heatmap as HeatmapLayer, Tile as TileLayer, Image } from 'ol/layer'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import { fromLonLat, toLonLat } from 'ol/proj'
     import { aprsPacket } from 'js-aprs-fap'
@@ -35,10 +35,14 @@
     import { APRSSymbol } from '@/models'
     import { Style, Fill, Stroke, Text, Icon } from 'ol/style'
     import VectorLayer from 'ol/layer/Vector'
-    import { GetterTypes } from '@/enums'
+    import { ActionTypes, GetterTypes } from '@/enums'
     import LineString from 'ol/geom/LineString'
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
     import MapContextMenu from '@/components/maps/MapContextMenu.vue'
+    import { FeatureSearch } from '@/models/ol/controls/FeatureSearch'
+    import { defaults as defaultControls} from 'ol/control'
+    import ImageLayer from 'ol/layer/Image'
+    import ImageArcGISRest from 'ol/source/ImageArcGISRest'
 
     const map = null
 
@@ -115,6 +119,35 @@
                         layer: 'toner-lite'
                     })
                 })
+                /*
+                , new ImageLayer({
+                    source: new ImageArcGISRest({
+                        // TODO: Refresh every 2 -5 min... rtfm here: https://nowcoast.noaa.gov/help/#!section=updateschedule
+                        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer'
+                        , params: {
+                            'LAYERS': '1,3'
+                            , 'FORMAT': 'PNG32'
+                        }
+                        , attributions: [
+                            '<br />Rardar tiles by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
+                        ]
+                    })
+                    , opacity: 0.5
+                })
+                , new ImageLayer({
+                    source: new ImageArcGISRest({
+                        // TODO: Refresh source every minute
+                        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
+                        , params: {
+                            'FORMAT': 'PNG32'
+                        }
+                        , attributions: [
+                            '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
+                        ]
+                    })
+                    , opacity: 0.5
+                })
+                */
                 , new VectorLayer({
                     className: 'trail-layer'
                     , declutter: true
@@ -143,6 +176,9 @@
 
             const map = new OLMap({
                 target: 'map'
+                , controls: defaultControls().extend([
+                    new FeatureSearch()
+                ])
                 , layers: layers
                 , view: new View({
                     center: fromLonLat([-98.5795, 39.8283]) // Default to center of the US
@@ -302,6 +338,19 @@
                     feature.setStyle(MapService.oldPositionStyle)
                     this.genericPointVector.addFeature(feature)
                 }
+
+                return
+            }
+            , async clearAllStations() {
+                this.store.dispatch(ActionTypes.REMOVE_PACKETS, _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
+                    result.push((value as Feature<Geometry>).getId())
+                    return result
+                }, []))
+
+                this.store.dispatch(ActionTypes.REMOVE_PACKETS, _.reduce(this.stationPositionVector.getFeatures(), (result, value) => {
+                    result.push((value as Feature<Geometry>).getId())
+                    return result
+                }, []))
 
                 return
             }

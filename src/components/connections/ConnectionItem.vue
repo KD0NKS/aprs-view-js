@@ -33,6 +33,10 @@
                     </q-select>
                 </div>
 
+                <div class="q-gutter-md row" dense>
+                    <q-toggle v-model="model.isAllowTransmit" label="Allow Transmit" />
+                </div>
+
                 <ISConnectionItem :model="model" v-if="model.connectionType == 'IS_SOCKET'" />
                 <TNCConnectionItem :model="model" v-if="model.connectionType == 'SERIAL_TNC'" />
 

@@ -121,6 +121,13 @@ export default store(function (/* { ssrContext } */) {
                     global.connectionService.deleteConnection(connectionId)
                 }
             }
+            , [MutationTypes.REMOVE_PACKETS](state: IState, ids) {
+                aprsPackets.remove(packet => (
+                    ids.indexOf(packet.id) > -1
+                ))
+
+                // TODO: When database is in place, mark these as deleted
+            }
             , [MutationTypes.SET_MAP_SETTINGS](state: IState, settings: IMapSettings) {
                 if(!this.packetTimer) {
                     // Set the interval to the new time
@@ -151,8 +158,6 @@ export default store(function (/* { ssrContext } */) {
                         } else {
                             state.connections.push(settings)
                         }
-
-
                     }
 
                     LocalStorage.set(`connections.${settings.id}`, settings.toJSON())
@@ -217,6 +222,9 @@ export default store(function (/* { ssrContext } */) {
             }
             , [ActionTypes.DELETE_CONNECTION]({ commit }, connectionId: string) {
                 commit(MutationTypes.DELETE_CONNECTION, connectionId)
+            }
+            , [ActionTypes.REMOVE_PACKETS]({ commit }, ids: string[]) {
+                commit(MutationTypes.REMOVE_PACKETS, ids)
             }
             , [ActionTypes.SAVE_CONNECTION]({ commit }, settings: IConnection) {
                 commit(MutationTypes.SAVE_CONNECTION, settings)

@@ -5,6 +5,7 @@ import { IConnection } from "@/models/connections"
 
 export abstract class AbstractConnection {
     public id: string = uid()
+    public isAllowTransmit: boolean = false
     public name: string = "Default"
     public connectionType: string = 'IS_SOCKET'
 
@@ -14,6 +15,7 @@ export abstract class AbstractConnection {
     constructor(settings?: IConnection) {
         if(settings) {
             this.id = !StringUtil.IsNullOrWhiteSpace(settings["id"]) ? settings["id"] : uid()
+            this.isAllowTransmit = settings["isAllowTransmit"] ?? false
             this.name = settings["name"] ?? "Default"
             this.connectionType = settings["connectionType"] ?? "IS_SOCKET"
         }

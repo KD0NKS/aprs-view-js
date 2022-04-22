@@ -12,8 +12,8 @@
                         :bar-style="{ borderRadius: '5px', background: 'lightgray', width: '10px', opacity: 0.8 }"
                         :thumb-style="{ borderRadius: '5px', background: 'black', width: '10px', opacity: 0.5 }"
                         >
-                    <div v-for="(data, i) in messages" :key="i">
-                        {{ data }}
+                    <div v-for="(packet, i) in messages" :key="i">
+                        {{ packet.sourceCallsign }} > {{ packet.destination }}: {{ packet.message }}
                     </div>
                 </q-scroll-area>
             </q-card-section>

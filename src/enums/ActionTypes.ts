@@ -5,6 +5,7 @@ export enum ActionTypes {
     , ADD_PACKET = 'addPacket'
     , CLEAR_OLD_PACKETS = 'clearOldPackets'
     , DELETE_CONNECTION = 'deleteConnection'
+    , REMOVE_PACKETS = 'removePackets'
     , SAVE_CONNECTION = 'saveConnection'
     , SET_CONNECTION_STATUS = 'setConnectionStatus'
     , SET_MAP_SETTINGS = 'setMapSettings'

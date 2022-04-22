@@ -2,7 +2,7 @@
     <q-menu context-menu >
         <q-list style="min-width: 100px">
             <q-item clickable v-close-popup>
-                <q-item-section>
+                <q-item-section clickable @click="$emit('clearAll')">
                     Clear all stations
                 </q-item-section>
             </q-item>
