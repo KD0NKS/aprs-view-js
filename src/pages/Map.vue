@@ -2,6 +2,7 @@
     <div id="map" style="position: relative;">
         <q-dialog v-model="isShowStationInfo">
             <station-feature-card
+                :connectionId="stationConnectionId"
                 :packet="stationInfoPacket"
                 :symbol="stationIcon"
                 :overlay="stationIconOverlay"
@@ -68,6 +69,7 @@
             //const map: OLMap = ref(null)
 
             const stationInfoPacket = ref(null)
+            const stationConnectionId = ref(null)
             const stationIconOverlay = ref(new APRSSymbol({
                     key: "logo"
                     , value: require('@/assets/radio-tower.png')
@@ -93,6 +95,7 @@
                 , stationPositionVector
                 , symbolService
                 , trailVector
+                , stationConnectionId
                 , stationIcon
                 , stationIconOverlay
                 , stationInfoPacket
@@ -115,6 +118,7 @@
                 //})
                 new TileLayer({
                     className: 'stamen-base-layer'
+                    , preload: 1
                     , source: new Stamen({
                         layer: 'toner-lite'
                     })
@@ -196,18 +200,23 @@
                 // Prevent trying to fetch data if a trail is clicked
                 if(feature && feature.getGeometry().getType() != "LineString") {
                     let pkt = this.store.getters[GetterTypes.GET_PACKET](feature.getId())
-                    const icon = this.symbolService.GetAPRSSymbol(pkt.symbolcode, pkt.symboltable)
+
+                    this.stationConnectionId = pkt[0]
+
+                    const icon = this.symbolService.GetAPRSSymbol(pkt[1].symbolcode, pkt[1].symboltable)
                     this.stationIcon = ref(icon['symbol'])
                     this.stationIconOverlay = ref(icon['overlay'])
 
-                    this.stationInfoPacket = pkt as aprsPacket
+                    this.stationInfoPacket = pkt[1] as aprsPacket
                     this.isShowStationInfo = true
                 }
 
                 return
             })
 
-            this.packetAddedListener = this.packets.on('add', (packet) => {
+            this.packetAddedListener = this.packets.on('add', (p) => {
+                const packet = p[1]
+
                 if(packet.alive == null || packet.alive == true) {
                     this.addPacket(packet, this.mapSettings.isShowTrails)
                 } else {
@@ -238,8 +247,8 @@
             })
 
             this.packetRemovedListener = this.packets.on('remove', (packet) => {
-                this.removePoints(this.genericPointVector, [ packet.id ])
-                this.removePoints(this.stationPositionVector, [ packet.id ])
+                this.removePoints(this.genericPointVector, [ packet[1].id ])
+                this.removePoints(this.stationPositionVector, [ packet[1].id ])
             })
 
             this.$nextTick(function() {
@@ -435,6 +444,9 @@
 
                         if(trail != null) {
                             (trail.getGeometry() as LineString).setCoordinates(coords)
+                            // TODO: append coordinate rather than re-render entire trail
+                            // how to remove first instance of a given coordinate?
+                            // (trail.getGeometry() as LineString).appendCoordinate(coords)
                         } else {
                             const ls = new LineString(coords)
 
@@ -452,15 +464,29 @@
 
                 return
             }
-            , getAllLocationPackets(): aprsPacket[] {
+            , getAllLocationPackets(): [ (string | number), aprsPacket ][] {
+                const packets = _.reduce(
+                        this.store.getters[GetterTypes.GET_PACKETS]
+                        , (result, value) => {
+                            if(value[1]) {
+                                result.push(value[1])
+                            }
+
+                            return result
+                        }
+                        , []
+                    )
+
                 return _.compact(
                     _.sortBy(
-                        _.filter(this.store.getters[GetterTypes.GET_PACKETS], (p) => {
-                            return this.packetUtil.isValidPacket(p)
-                                && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
-                                && (p.latitude != null && p.latitude != undefined)
-                                && (p.longitude != null && p.longitude != undefined)
-                        })
+                        _.filter(
+                            packets
+                            , (p) => {
+                                return this.packetUtil.isValidPacket(p)
+                                    && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
+                                    && (p.latitude != null && p.latitude != undefined)
+                                    && (p.longitude != null && p.longitude != undefined)
+                            })
                         , p => (p as aprsPacket).receivedTime
                     )
                 )
@@ -477,7 +503,7 @@
                     const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
                     if(toRemove != null && toRemove.length > 0) {
-                        _.map(toRemove, f => {
+                        for(let f of toRemove) {
                             if(f != undefined) {
                                 vector.removeFeature(f)
 
@@ -486,7 +512,7 @@
                                 f.dispose()
                                 f = null
                             }
-                        })
+                        }
 
                         return
                     }

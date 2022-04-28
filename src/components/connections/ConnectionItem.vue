@@ -1,5 +1,5 @@
 <template>
-    <q-expansion-item expand-separator>
+    <q-expansion-item expand-separator dense>
         <template v-slot:header>
             <q-item-section avatar>
                 <q-icon color="green" name="link" v-if="connection.isConnected == true" />
@@ -21,7 +21,7 @@
                     @reset="onReset"
                     @submit="onSubmit">
                 <div class="q-gutter-md row" dense>
-                    <q-input label="Name" v-model="model.name" :rules="[ rules.required ]" class="col-8" />
+                    <q-input label="Name" v-model="model.name" :rules="[ rules.required ]" class="col-8" dense />
                     <q-select label="Connection Type"
                             v-model="model.connectionType"
                             :options="connectionTypeOptions"
@@ -29,11 +29,12 @@
                             class="col-3"
                             emit-value
                             map-options
+                            dense
                             >
                     </q-select>
                 </div>
 
-                <div class="q-gutter-md row" dense>
+                <div class="q-gutter-md row" style="margin-bottom: 10px;">
                     <q-toggle v-model="model.isAllowTransmit" label="Allow Transmit" />
                 </div>
 

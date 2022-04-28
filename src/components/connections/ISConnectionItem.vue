@@ -1,10 +1,10 @@
 <template>
     <div class="q-gutter-md row" dense>
-        <q-input label="URL" v-model="model.host" :rules="[ rules.required ]" class="col-8" />
-        <q-input label="Port" v-model="model.port" :rules="[ rules.required ]" class="col-3" />
+        <q-input label="URL" v-model="model.host" :rules="[ rules.required ]" class="col-8" dense />
+        <q-input label="Port" v-model="model.port" :rules="[ rules.required ]" class="col-3" dense />
     </div>
     <div class="q-gutter-md row">
-        <q-input label="Filter" v-model="model.filter" class="col-11" />
+        <q-input label="Filter" v-model="model.filter" class="col-11" dense />
     </div>
     <br />
 </template>

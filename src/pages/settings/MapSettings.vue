@@ -15,6 +15,7 @@
                             :rules="[ rules.positiveNum ]"
                             type="number"
                             class="col-6"
+                            delse
                             />
                 </div>
 
@@ -22,6 +23,7 @@
                     <q-toggle label="Show Labels"
                             v-model="settings.isShowLabels"
                             class="col-6"
+                            dense
                             />
                 </div>
 
@@ -29,6 +31,7 @@
                     <q-toggle label="Show Trails"
                             v-model="settings.isShowTrails"
                             class="col-6"
+                            dense
                             />
                 </div>
 

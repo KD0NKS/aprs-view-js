@@ -25,6 +25,7 @@ export abstract class AbstractConnection {
         const jsonObj = {}
 
         jsonObj["id"] = this.id
+        jsonObj["isAllowTransmit"] = this.isAllowTransmit
         jsonObj["name"] = this.name
         jsonObj["connectionType"] = this.connectionType
 

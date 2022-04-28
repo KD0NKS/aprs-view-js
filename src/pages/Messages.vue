@@ -1,6 +1,6 @@
 <template>
     <q-page class="q-pa-md column" style="height: 100vh">
-        <div class="col col-xs-1">
+        <div class="col col-xs-1" style="min-height: 45px;">
             <span class="text-h4 h4">Messages</span>
         </div>
 
@@ -13,7 +13,7 @@
                         :thumb-style="{ borderRadius: '5px', background: 'black', width: '10px', opacity: 0.5 }"
                         >
                     <div v-for="(packet, i) in messages" :key="i">
-                        {{ packet.sourceCallsign }} > {{ packet.destination }}: {{ packet.message }}
+                        {{ packet[1].sourceCallsign }}&nbsp;>&nbsp;{{ packet[1].destination }}: {{ packet[1].message }}
                     </div>
                 </q-scroll-area>
             </q-card-section>
@@ -52,9 +52,9 @@
             const msgs = _.compact(
                 _.sortBy(
                     _.filter(this.packets, (p) => {
-                        return p.type == PacketTypeEnum.MESSAGE
+                        return p[1].type == PacketTypeEnum.MESSAGE
                     })
-                    , p => (p as aprsPacket).receivedTime
+                    , p => (p[1] as aprsPacket).receivedTime
                 )
             )
 

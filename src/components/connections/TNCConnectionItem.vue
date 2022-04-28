@@ -1,23 +1,25 @@
 <template>
-    <div class="q-gutter-md row items-start">
+    <div class="q-gutter-md row">
         <q-select label="COM Port"
             :options="comPorts"
             v-model="model.comPort"
             :rules="[ rules.required ]"
             @focus="updateSerialPorts"
             class="col-6"
+            dense
             >
         </q-select>
 
-        <q-input label="Baud Rate" v-model="model.baudRate" type="number" class="col-5" />
+        <q-input label="Baud Rate" v-model="model.baudRate" type="number" class="col-5" dense />
     </div>
 
-    <div class="q-gutter-md row items-start">
+    <div class="q-gutter-md row">
         <q-select label="Data Bits"
             :options="dataBitOptions"
             v-model="model.dataBits"
             :rules="[ rules.required ]"
             class="col-6"
+            dense
             >
         </q-select>
 
@@ -26,16 +28,18 @@
             v-model="model.stopBits"
             :rules="[ rules.required ]"
             class="col-5"
+            dense
             >
         </q-select>
     </div>
 
-    <div class="q-gutter-md row items-start">
+    <div class="q-gutter-md row">
         <q-select label="Parity"
             :options="parityOptions"
             v-model="model.parity"
             :rules="[ rules.required ]"
             class="col-6"
+            dense
             >
         </q-select>
 
@@ -44,12 +48,13 @@
             v-model="model.charset"
             :rules="[ rules.required ]"
             class="col-5"
+            dense
             >
         </q-select>
     </div>
 
-    <div class="q-gutter-md row items-start">
-        <q-input label="MYCALL Command" v-model="model.myCallCommand" class="col-6" />
+    <div class="q-gutter-md row">
+        <q-input label="MYCALL Command" v-model="model.myCallCommand" class="col-6" dense />
         <q-select label="EOL Character"
             :options="eolCharOptions"
             v-model="model.messageDelimeter"
@@ -57,6 +62,7 @@
             emit-value
             map-options
             class="col-5"
+            dense
             >
         </q-select>
     </div>
@@ -64,8 +70,8 @@
     <div class="row">
         <div class="col-6">
             <q-list dense>
-                <draggable v-model="model.initCommands" item-key="index" @start="drag=true" @end="drag=false" handle=".handle">
-                    <template #item="{ element, index }">
+                <draggable v-model="model.initCommands" item-key="index" @start="drag=true" @end="drag=false" handle=".handle" dense>
+                    <template #item="{ element, index }" dense>
                         <TNCCommand :command="element"
                                 @removeCommand="removeCommand(model.initCommands, index)"
                                 @updateCommand="updateCommand(model.initCommands, index, $event)"

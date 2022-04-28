@@ -22,35 +22,38 @@
 
         <q-separator inset />
 
-        <q-card-section style="max-height: 50vh">
+        <q-card-section>
             <div v-if="packet">
                 <p class="text-caption text-italic">
                     {{ packet.origpacket }}
                 </p>
+                <p v-if="connectionName">
+                    <label class="label">Source:</label> {{ connectionName }}
+                </p>
                 <p>
-                    <label style="font-weight: bold">Received Time:</label> {{ new Date(packet.receivedTime).toLocaleString() }}
+                    <label class="label">Received Time:</label> {{ new Date(packet.receivedTime).toLocaleString() }}
                 </p>
                 <p v-if="packet.speed">
-                    <label style="font-weight: bold">Speed:</label> {{ speed }}
+                    <label class="label">Speed:</label> {{ speed }}
                 </p>
                 <p v-if="packet.course">
-                    <label style="font-weight: bold">Course:</label> {{ packet.course }}&#730;
+                    <label class="label">Course:</label> {{ packet.course }}&#730;
                 </p>
                 <p v-if="packet.altitude">
-                    <label style="font-weight: bold">Altitude:</label> {{ altitude }}
+                    <label class="label">Altitude:</label> {{ altitude }}
                 </p>
                 <div v-if="packet.wx">
                     <p v-if="packet.wx.temp">
-                        <label style="font-weight: bold">Temperature:</label> {{ temperature }}
+                        <label class="label">Temperature:</label> {{ temperature }}
                     </p>
                     <p v-if="packet.wx.humidity">
-                        <label style="font-weight: bold">Humidity:</label> {{ packet.wx.humidity }}%
+                        <label class="label">Humidity:</label> {{ packet.wx.humidity }}%
                     </p>
                     <p v-if="packet.wx.wind_speed">
-                        <label style="font-weight: bold">Wind Speed:</label> {{ windSpeed }}
+                        <label class="label">Wind Speed:</label> {{ windSpeed }}
                     </p>
                     <p v-if="packet.wx.wind_gust">
-                        <label style="font-weight: bold">Wind Gust:</label> {{ windGust }}
+                        <label class="label">Wind Gust:</label> {{ windGust }}
                     </p>
                 </div>
             </div>
@@ -63,8 +66,9 @@
 
 <script lang="ts">
     import { defineComponent, ref } from "vue"
-    import { ConversionUtil } from "@/utils"
     import { useStore } from "@/store"
+
+    import { ConversionUtil } from "@/utils"
 
     import { APRSSymbol } from "@/models"
     import { GetterTypes } from "@/enums"
@@ -72,7 +76,11 @@
     export default defineComponent({
         name: "MapContextMenu"
         , props: {
-            overlay: {
+            connectionId: {
+                type: [ String, Number ]
+                , required: false
+            }
+            , overlay: {
                 type: APRSSymbol
                 , required: false
             }
@@ -87,15 +95,25 @@
         }
         , setup() {
             const store = useStore()
+
+            const connections = store.getters[GetterTypes.GET_CONNECTIONS]
             const softwareSettings = store.getters[GetterTypes.SOFTWARE_SETTINGS]
 
             return {
-                softwareSettings
+                connections
+                , softwareSettings
             }
         }
         , computed: {
             altitude() {
                 return ConversionUtil.metersFeetWithLabel(this.packet.altitude, this.softwareSettings.distanceUnitType)
+            }
+            , connectionName() {
+                if(this.connectionId != null) {
+                    return this.connections.find(c => c.id == this.connectionId)?.name
+                } else {
+                    return null
+                }
             }
             , speed() {
                 return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.softwareSettings.distanceUnitType)
@@ -119,4 +137,9 @@
 <style scoped lang="sass">
 .avatar-img
     background: transparent
+.label
+    font-weight: bold
+.station-card
+    width: 50%
+    min-width: 350px
 </style>

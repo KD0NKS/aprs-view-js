@@ -13,6 +13,7 @@
                     <q-toggle
                         :label="themeLabel"
                         v-model="settings.isDarkMode"
+                        dense
                         >
                     </q-toggle>
                 </div>
@@ -23,6 +24,7 @@
                             emit-value
                             map-options
                             class="col-6"
+                            dense
                             >
                     </q-select>
                 </div>
@@ -36,6 +38,7 @@
                             emit-value
                             map-options
                             class="col-6"
+                            dense
                             >
                     </q-select>
                 </div>

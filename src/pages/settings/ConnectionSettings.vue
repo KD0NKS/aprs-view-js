@@ -4,7 +4,7 @@
             <span class="text-h4 h4">Connection Settings</span>
         </div>
 
-        <q-list bordered v-for="(item) in connections" :key="item.id">
+        <q-list bordered v-for="(item) in connections" :key="item.id" dense>
             <connection-item :connection="item" />
         </q-list>
 

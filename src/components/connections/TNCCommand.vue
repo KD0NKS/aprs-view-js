@@ -1,13 +1,13 @@
 <template>
     <q-item dense>
         <q-item-section avatar class="handle">
-            <q-icon name="drag_indicator" />
+            <q-icon name="drag_indicator" dense />
         </q-item-section>
         <q-item-section class="col-10">
-            <q-input v-model="localCommand" :rules="[ rules.required ]" />
+            <q-input v-model="localCommand" :rules="[ rules.required ]" dense />
         </q-item-section>
         <q-item-section>
-            <q-btn flat>
+            <q-btn flat dense>
                 <q-icon name="clear" @click="$emit('removeCommand')" />
             </q-btn>
         </q-item-section>

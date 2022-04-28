@@ -9,13 +9,13 @@
                     :greedy="false"
                     @reset="onReset"
                     @submit="onSubmit">
-                <div class="q-gutter-md row items-start">
-                    <q-input label="Callsign" v-model="settings.callsign" :rules="[ rules.required ]" class="col-5" />
-                    <q-input label="SSID" v-model="settings.ssid" class="col-2" />
-                    <q-input label="Passcode" v-model="settings.passcode" class="col-4" />
+                <div class="q-gutter-md row">
+                    <q-input label="Callsign" v-model="settings.callsign" :rules="[ rules.required ]" class="col-5" dense />
+                    <q-input label="SSID" v-model="settings.ssid" class="col-2" dense />
+                    <q-input label="Passcode" v-model="settings.passcode" class="col-4" dense />
                 </div>
 
-                <div class="q-gutter-md row items-start">
+                <div class="q-gutter-md row">
                     <q-select
                             v-model="settings.symbol"
                             :options="aprsSymbols"
@@ -27,6 +27,7 @@
                             emit-value
                             map-options
                             class="col-6"
+                            dense
                             >
                         <template v-slot:prepend v-if="stationSymbol && stationSymbol != null">
                             <q-avatar>
@@ -56,6 +57,7 @@
                             emit-value
                             map-options
                             class="col-5"
+                            dense
                             >
                         <template v-slot:prepend v-if="overlaySymbol && overlaySymbol != null">
                             <q-avatar>
@@ -74,7 +76,7 @@
                         </template>
                     </q-select>
                 </div>
-                <div class="q-gutter-md row items-start">
+                <div class="q-gutter-md row">
                     <q-btn color="primary" label="Save" type="submit" />
                     <q-btn label="Reset" type="reset" />
                 </div>

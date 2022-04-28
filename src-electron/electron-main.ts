@@ -118,6 +118,7 @@ ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_GET_CONNECTION_STATUS, async(eve
     return connectionService.getConnectionStatus(connectionId)
 })
 
+// Connection Events
 connectionService.on(ConnectionEventTypes.CONNECTED, id => {
     mainWindow.webContents.send(ConnectionEventTypes.CONNECTED, id)
 })

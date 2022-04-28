@@ -212,16 +212,20 @@ export class ConnectionService extends EventEmitter {
     private attachListeners(connection: ISSocket | TerminalSocket): void {
         if(connection instanceof ISSocket) {
             connection.on(DataEventTypes.PACKET, (data: string) => {
-                if(data.charAt(0) != '#') {
-                    try {
-                        const msg = this._parser.parseaprs(data.trim(), { accept_broken_mice: true })
-                        msg.id = uid()
-                        this.emit(DataEventTypes.PACKET, msg)
-                    } catch (err) {
-                        this.emit(DataEventTypes.ERROR, err)
+                const cleanData = data.trim()
+
+                if(cleanData.length > 0) {
+                    if(data.charAt(0) != '#') {
+                        try {
+                            const msg = this._parser.parseaprs(data.trim(), { accept_broken_mice: true })
+                            msg.id = uid()
+                            this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
+                        } catch (err) {
+                            this.emit(DataEventTypes.ERROR, [ connection.id, err ])
+                        }
+                    } else {
+                        this.emit(DataEventTypes.PACKET, [ connection.id, data ])
                     }
-                } else {
-                    this.emit(DataEventTypes.PACKET, data)
                 }
             })
 
@@ -242,7 +246,7 @@ export class ConnectionService extends EventEmitter {
             }
 
             connection.on(DataEventTypes.DATA, (data: string) => {
-                this.emit(DataEventTypes.DATA, data.toString())
+                this.emit(DataEventTypes.DATA, [ connection.id, data.toString() ])
             })
         } else if(connection instanceof TerminalSocket) {
             for(const e of this.SOCKET_CONNECT_EVENTS) {
@@ -257,12 +261,12 @@ export class ConnectionService extends EventEmitter {
                     data = data.trim().replace(/^[cmd:]*/, '')
                     const msg = this._parser.parseaprs(data)
                     msg.id = uid()
-                    this.emit(DataEventTypes.PACKET, msg)
+                    this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
 
                     // Serial port on data event will emit character at a time.
-                    this.emit(DataEventTypes.DATA, data)
+                    this.emit(DataEventTypes.DATA, [ connection.id, data ])
                 } catch (err) {
-                    this.emit(DataEventTypes.ERROR, err)
+                    this.emit(DataEventTypes.ERROR, [ connection.id, err ])
                 }
             })
 
@@ -274,8 +278,7 @@ export class ConnectionService extends EventEmitter {
         }
 
         connection.on('error', (err: Error) => {
-            this.emit(DataEventTypes.ERROR, err)
-            connection.end()
+            this.emit(DataEventTypes.ERROR, [ connection.id, err ])
         })
     }
 

@@ -50,6 +50,11 @@ TODO:
 * UI
     - [ ] Restore to size, screen and location on start
     - [ ] Output window styling? https://github.com/chinchang/screenlog.js
+* Station settings
+    - Position
+        - [ ] Static
+        - [ ] Interval - 1 to 30 minutes
+        - [ ] GPS - SmartBeacon
 * Maps
     - [ ] Make maps a plugin
     - [x] Trails* - There are potential issues
@@ -115,9 +120,9 @@ TODO:
             - This could lead down a rabbit hole where the entire lib needs to be rewritten
             - Collection would likely need to be rewritten - https://github.com/openlayers/openlayers/blob/b7ccb68b02bd936373b1bd1d2f5ca445e1d286e0/src/ol/Collection.js
 - [ ] Messaging
-    - Receive
-    - Send
-    - ACK
+    - [ ] Receive
+    - [ ] Send
+    - [ ] ACK
 - Control packet support???
 - [ ] TNC Support - via js-aprs-tnc
     - [x] User defined commands
@@ -146,6 +151,11 @@ TODO:
     - [ ] Font
     - [ ] Amount of data to display
 - [ ] ULS Offline Lookup
+Other functionality to consider
+- [ ] Digipeating
+    - https://blog.aprs.fi/2020/02/how-aprs-paths-work.html
+- [ ] IGate
+    - https://blog.aprs.fi/2020/02/how-aprs-paths-work.html
 
 # Copyright Info
 ## Symbols
