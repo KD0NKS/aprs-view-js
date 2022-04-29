@@ -35,7 +35,7 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-    name: "EssentialLink",
+    name: "NavigationLink",
     props: {
         title: {
             type: String,

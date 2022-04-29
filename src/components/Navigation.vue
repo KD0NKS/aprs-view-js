@@ -27,7 +27,7 @@
                 <q-separator />
 
                 <template v-for="link in essentialLinks" :key="link.title">
-                    <essential-link v-bind="link" />
+                    <navigation-link v-bind="link" />
                 </template>
             </q-list>
         </q-scroll-area>
@@ -52,7 +52,7 @@
 
     import { StringUtil } from "@/utils"
 
-    import EssentialLink from 'components/EssentialLink.vue'
+    import NavigationLink from 'components/NavigationLink.vue'
     import { APRSSymbol } from "@/models"
     import { APRSSymbolService } from "@/services"
 
@@ -76,7 +76,7 @@
     export default defineComponent({
         name: "Navigation"
         , components: {
-            EssentialLink
+            NavigationLink
         }
         , setup() {
             const miniState = ref(false)
