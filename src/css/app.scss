@@ -1,0 +1,18 @@
+// app global css in SCSS form
+.feature-search {
+    display: flex;
+    flex-flow: row-reverse;
+    top: 0.5em;
+    right: 0.5em;
+
+    input {
+        background-color: rgba(255, 255, 255, 0.7);
+        font-weight: bold;
+    }
+}
+
+.ol-control button {
+    height: 2em !important;
+    width: 2em !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}

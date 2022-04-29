@@ -1,11 +1,24 @@
 .DS_Store
+.thumbs.db
 node_modules
-/coverage
-.nyc_output/
 
-# local env files
-.env.local
-.env.*.local
+# Quasar core related directories
+.quasar
+/dist
+
+# Cordova related directories and files
+/src-cordova/node_modules
+/src-cordova/platforms
+/src-cordova/plugins
+/src-cordova/www
+
+# Capacitor related directories and files
+/src-capacitor/www
+/src-capacitor/node_modules
+
+# BEX related directories and files
+/src-bex/www
+/src-bex/js/core
 
 # Log files
 npm-debug.log*
@@ -20,10 +33,3 @@ pnpm-debug.log*
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
-
-# Electron-builder output
-/dist_electron
-
-# Lock files
-package-lock.json
