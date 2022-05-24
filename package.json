@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.13.6",
-    "core-js": "^3.22.3",
+    "core-js": "^3.22.4",
     "js-aprs-fap": "^1.1.6",
     "js-aprs-is": "1.1.0",
     "js-aprs-tnc": "^0.0.2",
