@@ -21,7 +21,7 @@
     "quasar": "^2.6.6",
     "serialport": "^10.4.0",
     "vue": "^3.2.33",
-    "vue-router": "^4.0.14",
+    "vue-router": "^4.1.5",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2"
   },
