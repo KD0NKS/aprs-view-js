@@ -13,6 +13,7 @@
     , "outDir": ".quasar"
     , "sourceMap": true
     , "strict": false
+    , "strictNullChecks": false
     , "target": "esnext"
     , "paths": {
       "@/*": [

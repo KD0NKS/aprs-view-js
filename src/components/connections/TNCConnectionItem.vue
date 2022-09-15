@@ -91,6 +91,7 @@
                         <TNCCommand :command="element"
                                 @removeCommand="removeCommand(model.exitCommands, index)"
                                 @updateCommand="updateCommand(model.exitCommands, index, $event)"
+                                emit-value
                                 />
                     </template>
                 </draggable>

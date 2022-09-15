@@ -39,6 +39,7 @@
                 </div>
 
                 <ISConnectionItem :model="model" v-if="model.connectionType == 'IS_SOCKET'" />
+                <KissTcipConnectionItem :model="model" v-if="model.connectionType == 'KISS_TCIP'" />
                 <TNCConnectionItem :model="model" v-if="model.connectionType == 'SERIAL_TNC'" />
 
                 <div class="q-gutter-md row">
@@ -58,21 +59,23 @@
 
     import { ActionTypes, ConnectionTypes } from "@/enums"
     import { Mapper } from "@/utils/mappers"
-    import { ISConnection, TNCConnection } from "@/models/connections"
+    import { ISConnection, KissTcipConnection, TNCConnection } from "@/models/connections"
 
     import ISConnectionItem from "@/components/connections/ISConnectionItem.vue"
+    import KissTcipConnectionItem from "@/components/connections/KissTcipConnectionItem.vue"
     import TNCConnectionItem from "@/components/connections/TNCConnectionItem.vue"
 
     export default defineComponent({
         props: {
             connection: {
-                type: [ ISConnection, TNCConnection],
+                type: [ ISConnection, KissTcipConnection, TNCConnection ],
                 required: true
             }
 
         }
         , components: {
             ISConnectionItem
+            , KissTcipConnectionItem
             , TNCConnectionItem
         }
         , setup(props, { emit }) {
@@ -83,6 +86,9 @@
             if(props.connection.connectionType == 'IS_SOCKET') {
                 temp = new ISConnection()
                 mapper.CopyInto<ISConnection, ISConnection>(_.cloneDeep(props.connection) as ISConnection, temp)
+            } else if(props.connection.connectionType == 'KISS_TCIP') {
+                temp = new KissTcipConnection()
+                mapper.CopyInto<KissTcipConnection, KissTcipConnection>(_.cloneDeep(props.connection) as KissTcipConnection, temp)
             } else if(props.connection.connectionType == 'SERIAL_TNC') {
                 temp = new TNCConnection()
                 mapper.CopyInto<TNCConnection, TNCConnection>(_.cloneDeep(props.connection) as TNCConnection, temp)
@@ -102,6 +108,8 @@
                 , onReset() {
                     if(props.connection.connectionType == 'IS_SOCKET') {
                         mapper.CopyInto<ISConnection, ISConnection>(_.cloneDeep(props.connection) as ISConnection, model.value)
+                    } else if(props.connection.connectionType == 'KISS_TCIP') {
+                        mapper.CopyInto<KissTcipConnection, KissTcipConnection>(_.cloneDeep(props.connection) as KissTcipConnection, model.value)
                     } else if(props.connection.connectionType == 'SERIAL_TNC') {
                         mapper.CopyInto<TNCConnection, TNCConnection>(_.cloneDeep(props.connection) as TNCConnection, model.value)
                     }
@@ -134,6 +142,16 @@
                     conn.connectionType = 'IS_SOCKET'
                     conn.name = this.model['name'] ?? ''
                     conn.filter = this.model['filter'] ?? ''
+                    conn.host = this.model['host'] ?? ''
+                    conn.port = this.model['port'] ?? null
+
+                    this.model = conn
+                } else if(value == 'KISS_TCIP') {
+                    let conn = new KissTcipConnection()
+
+                    conn.id = this.model.id
+                    conn.connectionType = 'KISS_TCIP'
+                    conn.name = this.model['name'] ?? ''
                     conn.host = this.model['host'] ?? ''
                     conn.port = this.model['port'] ?? null
 

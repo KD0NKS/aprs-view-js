@@ -13,13 +13,16 @@ import { ConnectionEventTypes } from '../../../src/enums/ConnectionEventTypes'
 import { DataEventTypes } from '../../enums/DataEventTypes'
 import { aprsParser } from 'js-aprs-fap'
 import { TerminalSettings } from '../../tnc/configurations/TerminalSettings'
+import { KissTcipSocket } from '../../tnc/connections/KissTcipSocket'
+import { KissUtil } from 'js-aprs-fap'
 
 export class ConnectionService extends EventEmitter {
-    private _connections: Array<ISSocket | TerminalSocket>
-    private _parser = new aprsParser()
     private _callsign = ''
+    private _connections: Array<ISSocket | KissTcipSocket | TerminalSocket>
+    private _kissUtil = new KissUtil()
+    private _parser = new aprsParser()
     private _passcode = -1
-    private _ssid = null
+    private _ssid: string | null = null
     private SOCKET_DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout']
     private SOCKET_CONNECT_EVENTS: string[] = ['open', 'connect', 'ready']
 
@@ -32,8 +35,8 @@ export class ConnectionService extends EventEmitter {
     }
 
     // NOTE: This expects the front end is always creating an IS Socket.  To change it to any other type, you have to update the connection.
-    public addConnection(setting: IConnection): ISSocket | TerminalSocket {
-        let connection = null
+    public addConnection(setting: IConnection): ISSocket | KissTcipSocket | TerminalSocket {
+        let connection
 
         if(setting.connectionType == 'IS_SOCKET') {
             connection = new ISSocket(setting["host"], setting["port"], this._callsign, this._passcode, setting["filter"], this.appId, setting["id"] ?? uid())
@@ -43,6 +46,15 @@ export class ConnectionService extends EventEmitter {
 
             if(setting.isEnabled === true) {
                 (connection as ISSocket).connect()
+            }
+        } else if(setting.connectionType == 'KISS_TCIP') {
+            connection = new KissTcipSocket(setting["host"], setting["port"], setting["id"] ?? uid())
+            this._connections.push(connection)
+
+            this.attachListeners(connection)
+
+            if(setting.isEnabled === true) {
+                (connection as KissTcipSocket).connect()
             }
         } else if(setting.connectionType == 'SERIAL_TNC') {
             const terminalSettings: TerminalSettings = new TerminalSettings()
@@ -87,7 +99,7 @@ export class ConnectionService extends EventEmitter {
             return
         }
 
-        if(connection instanceof ISSocket) {
+        if(connection instanceof ISSocket || connection instanceof KissTcipSocket) {
             (connection as ISSocket).removeAllListeners();
             (connection as ISSocket).disconnect();
             connection.destroy()
@@ -106,7 +118,7 @@ export class ConnectionService extends EventEmitter {
         const connection = this.findConnection(id)
 
         if(connection && connection != null) {
-            if(connection instanceof ISSocket) {
+            if(connection instanceof ISSocket || connection instanceof KissTcipSocket) {
                 return (connection as ISSocket).isConnected()
             } else if(connection instanceof TerminalSocket) {
                 return connection.isOpen && connection.readable && connection.writable
@@ -133,7 +145,14 @@ export class ConnectionService extends EventEmitter {
                     console.log('Connection not enabled, nothing to do.')
                 }
             }
-        } else {    // It is easier to delete and re-add a TNC connection than to try and update it.  This else also applies for switching connection types.
+        } else if(connection instanceof KissTcipSocket && setting.connectionType == 'KISS_TCIP') {
+            if(connection.host != setting["host"] || connection.port != setting["port"]) {
+                // Changing the host or port has no effect, tear it down and start over.
+                this.deleteConnection(setting.id)
+                connection = this.addConnection(setting)
+            }
+        } else {
+            // It is easier to delete and re-add a TNC connection than to try and update it.  This else also applies for switching connection types.
             this.deleteConnection(setting.id)
             connection = this.addConnection(setting)
         }
@@ -143,7 +162,7 @@ export class ConnectionService extends EventEmitter {
         const connection = this.findConnection(id)
 
         if(connection) {
-            if(connection instanceof ISSocket) {
+            if(connection instanceof ISSocket || connection instanceof KissTcipSocket) {
                 if(isEnabled) {
                     connection.connect()
                 } else {
@@ -209,7 +228,7 @@ export class ConnectionService extends EventEmitter {
         }
     }
 
-    private attachListeners(connection: ISSocket | TerminalSocket): void {
+    private attachListeners(connection: ISSocket | KissTcipSocket | TerminalSocket): void {
         if(connection instanceof ISSocket) {
             connection.on(DataEventTypes.PACKET, (data: string) => {
                 const cleanData = data.trim()
@@ -248,6 +267,38 @@ export class ConnectionService extends EventEmitter {
             connection.on(DataEventTypes.DATA, (data: string) => {
                 this.emit(DataEventTypes.DATA, [ connection.id, data.toString() ])
             })
+        } else if(connection instanceof KissTcipSocket) {
+            for(const e of this.SOCKET_DISCONNECT_EVENTS) {
+                connection.on(e, () => {
+                    this.emit(ConnectionEventTypes.DISCONNECTED, connection.id)
+                })
+            }
+
+            for(const e of this.SOCKET_CONNECT_EVENTS) {
+                connection.on(e, () => {
+                    this.emit(ConnectionEventTypes.CONNECTED, connection.id)
+                })
+            }
+
+            connection.on(DataEventTypes.PACKET, (data: string) => {
+                // Serial port on data event will emit character at a time.
+                //this.emit(DataEventTypes.DATA, [ connection.id, data ])
+
+                try {
+                    const packet = this._kissUtil.kissToTnc2(data);
+
+                    if(packet != null) {
+                        // Emit human readable tnc2 packet instead of garbage.
+                        this.emit(DataEventTypes.DATA, [ connection.id, packet ])
+
+                        let msg = this._parser.parseaprs(packet.toString())
+                        msg.id = uid()
+                        this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
+                    }
+                } catch (err) {
+                    this.emit(DataEventTypes.ERROR, [ connection.id, err ])
+                }
+            })
         } else if(connection instanceof TerminalSocket) {
             for(const e of this.SOCKET_CONNECT_EVENTS) {
                 connection.on(e, () => {
@@ -259,7 +310,7 @@ export class ConnectionService extends EventEmitter {
                 try {
                     // TODO: The command should be a parameter set by the user to strip off the beginning of the packet
                     data = data.trim().replace(/^[cmd:]*/, '')
-                    const msg = this._parser.parseaprs(data)
+                    let msg = this._parser.parseaprs(data)
                     msg.id = uid()
                     this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
 
@@ -282,7 +333,7 @@ export class ConnectionService extends EventEmitter {
         })
     }
 
-    private findConnection(id: string | number ): ISSocket | TerminalSocket {
+    private findConnection(id: string | number ): ISSocket | KissTcipSocket | TerminalSocket | null | undefined {
         return _.find(this._connections, { id: id })
     }
 }

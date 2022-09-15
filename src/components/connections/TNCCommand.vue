@@ -37,12 +37,12 @@
         }
         , watch: {
             command: {
-                handler: function (value) {
+                handler: function(value) {
                     this.localCommand = value
                 }
             }
             , localCommand: {
-                handler: function (value) {
+                handler: function(value) {
                     this.$emit('updateCommand', value)
                 }
             }

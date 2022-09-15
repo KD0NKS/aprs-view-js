@@ -10,7 +10,7 @@
     import _ from 'lodash'
 
     import { ActionTypes, ConnectionEventTypes, GetterTypes, StorageKeys } from '@/enums'
-    import { IConnection, ISConnection, TNCConnection } from '@/models/connections'
+    import { IConnection, ISConnection, KissTcipConnection, TNCConnection } from '@/models/connections'
 
     export default defineComponent({
         name: 'App',
@@ -47,6 +47,8 @@
 
                     if(settings.connectionType == 'IS_SOCKET') {
                         connection = new ISConnection(settings)
+                    } else if(settings.connectionType == 'KISS_TCIP') {
+                        connection = new KissTcipConnection(settings)
                     } else if(settings.connectionType == 'SERIAL_TNC') {
                         connection = new TNCConnection(settings)
                     }

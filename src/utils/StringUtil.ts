@@ -6,7 +6,7 @@ export class StringUtil {
      * @param string? String to test
      * @returns boolean
      */
-    public static IsNullOrWhiteSpace(val?: string): boolean {
+    public static IsNullOrWhiteSpace(val?: string | null | undefined): boolean {
         return val == undefined || val == null || val.trim().length === 0;
     }
 }

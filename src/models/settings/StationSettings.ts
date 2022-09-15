@@ -1,3 +1,4 @@
+import { LocationTypes } from '@/enums/LocationTypes'
 import { IStationSettings } from '@/models/settings'
 
 export class StationSettings implements IStationSettings {
@@ -6,4 +7,9 @@ export class StationSettings implements IStationSettings {
     ssid: string = ''
     symbol?: string = null
     symbolOverlay?: string = null
+
+    isTransmitPosition: boolean = false
+    locationType: string = LocationTypes.FIXED
+    longitude: number = 0
+    latitude: number = 0
 }

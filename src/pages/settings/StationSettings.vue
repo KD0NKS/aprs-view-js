@@ -77,6 +77,33 @@
                     </q-select>
                 </div>
                 <div class="q-gutter-md row">
+                    <q-select label="Location Type"
+                            v-model="settings.locationType"
+                            :options="locationTypeOptions"
+                            :option-value="opt => Object(opt) === opt && 'value' in opt ? opt.value : null"
+                            :option-label="opt => Object(opt) === opt && 'label' in opt ? opt.label : null"
+                            emit-value
+                            map-options
+                            disable
+                            class="col-4"
+                            dense>
+                    </q-select>
+
+                    <q-toggle label="Transmit position"
+                            v-model="settings.isTransmitPosition"
+                            class="col-2"
+                            dense
+                            />
+                </div>
+
+                <StaticLocationSettings v-if="settings.locationType == 'Fixed'"
+                        :latitude="settings.latitude"
+                        :longitude="settings.longitude"
+                        @updateLatitude="updateLatitude"
+                        @updateLongitude="updateLongitude"
+                        />
+
+                <div class="q-gutter-md row">
                     <q-btn color="primary" label="Save" type="submit" />
                     <q-btn label="Reset" type="reset" />
                 </div>
@@ -88,8 +115,9 @@
 <script lang="ts">
     import { defineComponent, ref } from 'vue'
     import { useStore } from '@/store'
+    import _ from 'lodash'
 
-    import { ActionTypes } from '@/enums'
+    import { ActionTypes, LocationTypes } from '@/enums'
 
     import { Mapper } from '@/utils/mappers'
 
@@ -97,6 +125,8 @@
     import { StationSettings } from '@/models/settings'
 
     import { APRSSymbolService } from '@/services/'
+
+    import StaticLocationSettings from '@/components/location/StaticLocationSettings.vue'
 
     export default defineComponent({
         name: 'StationSettings'
@@ -122,6 +152,9 @@
                 }
             }
         }
+        , components: {
+            StaticLocationSettings
+        }
         , computed: {
             aprsSymbols() {
                 return this.symbolSvc.GetSymbols()
@@ -132,6 +165,17 @@
             , isDisableOverlay(): boolean {
                 return !this.symbolSvc.GetSymbolByKey(this.settings.symbol).isAllowOverlay
 
+            }
+            , locationTypeOptions() {
+                return _.map(
+                    Object.keys(LocationTypes)
+                    , key => {
+                        return {
+                            label: LocationTypes[key]
+                            , value: LocationTypes[key]
+                        }
+                    }
+                )
             }
             , stationSymbol(): APRSSymbol {
                 if(this.settings.symbol != null) {
@@ -153,6 +197,12 @@
                 if(this.isDisableOverlay == true) {
                     this.settings.symbolOverlay = null
                 }
+            }
+            , updateLatitude(latitude) {
+                this.settings.latitude = Number(latitude)
+            }
+            , updateLongitude(longitude) {
+                this.settings.longitude = Number(longitude)
             }
         }
     })

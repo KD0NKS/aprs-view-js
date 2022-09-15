@@ -46,13 +46,12 @@ quasar build -m electron -T win32
 See [Configuring quasar.conf.js](https://quasar.dev/quasar-cli/quasar-conf-js).
 
 TODO:
-* Vue3 Upgrade https://learnvue.co/2021/05/build-vue-3-desktop-apps-in-just-5-minutes-vite-electron-quick-start-guide/
 * UI
     - [ ] Restore to size, screen and location on start
     - [ ] Output window styling? https://github.com/chinchang/screenlog.js
 * Station settings
     - Position
-        - [ ] Static
+        - [x] Static
         - [ ] Interval - 1 to 30 minutes
         - [ ] GPS - SmartBeacon
 * Maps
@@ -93,14 +92,14 @@ TODO:
         - Labels
             - [x] Show labels
             - [ ] Label options
-                - Object/Callsign
-                - Weather data
+                - [x] Object/Callsign
+                - [ ] Weather data?
         - [ ] Station info panel - see aprs.fi
         - [ ] User defined maps
         - [ ] Track station/Track my station
     - ContextMenu
-        - [ ] Clear all reports
-        - [ ] Set my station position
+        - [x] Clear all reports
+        - [x] Set my station position
         - [ ] Create object (low priority also requires proper handling)
     - Helpful plugins
         - [ ] Offline - [outdated] https://github.com/tbicr/OfflineMap
@@ -109,7 +108,7 @@ TODO:
         - [ ] Leaflet plugins - https://github.com/shramov/leaflet-plugins
     - [ ] Overlays - https://vue2-leaflet.netlify.app/components/LImageOverlay.html#demo
     - BUGS/ENHANCEMENTS (B/E):
-        - [ ] B - Clearing all markers currently doesn't work properly.  Working with kefir/bacon may help mitigate this
+        - [x] B - Clearing all markers currently doesn't work properly.  Working with kefir/bacon may help mitigate this
         - [x] B - Items/Objects may have multiple locations with the same callsign
         - [ ] E - Items/Objects may have multiple locations with the same value, this will result in only 1 showing up
         - [ ] E - Weather packets with no locations - if we know the location of the station already, update the id to get the latest when the icon is clicked?
@@ -127,6 +126,10 @@ TODO:
 - [ ] TNC Support - via js-aprs-tnc
     - [x] User defined commands
     - [ ] KISS
+        - [ ] Read - Serial
+        - [ ] Write - Serial
+        - [x] Read - TCP
+        - [ ] Write - TCP
 - General app settings
     - [x] Imperial/metric
     - [ ] Themes
@@ -139,7 +142,7 @@ TODO:
     - [ ] Packet Type
     - [ ] Blocked stations
 - Connection Settings
-    - [ ] Allow Transmit
+    - [x] Allow Transmit - NOTE: This doesn't do anything at the moment
 - Station Settings
     - [ ] Transmit position interval
     - [ ] Transmit position

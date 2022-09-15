@@ -10,7 +10,12 @@
                 />
         </q-dialog>
 
-        <map-context-menu v-on:clearAll="clearAllStations()"></map-context-menu>
+        <map-context-menu
+            :latitude="contextMenuX"
+            :longitude="contextMenuY"
+            v-on:clearAll="clearAllStations()"
+            >
+        </map-context-menu>
     </div>
 </template>
 
@@ -21,7 +26,6 @@
     import { useStore } from '@/store'
     import { NumberUtil, PacketUtil } from '@/utils'
 
-    import OSM from 'ol/source/OSM'
     import Stamen from 'ol/source/Stamen'
     import BaseLayer from 'ol/layer/Base'
     import { Heatmap as HeatmapLayer, Tile as TileLayer, Image } from 'ol/layer'
@@ -36,7 +40,7 @@
     import { APRSSymbol } from '@/models'
     import { Style, Fill, Stroke, Text, Icon } from 'ol/style'
     import VectorLayer from 'ol/layer/Vector'
-    import { ActionTypes, GetterTypes } from '@/enums'
+    import { ActionTypes, GetterTypes, LocationTypes } from '@/enums'
     import LineString from 'ol/geom/LineString'
     import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
     import MapContextMenu from '@/components/maps/MapContextMenu.vue'
@@ -56,7 +60,9 @@
             const packetUtil: PacketUtil = new PacketUtil()
             const mapService = new MapService()
             const mapSettings = store.getters[GetterTypes.MAP_SETTINGS]
+            const stationSettings = store.getters[GetterTypes.STATION_SETTINGS]
 
+            const currentStationPositionVector: VectorSource<Geometry> = new VectorSource({})
             const genericPointVector: VectorSource<Geometry> = new VectorSource({})
             const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
             const symbolService: APRSSymbolService = new APRSSymbolService()
@@ -65,6 +71,9 @@
             const packets = store.getters[GetterTypes.GET_PACKETS]
             const packetAddedListener = ref(null)
             const packetRemovedListener = ref(null)
+
+            const contextMenuX = ref(0)
+            const contextMenuY = ref(0)
 
             //const map: OLMap = ref(null)
 
@@ -84,11 +93,15 @@
 
             return {
                 store
+                , contextMenuX
+                , contextMenuY
                 , isShowStationInfo: ref(false)
                 , packetUtil
+                , currentStationPositionVector
                 , genericPointVector
                 , mapService
                 , mapSettings
+                , stationSettings
                 , packets
                 , packetAddedListener
                 , packetRemovedListener
@@ -164,19 +177,28 @@
                     , minZoom: 8
                     , source: this.genericPointVector
                 })
-                , new VectorLayer({
-                    className: 'station-position-layer'
-                    , declutter: false
-                    , minZoom: 8
-                    , source: this.stationPositionVector
-                })
                 , new HeatmapLayer({
                     gradient: [ '#600', '#900', '#C00', '#F00'   ]
                     , maxZoom: 8
                     , source: this.stationPositionVector
                     , weight: '1'
                 })
+                , new VectorLayer({                 // layer for the current station's position
+                    className: 'station-layer'
+                    , declutter: false
+                    , source: this.currentStationPositionVector
+                    , opacity: 0.7
+                })
+                , new VectorLayer({
+                    className: 'station-position-layer'
+                    , declutter: false
+                    , minZoom: 8
+                    , source: this.stationPositionVector
+                })
             ]
+
+            const centerLon = this.stationSettings.longitude ?? -98.5795
+            const centerLat = this.stationSettings.latitude ?? 39.8283
 
             const map = new OLMap({
                 target: 'map'
@@ -185,7 +207,7 @@
                 ])
                 , layers: layers
                 , view: new View({
-                    center: fromLonLat([-98.5795, 39.8283]) // Default to center of the US
+                    center: fromLonLat([ centerLon, centerLat ]) // Default to center of the US
                     , zoom: 10
                 })
             })
@@ -195,7 +217,8 @@
             // display popup on click
             map.on('singleclick', async (evt) => {
                 // TODO: This seems to be getting the one on the bottom of the pile
-                var feature = _.filter(map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")[0]
+                let feature = _.filter(map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")[0]
+
 
                 // Prevent trying to fetch data if a trail is clicked
                 if(feature && feature.getGeometry().getType() != "LineString") {
@@ -209,6 +232,20 @@
 
                     this.stationInfoPacket = pkt[1] as aprsPacket
                     this.isShowStationInfo = true
+                }
+
+                return
+            })
+
+            // Adds a right click/contextmenu listener to the map
+            map.addEventListener('contextmenu', (evt: MapBrowserEvent<UIEvent>) => {
+                if(evt.coordinate) {
+                    const coord = toLonLat(evt.coordinate)
+
+                    if(coord && coord.length > 0) {
+                        this.contextMenuY = coord[0]
+                        this.contextMenuX = coord[1]
+                    }
                 }
 
                 return
@@ -492,6 +529,33 @@
                 )
             }
             , async loadMapData() {
+                // get the current station and show it's position
+                if(this.stationSettings.locationType == LocationTypes.FIXED) {
+                    const symbols = await this.symbolService.GetAPRSSymbol(this.stationSettings.symbol, this.stationSettings.symbolOverlay)
+
+                    let packet = new aprsPacket();
+                    packet.sourceCallsign = this.stationSettings.callsign
+                    packet.latitude = this.stationSettings.latitude
+                    packet.longitude = this.stationSettings.longitude
+
+                    const styles = await this.generateIcon(packet, symbols)
+
+                    let feature = new Feature({
+                        geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
+                    })
+
+                    feature.setId(packet.id)
+                    feature.setProperties({
+                        name: packet.sourceCallsign
+                        , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
+                        , receivedTime: packet.receivedTime
+                    })
+
+                    feature.setStyle(await styles)
+                    await this.currentStationPositionVector.addFeature(feature)
+                }
+
+                // get all the location packets and add them
                 for(const p of this.getAllLocationPackets()) {
                     await this.addPacket(p, true)
                 }

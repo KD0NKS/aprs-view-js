@@ -5,13 +5,13 @@ import { createStore, Store as VuexStore, useStore as vuexUseStore } from 'vuex'
 import { store } from 'quasar/wrappers'
 import { InjectionKey } from 'vue'
 
-import { ActionTypes, ConnectionEventTypes, GetterTypes, MutationTypes, StorageKeys } from '@/enums'
+import { ActionTypes, ConnectionEventTypes, GetterTypes, LocationTypes, MutationTypes, StorageKeys } from '@/enums'
 import { Mapper } from '@/utils/mappers'
 
 import { aprsPacket, PacketTypeEnum } from 'js-aprs-fap'
 
 import { IMapSettings, ISoftwareSettings, IStationSettings, MapSettings, SoftwareSettings, StationSettings } from '@/models/settings'
-import { AbstractConnection, IConnection, ISConnection } from '@/models/connections'
+import { AbstractConnection, IConnection } from '@/models/connections'
 import { PacketUtil } from '@/utils'
 import { EventedArray } from '@/models/arrays/EventedArray'
 
@@ -120,9 +120,11 @@ export default store(function (/* { ssrContext } */) {
                 }
             }
             , async [MutationTypes.REMOVE_PACKETS](state: IState, ids) {
-                aprsPackets.remove(packet => (
+                aprsPackets.remove(packet => {
                     ids.indexOf(packet[1].id) > -1
-                ))
+
+                    return packet;
+                })
 
                 return
 
@@ -179,6 +181,16 @@ export default store(function (/* { ssrContext } */) {
 
                 LocalStorage.set(StorageKeys.SOFTWARE_SETTINGS, state.softwareSettings)
             }
+            , [MutationTypes.SET_STATION_LOCATION](state: IState, latLong) {
+                if(latLong && latLong.latitude && latLong.longitude) {
+                    state.stationSettings.latitude = latLong.latitude.toFixed(4)
+                    state.stationSettings.longitude = latLong.longitude.toFixed(4)
+                }
+
+                LocalStorage.set(StorageKeys.STATION_SETTINGS, _mapper.Map<StationSettings>(state.stationSettings, StationSettings))
+
+                //global.connectionService.updateStationSettings(_.clone(settings))
+            }
             , [MutationTypes.SET_STATION_SETTINGS](state: IState, settings: IStationSettings) {
                 // state.stationSettings.propname = settings.propname doesn't work here
                 state.stationSettings.callsign = settings.callsign
@@ -186,6 +198,10 @@ export default store(function (/* { ssrContext } */) {
                 state.stationSettings.ssid = settings.ssid
                 state.stationSettings.symbol = settings.symbol
                 state.stationSettings.symbolOverlay = settings.symbolOverlay
+                state.stationSettings.isTransmitPosition = settings.isTransmitPosition ?? false
+                state.stationSettings.locationType = settings.locationType ?? LocationTypes.FIXED
+                state.stationSettings.latitude = settings.latitude
+                state.stationSettings.longitude = settings.longitude
 
                 LocalStorage.set(StorageKeys.STATION_SETTINGS, _mapper.Map<StationSettings>(state.stationSettings, StationSettings))
 
@@ -237,6 +253,9 @@ export default store(function (/* { ssrContext } */) {
             }
             , [ActionTypes.SET_SOFTWARE_SETTINGS]({ commit }, settings: ISoftwareSettings) {
                 commit(MutationTypes.SET_SOFTWARE_SETTINGS, settings)
+            }
+            , [ActionTypes.SET_STATION_LOCATION]({ commit }, latLong) {
+                commit(MutationTypes.SET_STATION_LOCATION, latLong)
             }
             , [ActionTypes.SET_STATION_SETTINGS]({ commit }, settings: IStationSettings) {
                 commit(MutationTypes.SET_STATION_SETTINGS, settings)
