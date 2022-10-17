@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.19.1",
-    "@quasar/app-webpack": "^3.6.0",
+    "@quasar/app-webpack": "^3.6.2",
     "@types/lodash": "^4.14.185",
     "@types/node": "^18.7.18",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
