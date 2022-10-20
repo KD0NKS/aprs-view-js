@@ -11,7 +11,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.15.3",
+    "@quasar/extras": "^1.15.4",
     "core-js": "^3.25.1",
     "js-aprs-fap": "^1.1.7",
     "js-aprs-is": "1.1.1",
