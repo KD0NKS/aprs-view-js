@@ -1701,11 +1701,6 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.11.tgz#1d455ac0211549a8409d3cdb371cd55cc971e8dc"
   integrity sha512-KJ021B1nlQUBLopzZmPBVuGU9un7WJd/W4ya7Ih02B4Uwky5Nja0yGYav2EfYIk0RR2Q9oVhf60S2XR1BCWJ2g==
 
-"@types/node@^18.7.17":
-  version "18.7.17"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.17.tgz#52438111ea98f77475470fc62d79b9eb96bb2c92"
-  integrity sha512-0UyfUnt02zIuqp7yC8RYtDkp/vo8bFaQ13KkSEvUAohPOAlnVNbj5Fi3fgPSuwzakS+EvvnnZ4x9y7i6ASaSPQ==
-
 "@types/parse-json@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz#2f8bb441434d163b35fb8ffdccd7138927ffb8c0"
@@ -4227,7 +4222,7 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
 
-fsevents@~2.3.2:
+fsevents@^2.3.2, fsevents@~2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
   integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
@@ -4980,13 +4975,15 @@ js-aprs-fap@^1.1.8:
   resolved "https://registry.yarnpkg.com/js-aprs-fap/-/js-aprs-fap-1.1.8.tgz#cb17208fb40ca99ab0f6bd0ca2bef6b70483e9f1"
   integrity sha512-pjkoQMqbOnUBB2T9tdTrDzUoY8whnhrIKYcWqXU3GwAbg7wdkckkF53niK72KmKpt07RaLxZyJdRYe9cBbRWHg==
 
-js-aprs-is@1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/js-aprs-is/-/js-aprs-is-1.1.1.tgz#f23c852a6d6af047f86883fe174b169c91188af8"
-  integrity sha512-xl7xzYJ9MhyGgKlArUWcnaT7Fn6Nb/cEuxar2mZB5GamRPhYkYVbSxt/Bp2xV5lQlPK/M6Nd6d+nUXRBAjS8Rw==
+js-aprs-is@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/js-aprs-is/-/js-aprs-is-1.1.2.tgz#f99ca8bbbb520d0d7dbaba1678f76d6b6d4f0d6b"
+  integrity sha512-kHsocxEG3l+1XkQZS7Txk1HT9lyEX6Al8oKakXie04A1o8WShvJJTbXVlM/swGSN5Q/mg58JJZYSUaC3n+e4MQ==
   dependencies:
-    "@types/node" "^18.7.17"
+    "@types/node" "^18.11.11"
     uuid "^9.0.0"
+  optionalDependencies:
+    fsevents "^2.3.2"
 
 js-aprs-tnc@^0.0.2:
   version "0.0.2"
