@@ -1696,15 +1696,15 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.26.tgz#63d204d136c9916fb4dcd1b50f9740fe86884e47"
   integrity sha512-GZ7bu5A6+4DtG7q9GsoHXy3ALcgeIHP4NnL0Vv2wu0uUB/yQex26v0tf6/na1mm0+bS9Uw+0DFex7aaKr2qawQ==
 
-"@types/node@^18.11.11":
-  version "18.11.11"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.11.tgz#1d455ac0211549a8409d3cdb371cd55cc971e8dc"
-  integrity sha512-KJ021B1nlQUBLopzZmPBVuGU9un7WJd/W4ya7Ih02B4Uwky5Nja0yGYav2EfYIk0RR2Q9oVhf60S2XR1BCWJ2g==
-
 "@types/node@^18.11.17":
   version "18.11.17"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.17.tgz#5c009e1d9c38f4a2a9d45c0b0c493fe6cdb4bcb5"
   integrity sha512-HJSUJmni4BeDHhfzn6nF0sVmd1SMezP7/4F0Lq+aXzmp2xm9O7WXrUtHW/CHlYVtZUbByEvWidHqRtcJXGF2Ng==
+
+"@types/node@^18.11.18":
+  version "18.13.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.13.0.tgz#0400d1e6ce87e9d3032c19eb6c58205b0d3f7850"
+  integrity sha512-gC3TazRzGoOnoKAhUx+Q0t8S9Tzs74z7m0ipwGpSqQrleP14hKxP4/JUeEQcD3W1/aIpnWl8pHowI7WokuZpXg==
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
@@ -4980,12 +4980,12 @@ js-aprs-fap@^1.2.0:
   resolved "https://registry.yarnpkg.com/js-aprs-fap/-/js-aprs-fap-1.2.0.tgz#baa257b75e881c460a1cf23db22b04860fe86b82"
   integrity sha512-micqPSM8y+oId4G7gNfrEISkByNdzYikROmy5MDLQkRktXQslVL0QpnUOW/ct7MlA+oVGo3YQStUWhSMr1cyZg==
 
-js-aprs-is@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/js-aprs-is/-/js-aprs-is-1.1.2.tgz#f99ca8bbbb520d0d7dbaba1678f76d6b6d4f0d6b"
-  integrity sha512-kHsocxEG3l+1XkQZS7Txk1HT9lyEX6Al8oKakXie04A1o8WShvJJTbXVlM/swGSN5Q/mg58JJZYSUaC3n+e4MQ==
+js-aprs-is@1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/js-aprs-is/-/js-aprs-is-1.1.4.tgz#e1f012adf95df2d0d637c76071c3e7883cf49c47"
+  integrity sha512-5iNB8Fh5fCtxxhFaXafx8UYv+RxZgbdhm1IQHVhtJNnjoobWvb8D/aZkmaH3i07CD/3Qx3RBFqxTuFfoUvEg3w==
   dependencies:
-    "@types/node" "^18.11.11"
+    "@types/node" "^18.11.18"
     uuid "^9.0.0"
   optionalDependencies:
     fsevents "^2.3.2"
