@@ -4975,10 +4975,10 @@ jest-worker@^27.0.2, jest-worker@^27.4.5:
     merge-stream "^2.0.0"
     supports-color "^8.0.0"
 
-js-aprs-fap@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/js-aprs-fap/-/js-aprs-fap-1.2.0.tgz#baa257b75e881c460a1cf23db22b04860fe86b82"
-  integrity sha512-micqPSM8y+oId4G7gNfrEISkByNdzYikROmy5MDLQkRktXQslVL0QpnUOW/ct7MlA+oVGo3YQStUWhSMr1cyZg==
+js-aprs-fap@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/js-aprs-fap/-/js-aprs-fap-1.2.1.tgz#b147d2a79584d79d82d81e259560e6c843b59537"
+  integrity sha512-FS/tWTWAYbZae1ppVJHraN3Y5yn+3NmPJ5fDVXeCzEHYVFAO4UmbbCpC+SFeDUPtN18+syYa4Wkf/F4SGJLPhg==
 
 js-aprs-is@1.1.2:
   version "1.1.2"
