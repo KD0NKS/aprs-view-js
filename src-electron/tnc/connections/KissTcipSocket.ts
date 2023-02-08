@@ -49,17 +49,17 @@ export class KissTcipSocket extends Socket {
         // TODO: Do we want to throw errors if the host or port are null?
 
         this.on('data', (rawData: string) => {
-            let data = rawData.match(/.{2}/g);
+            let data: RegExpMatchArray | null = rawData.match(/.{2}/g);
 
             if(data && data.length > 0) {
                 // Remove the beginning c0 char
                 if(_.head(data) == "c0") {
-                    data = _.drop(data, 1);
+                    data.shift();
                 }
 
                 // Remove the ending c0 char
                 if(_.last(data) == "c0") {
-                    data = _.dropRight(data, 1);
+                    data.pop();
                 }
 
                 // Convert all other hex bytes to chars and join them as a string

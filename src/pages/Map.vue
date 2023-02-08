@@ -24,21 +24,23 @@
 
     import { defineComponent, onMounted, ref } from 'vue'
     import { useStore } from '@/store'
-    import { NumberUtil, PacketUtil } from '@/utils'
+    import { ConversionUtil, NumberUtil, PacketUtil } from '@/utils'
 
     import Stamen from 'ol/source/Stamen'
     import BaseLayer from 'ol/layer/Base'
-    import { Heatmap as HeatmapLayer, Tile as TileLayer, Image } from 'ol/layer'
+    import { Heatmap as HeatmapLayer, Tile as TileLayer, Image, Graticule } from 'ol/layer'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import { fromLonLat, toLonLat } from 'ol/proj'
     import { aprsPacket } from 'js-aprs-fap'
+    import { Coordinate } from 'ol/coordinate'
     import Point from 'ol/geom/Point'
+    import { Circle } from 'ol/geom'
     import Geometry from 'ol/geom/Geometry'
     import _ from 'lodash'
     import { APRSSymbolService, MapService } from '@/services'
     import VectorSource from 'ol/source/Vector'
     import { APRSSymbol } from '@/models'
-    import { Style, Fill, Stroke, Text, Icon } from 'ol/style'
+    import { Icon, Stroke, Style, Text } from 'ol/style'
     import VectorLayer from 'ol/layer/Vector'
     import { ActionTypes, GetterTypes, LocationTypes } from '@/enums'
     import LineString from 'ol/geom/LineString'
@@ -49,7 +51,7 @@
     import ImageLayer from 'ol/layer/Image'
     import ImageArcGISRest from 'ol/source/ImageArcGISRest'
 
-    const map = null
+    const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'red', width: 2, lineDash: [ 8, 8 ] }) })
 
     export default defineComponent({
     components: { StationFeatureCard, MapContextMenu },
@@ -57,28 +59,30 @@
         , setup() {
             const store = useStore()
 
+            // services and settings
             const packetUtil: PacketUtil = new PacketUtil()
             const mapService = new MapService()
             const mapSettings = store.getters[GetterTypes.MAP_SETTINGS]
             const stationSettings = store.getters[GetterTypes.STATION_SETTINGS]
+            const symbolService: APRSSymbolService = new APRSSymbolService()
 
+            // vectors
+            const ambiguityVector: VectorSource<Geometry> = new VectorSource<Geometry>({})
             const currentStationPositionVector: VectorSource<Geometry> = new VectorSource({})
             const genericPointVector: VectorSource<Geometry> = new VectorSource({})
             const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
-            const symbolService: APRSSymbolService = new APRSSymbolService()
             const trailVector: VectorSource<Geometry> = new VectorSource({})
 
-            const packets = store.getters[GetterTypes.GET_PACKETS]
-            const packetAddedListener = ref(null)
-            const packetRemovedListener = ref(null)
-
+            // data
             const contextMenuX = ref(0)
             const contextMenuY = ref(0)
-
-            //const map: OLMap = ref(null)
-
+            const packets = store.getters[GetterTypes.GET_PACKETS]
             const stationInfoPacket = ref(null)
             const stationConnectionId = ref(null)
+
+            // listeners
+            const packetAddedListener = ref(null)
+            const packetRemovedListener = ref(null)
 
             // Default: /assets/radio-tower.png
             const stationIconOverlay = ref(new APRSSymbol({
@@ -96,6 +100,7 @@
 
             return {
                 store
+                , ambiguityVector
                 , contextMenuX
                 , contextMenuY
                 , isShowStationInfo: ref(false)
@@ -123,21 +128,17 @@
         }
         , async mounted() {
             const layers: BaseLayer[] = [
-                //new TileLayer({
-                //    className: 'osm-base-layer'
-                //    , source: new OSM({
-                //        attributions: [
-                //            '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                //        ]
-                //        , cacheSize: 100
-                //    })
-                //})
                 new TileLayer({
                     className: 'stamen-base-layer'
                     , preload: 1
                     , source: new Stamen({
                         layer: 'toner-lite'
                     })
+                })
+                , new VectorLayer({
+                    className: 'ambiguity-layer'
+                    , minZoom: 8
+                    , source: this.ambiguityVector
                 })
                 /*
                 , new ImageLayer({
@@ -165,7 +166,6 @@
                     })
                     , opacity: 0.5
                 })
-
                 , new ImageLayer({
                     source: new ImageArcGISRest({
                         // TODO: Refresh every 2 -5 min... rtfm here: https://nowcoast.noaa.gov/help/#!section=updateschedule
@@ -186,12 +186,16 @@
                     , declutter: true
                     , minZoom: 8
                     , source: this.trailVector
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
                 , new VectorLayer({
                     className: 'generic-point-layer'
                     , declutter: true
                     , minZoom: 8
                     , source: this.genericPointVector
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
                 , new HeatmapLayer({
                     gradient: [ '#600', '#900', '#C00', '#F00'   ]
@@ -204,12 +208,16 @@
                     , declutter: false
                     , source: this.currentStationPositionVector
                     , opacity: 0.7
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
                 , new VectorLayer({
                     className: 'station-position-layer'
                     , declutter: false
                     , minZoom: 8
                     , source: this.stationPositionVector
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
             ]
 
@@ -234,7 +242,6 @@
             map.on('singleclick', async (evt) => {
                 // TODO: This seems to be getting the one on the bottom of the pile
                 let feature = _.filter(map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")[0]
-
 
                 // Prevent trying to fetch data if a trail is clicked
                 if(feature && feature.getGeometry().getType() != "LineString") {
@@ -302,6 +309,7 @@
             this.packetRemovedListener = this.packets.on('remove', (packet) => {
                 this.removePoints(this.genericPointVector, [ packet[1].id ])
                 this.removePoints(this.stationPositionVector, [ packet[1].id ])
+                this.removePoints(this.ambiguityVector, [ packet[1].id ], false)
             })
 
             this.$nextTick(function() {
@@ -316,10 +324,10 @@
                     // TODO: For some reason this doesn't work on initial load
                     let existingFeatures = await _.filter(this.stationPositionVector.getFeatures(), f => {
                         return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
-                                        && f.get('receivedTime') <= packet.receivedTime
+                                && f.get('receivedTime') <= packet.receivedTime
                     })
 
-                    var mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
+                    const mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
                         result.push(value.get('receivedTime'))
                         return result
                     }, []))
@@ -368,11 +376,17 @@
                         )
 
                         if(genericPointIds && genericPointIds != null && genericPointIds.length > 0) {
+                            this.removePoints(this.ambiguityVector, genericPointIds, false)
                             this.removePoints(this.genericPointVector, genericPointIds)
                         }
                     }
 
-                    if(existingFeatures && existingFeatures != undefined && existingFeatures != null && existingFeatures.length > 0) {
+                    if(!!packet && packet.posambiguity > 0) {
+                        this.generateAmbiguity(packet.id, packet.itemname ?? packet.objectname ?? packet.sourceCallsign
+                                , packet.posambiguity, fromLonLat([ packet.longitude, packet.latitude ]))
+                    }
+
+                    if(!!existingFeatures && existingFeatures.length > 0) {
                         _.map(existingFeatures, f => {
                             if(f != undefined) {
                                 this.stationPositionVector.removeFeature(f)
@@ -380,6 +394,33 @@
                             }
                         })
                     }
+                }
+
+                return
+            }
+            , async generateAmbiguity(id: string, name: string, ambiguity: number, coordinate: Coordinate): Promise<void> {
+                if(this.mapSettings.isShowAmbiguity == true && !!ambiguity && ambiguity > 0) {
+                    let radius: number = 1852   // meters in a nautical mile
+
+                    if(ambiguity == 1) {
+                        radius = 185.2  // 0.1 nautical miles
+                    } else if(ambiguity == 3) {
+                        radius = 18520  // 10 nautical miles
+                    } else if(ambiguity == 4) {
+                        radius = 111120 // 60 nautical miles
+                    }
+
+                    let feature = new Feature(
+                        new Circle(coordinate, radius)
+                    )
+
+                    feature.setId(id)
+                    feature.setProperties({
+                        name: name
+                    })
+
+                    feature.setStyle(amgibuityStyle)
+                    this.ambiguityVector.addFeature(feature)
                 }
 
                 return
@@ -446,7 +487,7 @@
                         new Text({
                             text: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                             , fill: MapService.blackTextFill
-                            , stroke: MapService.whiteTextStroke
+                            , stroke: MapService.getLabelTextStroke(packet)
                             , offsetX: 10
                             , offsetY: -15
                             , font: 'bold 12px/1 Verdana'
@@ -458,17 +499,17 @@
                 retVal.push(shadowStyle)
 
                 if(overlay != null && overlay != undefined) {
-                    const overlayStyle = new Style({
-                        text: new Text({
-                            text: packet.symboltable
-                            , fill: MapService.whiteTextFill
-                            , stroke: MapService.blackTextStroke
-                            , font: 'normal 16px/1 Verdana'
-                            , textAlign: 'center'
+                    retVal.push(
+                        new Style({
+                            text: new Text({
+                                text: packet.symboltable
+                                , fill: MapService.whiteTextFill
+                                , stroke: MapService.blackTextStroke
+                                , font: 'normal 16px/1 Verdana'
+                                , textAlign: 'center'
+                            })
                         })
-                    })
-
-                    retVal.push(overlayStyle)
+                    )
                 }
 
                 return retVal
@@ -553,6 +594,8 @@
                     packet.sourceCallsign = this.stationSettings.callsign
                     packet.latitude = this.stationSettings.latitude
                     packet.longitude = this.stationSettings.longitude
+                    // TODO: Hardcoded for now until messaging is supported
+                    packet.messaging = false
 
                     const styles = await this.generateIcon(packet, symbols)
 
@@ -578,7 +621,7 @@
 
                 return
             }
-            , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]): Promise<void> {
+            , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[], isGenerateTrail = true): Promise<void> {
                 if(ids != null && ids.length > 0) {
                     const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
@@ -587,7 +630,9 @@
                             if(f != undefined) {
                                 vector.removeFeature(f)
 
-                                this.generateTrail(f.get('label'))
+                                if(isGenerateTrail == true) {
+                                    this.generateTrail(f.get('label'))
+                                }
 
                                 f.dispose()
                                 f = null

@@ -20,6 +20,14 @@
                 </div>
 
                 <div class="q-gutter-md row items-start">
+                    <q-toggle label="Show Ambiguity"
+                            v-model="settings.isShowAmbiguity"
+                            class="col-6"
+                            dense
+                            />
+                </div>
+
+                <div class="q-gutter-md row items-start">
                     <q-toggle label="Show Labels"
                             v-model="settings.isShowLabels"
                             class="col-6"
@@ -56,9 +64,9 @@
         , setup() {
             const mapper = new Mapper()
             const settings = ref(new MapSettings())
-            const $store = useStore()
+            const store = useStore()
 
-            mapper.CopyInto<MapSettings, MapSettings>($store.state.mapSettings, settings.value)
+            mapper.CopyInto<MapSettings, MapSettings>(store.state.mapSettings, settings.value)
 
             return {
                 settings
@@ -66,10 +74,10 @@
                     positiveNum: value => value >= 0 || 'Must be a positive number.'
                 }
                 , onSubmit() {
-                    $store.dispatch(ActionTypes.SET_MAP_SETTINGS, settings.value)
+                    store.dispatch(ActionTypes.SET_MAP_SETTINGS, settings.value)
                 }
                 , onReset() {
-                    mapper.CopyInto<MapSettings, MapSettings>($store.state.mapSettings, settings.value)
+                    mapper.CopyInto<MapSettings, MapSettings>(store.state.mapSettings, settings.value)
                 }
             }
         }

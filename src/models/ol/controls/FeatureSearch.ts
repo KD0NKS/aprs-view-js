@@ -8,6 +8,7 @@ import { Control } from 'ol/control';
 // - Show/hide input when search button is clicked
 // - Account for added/removed stations while typing and searching - dynamically bound options
 // - Add accessibility
+// - Data binding
 // - Max height on data list before enabling scrolling
 //  - https://dev.to/siddev/customise-datalist-45p0
 //  - https://stackoverflow.com/questions/68666010/styling-is-not-working-on-option-of-datalist

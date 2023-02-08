@@ -95,7 +95,6 @@ TODO:
                 - [x] Object/Callsign
                 - [ ] Weather data?
         - [ ] Station info panel - see aprs.fi
-        - [ ] User defined maps
         - [ ] Track station/Track my station
     - ContextMenu
         - [x] Clear all reports
