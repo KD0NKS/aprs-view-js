@@ -4809,6 +4809,7 @@ js-aprs-is@1.1.4:
   integrity sha512-5iNB8Fh5fCtxxhFaXafx8UYv+RxZgbdhm1IQHVhtJNnjoobWvb8D/aZkmaH3i07CD/3Qx3RBFqxTuFfoUvEg3w==
   dependencies:
     "@types/node" "^18.11.18"
+    "@types/node" "^18.11.18"
     uuid "^9.0.0"
   optionalDependencies:
     fsevents "^2.3.2"

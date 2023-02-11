@@ -1,10 +1,19 @@
 {
   "name": "aprs-view-js",
   "version": "0.0.1",
-  "description": "A lightweight cross-platform desktop APRS client.",
+  "description": "A lightweight cross-platform experimental desktop APRS client.",
   "productName": "aprs-view-js",
   "author": "KD0NKS <KD0NKS@users.noreply.github.com>",
   "private": true,
+  "keywords": [
+    "APRS",
+    "APRS Client",
+    "ham radio",
+    "amateur radio"
+  ],
+  "bugs": {
+    "url": "https://github.com/KD0NKS/aprs-view-js/issues"
+  },
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
     "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\" --ignore-path .gitignore",
@@ -13,7 +22,7 @@
   "dependencies": {
     "@quasar/extras": "^1.15.10",
     "core-js": "^3.27.2",
-    "js-aprs-fap": "^1.2.1",
+    "js-aprs-fap": "^1.3.0",
     "js-aprs-is": "1.1.4",
     "js-aprs-tnc": "^0.0.2",
     "lodash": "^4.17.21",
@@ -35,7 +44,7 @@
     "@typescript-eslint/parser": "^5.51.0",
     "electron": "^23.0.0",
     "electron-packager": "^17.1.1",
-    "eslint": "^8.33.0",
+    "eslint": "^8.34.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-vue": "^9.9.0",
     "typescript": "^4.9.5"
