@@ -1,74 +1,85 @@
 <template>
-    <div class="q-gutter-md row">
-        <q-select label="COM Port"
-            :options="comPorts"
-            v-model="model.comPort"
-            :rules="[ rules.required ]"
-            @focus="updateSerialPorts"
-            class="col-6"
-            dense
-            >
-        </q-select>
+    <div class="row justify-between">
+        <div class="col-xs-6 q-pa-sm">
+            <q-select label="COM Port"
+                :options="comPorts"
+                v-model="model.comPort"
+                :rules="[ rules.required ]"
+                @focus="updateSerialPorts"
+                dense
+                >
+            </q-select>
+        </div>
 
-        <q-input label="Baud Rate" v-model="model.baudRate" type="number" class="col-5" dense />
+        <div class="col-xs-6 q-pa-sm">
+            <q-input label="Baud Rate" v-model="model.baudRate" type="number" dense />
+        </div>
     </div>
 
-    <div class="q-gutter-md row">
-        <q-select label="Data Bits"
-            :options="dataBitOptions"
-            v-model="model.dataBits"
-            :rules="[ rules.required ]"
-            class="col-6"
-            dense
-            >
-        </q-select>
+    <div class="row justify-between">
+        <div class="col-xs-6 q-pa-sm">
+            <q-select label="Data Bits"
+                :options="dataBitOptions"
+                v-model="model.dataBits"
+                :rules="[ rules.required ]"
+                dense
+                >
+            </q-select>
+        </div>
 
-        <q-select label="Stop Bits"
-            :options="stopBitOptions"
-            v-model="model.stopBits"
-            :rules="[ rules.required ]"
-            class="col-5"
-            dense
-            >
-        </q-select>
+        <div class="col-xs-6 q-pa-sm">
+            <q-select label="Stop Bits"
+                :options="stopBitOptions"
+                v-model="model.stopBits"
+                :rules="[ rules.required ]"
+                dense
+                >
+            </q-select>
+        </div>
     </div>
 
-    <div class="q-gutter-md row">
-        <q-select label="Parity"
-            :options="parityOptions"
-            v-model="model.parity"
-            :rules="[ rules.required ]"
-            class="col-6"
-            dense
-            >
-        </q-select>
+    <div class="row justify-between">
+        <div class="col-xs-6 q-pa-sm">
+            <q-select label="Parity"
+                :options="parityOptions"
+                v-model="model.parity"
+                :rules="[ rules.required ]"
+                dense
+                >
+            </q-select>
+        </div>
 
-        <q-select label="Character Set"
-            :options="charSetOptions"
-            v-model="model.charset"
-            :rules="[ rules.required ]"
-            class="col-5"
-            dense
-            >
-        </q-select>
+        <div class="col-xs-6 q-pa-sm">
+            <q-select label="Character Set"
+                :options="charSetOptions"
+                v-model="model.charset"
+                :rules="[ rules.required ]"
+                dense
+                >
+            </q-select>
+        </div>
     </div>
 
-    <div class="q-gutter-md row">
-        <q-input label="MYCALL Command" v-model="model.myCallCommand" class="col-6" dense />
-        <q-select label="EOL Character"
-            :options="eolCharOptions"
-            v-model="model.messageDelimeter"
-            :rules="[ rules.required ]"
-            emit-value
-            map-options
-            class="col-5"
-            dense
-            >
-        </q-select>
+    <div class="row justify-between">
+        <div class="col-xs-6 q-pa-sm">
+            <q-input label="MYCALL Command" v-model="model.myCallCommand"  dense />
+        </div>
+
+        <div class="col-xs-6 q-pa-sm">
+            <q-select label="EOL Character"
+                :options="eolCharOptions"
+                v-model="model.messageDelimeter"
+                :rules="[ rules.required ]"
+                emit-value
+                map-options
+                dense
+                >
+            </q-select>
+        </div>
     </div>
 
-    <div class="row">
-        <div class="col-6">
+    <div class="row justify-between">
+        <div class="col-xs-6">
             <q-list dense>
                 <draggable v-model="model.initCommands" item-key="index" @start="drag=true" @end="drag=false" handle=".handle" dense>
                     <template #item="{ element, index }" dense>
@@ -84,7 +95,7 @@
             <q-btn flat @click="addCommand(model.initCommands)"><q-icon name="add" />Add INIT COMMAND</q-btn>
         </div>
 
-        <div class="col-6">
+        <div class="col-xs-6">
             <q-list dense>
                 <draggable v-model="model.exitCommands" item-key="index" @start="drag=true" @end="drag=false"  handle=".handle">
                     <template #item="{ element, index }">

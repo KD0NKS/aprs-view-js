@@ -20,32 +20,40 @@
                     :greedy="false"
                     @reset="onReset"
                     @submit="onSubmit">
-                <div class="q-gutter-md row" dense>
-                    <q-input label="Name" v-model="model.name" :rules="[ rules.required ]" class="col-8" dense />
-                    <q-select label="Connection Type"
-                            v-model="model.connectionType"
-                            :options="connectionTypeOptions"
-                            @update:model-value="changeConnectionType"
-                            class="col-3"
-                            emit-value
-                            map-options
-                            dense
-                            >
-                    </q-select>
+                <div class="row justify-between">
+                    <div class="col-md-8 q-pa-sm">
+                        <q-input label="Name" v-model="model.name" :rules="[ rules.required ]" dense />
+                    </div>
+
+                    <div class="col-md-4 q-pa-sm">
+                        <q-select label="Connection Type"
+                                v-model="model.connectionType"
+                                :options="connectionTypeOptions"
+                                @update:model-value="changeConnectionType"
+                                emit-value
+                                map-options
+                                dense
+                                >
+                        </q-select>
+                    </div>
                 </div>
 
-                <div class="q-gutter-md row" style="margin-bottom: 10px;">
-                    <q-toggle v-model="model.isAllowTransmit" label="Allow Transmit" />
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-toggle v-model="model.isAllowTransmit" label="Allow Transmit" dense />
+                    </div>
                 </div>
 
                 <ISConnectionItem :model="model" v-if="model.connectionType == 'IS_SOCKET'" />
                 <KissTcipConnectionItem :model="model" v-if="model.connectionType == 'KISS_TCIP'" />
                 <TNCConnectionItem :model="model" v-if="model.connectionType == 'SERIAL_TNC'" />
 
-                <div class="q-gutter-md row">
-                    <q-btn label="Save" type="submit" color="primary" />
-                    <q-btn label="Reset" type="reset" />
-                    <q-btn label="Delete" @click="deleteConnection" color="red" />
+                <div class="row">
+                    <div class="q-gutter-sm col-md-6 q-pa-sm">
+                        <q-btn label="Save" type="submit" color="primary" />
+                        <q-btn label="Reset" type="reset" />
+                        <q-btn label="Delete" @click="deleteConnection" color="red" />
+                    </div>
                 </div>
             </q-form>
         </q-card>

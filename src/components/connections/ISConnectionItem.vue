@@ -1,12 +1,17 @@
 <template>
-    <div class="q-gutter-md row" dense>
-        <q-input label="URL" v-model="model.host" :rules="[ rules.required ]" class="col-8" dense />
-        <q-input label="Port" v-model="model.port" :rules="[ rules.required ]" class="col-3" dense />
+    <div class="row justify-between">
+        <div class="col-xs-8 q-pa-sm">
+            <q-input label="URL" v-model="model.host" :rules="[ rules.required ]" dense />
+        </div>
+        <div class="col-xs-4 q-pa-sm">
+            <q-input label="Port" v-model="model.port" :rules="[ rules.required ]" dense />
+        </div>
     </div>
-    <div class="q-gutter-md row">
-        <q-input label="Filter" v-model="model.filter" class="col-11" dense />
+    <div class="row justify-between">
+        <div class="col-xs-12 q-pa-sm">
+            <q-input label="Filter" v-model="model.filter" dense />
+        </div>
     </div>
-    <br />
 </template>
 
 <script lang="ts">

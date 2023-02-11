@@ -5,47 +5,54 @@
         </div>
 
         <q-card class="q-pa-md">
-            <q-form class="q-gutter-md"
+            <q-form
                     :greedy="false"
                     @reset="onReset"
                     @submit="onSubmit">
-                <div class="q-gutter-md row items-start">
-                    <q-toggle
-                        :label="themeLabel"
-                        v-model="settings.isDarkMode"
-                        dense
-                        >
-                    </q-toggle>
-                </div>
-                <div class="q-gutter-md row items-start">
-                    <q-select label="Distance Units"
-                            v-model="settings.distanceUnitType"
-                            :options="distanceUnitTypeOptions"
-                            emit-value
-                            map-options
-                            class="col-6"
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-toggle
+                            :label="themeLabel"
+                            v-model="settings.isDarkMode"
                             dense
                             >
-                    </q-select>
+                        </q-toggle>
+                    </div>
                 </div>
 
-                <div class="q-gutter-md row items-start">
-                    <q-select label="Temperature Units"
-                            v-model="settings.temperatureUnitType"
-                            :options="temperatureUnitTypeOptions"
-                            :option-value="opt => Object(opt) === opt && 'value' in opt ? opt.value : null"
-                            :option-label="opt => Object(opt) === opt && 'label' in opt ? opt.label : null"
-                            emit-value
-                            map-options
-                            class="col-6"
-                            dense
-                            >
-                    </q-select>
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-select label="Distance Units"
+                                v-model="settings.distanceUnitType"
+                                :options="distanceUnitTypeOptions"
+                                emit-value
+                                map-options
+                                dense
+                                >
+                        </q-select>
+                    </div>
                 </div>
 
-                <div class="q-gutter-md row items-start">
-                    <q-btn color="primary" label="Save" type="submit" />
-                    <q-btn label="Reset" type="reset" />
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-select label="Temperature Units"
+                                v-model="settings.temperatureUnitType"
+                                :options="temperatureUnitTypeOptions"
+                                :option-value="opt => Object(opt) === opt && 'value' in opt ? opt.value : null"
+                                :option-label="opt => Object(opt) === opt && 'label' in opt ? opt.label : null"
+                                emit-value
+                                map-options
+                                dense
+                                >
+                        </q-select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="q-gutter-sm col-md-6 q-pa-sm">
+                        <q-btn color="primary" label="Save" type="submit" />
+                        <q-btn label="Reset" type="reset" />
+                    </div>
                 </div>
             </q-form>
         </q-card>

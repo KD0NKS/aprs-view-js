@@ -22,9 +22,9 @@
 <script lang="ts">
     import 'ol/ol.css'
 
-    import { defineComponent, onMounted, ref } from 'vue'
+    import { defineComponent, ref } from 'vue'
     import { useStore } from '@/store'
-    import { ConversionUtil, NumberUtil, PacketUtil } from '@/utils'
+    import { NumberUtil, PacketUtil } from '@/utils'
 
     import Stamen from 'ol/source/Stamen'
     import BaseLayer from 'ol/layer/Base'
@@ -51,7 +51,7 @@
     import ImageLayer from 'ol/layer/Image'
     import ImageArcGISRest from 'ol/source/ImageArcGISRest'
 
-    const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'red', width: 2, lineDash: [ 8, 8 ] }) })
+    const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'black', width: 2, lineDash: [ 8, 8 ] }) })
 
     export default defineComponent({
     components: { StationFeatureCard, MapContextMenu },
@@ -73,6 +73,9 @@
             const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
             const trailVector: VectorSource<Geometry> = new VectorSource({})
 
+            // timers
+            const layerTimers = {}
+
             // data
             const contextMenuX = ref(0)
             const contextMenuY = ref(0)
@@ -83,6 +86,8 @@
             // listeners
             const packetAddedListener = ref(null)
             const packetRemovedListener = ref(null)
+
+            const maxPacketAge: number = mapSettings.pointLifetime * 60000;
 
             // Default: /assets/radio-tower.png
             const stationIconOverlay = ref(new APRSSymbol({
@@ -107,8 +112,10 @@
                 , packetUtil
                 , currentStationPositionVector
                 , genericPointVector
+                , layerTimers
                 , mapService
                 , mapSettings
+                , maxPacketAge
                 , stationSettings
                 , packets
                 , packetAddedListener
@@ -125,6 +132,10 @@
         , beforeUnmount() {
             this.packets.removeListener('add', this.packetAddedListener)
             this.packets.removeListener('remove', this.packetRemovedListener)
+
+            _.each(this.layerTimers, (t) => {
+                clearInterval(t)
+            })
         }
         , async mounted() {
             const layers: BaseLayer[] = [
@@ -142,7 +153,8 @@
                 })
                 /*
                 , new ImageLayer({
-                    source: new ImageArcGISRest({
+                    className: "nowcoast-short-duration-hazards"
+                    , source: new ImageArcGISRest({
                         // TODO: Refresh source every minute
                         url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
                         , params: {
@@ -153,9 +165,14 @@
                         ]
                     })
                     , opacity: 0.5
+                    , properties: {
+                        "refreshTime": 60000
+                    }
                 })
+
                 , new ImageLayer({
-                    source: new ImageArcGISRest({
+                    className: "nowcoast-long-duration-hazards"
+                    , source: new ImageArcGISRest({
                         url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_longduration_hazards_time/MapServer'
                         , params: {
                             'FORMAT': 'PNG32'
@@ -167,7 +184,8 @@
                     , opacity: 0.5
                 })
                 , new ImageLayer({
-                    source: new ImageArcGISRest({
+                    className: "nowcoast-nexrad"
+                    , source: new ImageArcGISRest({
                         // TODO: Refresh every 2 -5 min... rtfm here: https://nowcoast.noaa.gov/help/#!section=updateschedule
                         url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer'
                         , params: {
@@ -179,6 +197,9 @@
                         ]
                     })
                     , opacity: 0.5
+                    , properties: {
+                        "refreshTime": 60000
+                    }
                 })
                 */
                 , new VectorLayer({
@@ -223,6 +244,11 @@
 
             const centerLon = this.stationSettings.longitude ?? -98.5795
             const centerLat = this.stationSettings.latitude ?? 39.8283
+
+            _.each(_.filter(layers, l => l.get("refreshTime") != null), l => {
+                const interval = setInterval(() => { l.get("source").refresh(); console.log(`Refreshing ${l.getClassName()}`) }, l.get("refreshTime"))
+                this.layerTimers[l.getClassName()] = interval
+            })
 
             const map = new OLMap({
                 target: 'map'
@@ -349,6 +375,8 @@
                         })
 
                         feature.setStyle(await styles)
+
+                        // NOTE: Existing features are removed below.
                         await this.stationPositionVector.addFeature(feature)
                     }
 
@@ -386,6 +414,7 @@
                                 , packet.posambiguity, fromLonLat([ packet.longitude, packet.latitude ]))
                     }
 
+                    // Remove all existing features from stationPositionVector
                     if(!!existingFeatures && existingFeatures.length > 0) {
                         _.map(existingFeatures, f => {
                             if(f != undefined) {
@@ -577,9 +606,9 @@
                             packets
                             , (p) => {
                                 return this.packetUtil.isValidPacket(p)
-                                    && (new Date().getTime() - p.receivedTime) < (this.mapSettings.pointLifetime * 60000)
-                                    && (p.latitude != null && p.latitude != undefined)
-                                    && (p.longitude != null && p.longitude != undefined)
+                                    && ((new Date().getTime() - p.receivedTime) < this.maxPacketAge)
+                                    && p.latitude != null
+                                    && p.longitude != null
                             })
                         , p => (p as aprsPacket).receivedTime
                     )

@@ -1,16 +1,22 @@
 <template>
-    <q-item dense>
-        <q-item-section avatar class="handle">
-            <q-icon name="drag_indicator" dense />
-        </q-item-section>
-        <q-item-section class="col-10">
-            <q-input v-model="localCommand" :rules="[ rules.required ]" dense />
-        </q-item-section>
-        <q-item-section>
-            <q-btn flat dense>
-                <q-icon name="clear" @click="$emit('removeCommand')" />
-            </q-btn>
-        </q-item-section>
+    <q-item class="row justify-between q-pa-none" dense>
+            <div class="col-xs-1 q-pa-sm">
+                <q-item-section avatar class="handle">
+                    <q-icon name="drag_indicator" />
+                </q-item-section>
+            </div>
+            <div class="col-xs-10 q-pa-sm">
+                <q-item-section class="col-10">
+                    <q-input v-model="localCommand" :rules="[ rules.required ]" dense />
+                </q-item-section>
+            </div>
+            <div class="col-xs-1 q-pa-sm">
+                <q-item-section>
+                    <q-btn flat dense>
+                        <q-icon name="clear" @click="$emit('removeCommand')" />
+                    </q-btn>
+                </q-item-section>
+            </div>
     </q-item>
 </template>
 
