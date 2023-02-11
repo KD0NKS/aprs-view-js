@@ -33,17 +33,19 @@ export class KissTcipSocket extends Socket {
      * @example let connection = new IS('aprs.server.com', 8001);
      * @example let connection = new IS('aprs.server.com', 8001, 12345);
      * @example let connection = new IS('aprs.server.com', 8001, '5c257582-265e-481f-9859-5f7e23c02e72');
+     * @example let connection = new IS('aprs.server.com', 8001, '5c257582-265e-481f-9859-5f7e23c02e72', true);
     */
     // Don't provide multiple constructors.  Passing undefined parameters is annoying, but ideally, most, if not all
     // parameters should be used anyway.
     constructor(public host: string
             , public port: number
             , public id: string | number = uuidV4() // This is odd at best... leave it for now
+            , public isTransmitEnabled: boolean = false
             ) {
         super();
 
         this._isSocketConnected = false;
-        this.setNoDelay(true);
+        this.setNoDelay(false);
         this.setEncoding('hex');
 
         // TODO: Do we want to throw errors if the host or port are null?
@@ -140,6 +142,22 @@ export class KissTcipSocket extends Socket {
     }
 
     /**
+     * @param {string} packet - packet already in KISS format.
+     */
+    public send(packet: string) {
+        if(this.isTransmitEnabled && this._isSocketConnected == true) {
+            console.log(packet)
+
+            const buffer = Buffer.from(packet, 'ascii')
+            console.log(buffer)
+
+            this.write(buffer);
+
+            // TODO: Emit sent
+        }
+    }
+
+    /**
      * Transmits a line (typically an APRS packet) to the APRS-IS. The line
      * should be a complete packet but WITHOUT the <CR><LF> separator
      * used on the APRS-IS.
@@ -167,7 +185,7 @@ export class KissTcipSocket extends Socket {
     /**
      * In a perfect world, this tells whether the socket is currently connected.
      *
-     * @returns {boolean} True if connected, otherwise false.
+     * @returns {boolean} - True if connected, otherwise false.
      *
      * @example connection.isConnected()
      */

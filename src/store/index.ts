@@ -12,7 +12,6 @@ import { aprsPacket, PacketTypeEnum } from 'js-aprs-fap'
 
 import { IMapSettings, ISoftwareSettings, IStationSettings, MapSettings, SoftwareSettings, StationSettings } from '@/models/settings'
 import { AbstractConnection, IConnection } from '@/models/connections'
-import { PacketUtil } from '@/utils'
 import { EventedArray } from '@/models/arrays/EventedArray'
 
 //import { ConnectionService } from '@/services'
@@ -28,6 +27,7 @@ import { EventedArray } from '@/models/arrays/EventedArray'
 
 const _mapper = new Mapper()
 const appId = 'js-aprs-view 0.0.1'
+const aprsAppId = 'APZ678'
 
 export interface IState {
     // Define your own store structure, using submodules if needed
@@ -50,7 +50,6 @@ declare module '@vue/runtime-core' {
 
 // provide typings for `useStore` helper
 export const storeKey: InjectionKey<VuexStore<IState>> = Symbol('vuex-key')
-const packetUtil: PacketUtil = new PacketUtil()
 const maxDataLength = 100
 
 /* NOTE!  For performance reasons, DO NOT use a state level array for this! */
@@ -199,9 +198,18 @@ export default store(function (/* { ssrContext } */) {
                 state.stationSettings.symbol = settings.symbol
                 state.stationSettings.symbolOverlay = settings.symbolOverlay
                 state.stationSettings.isTransmitPosition = settings.isTransmitPosition ?? false
-                state.stationSettings.locationType = settings.locationType ?? LocationTypes.FIXED
-                state.stationSettings.latitude = settings.latitude
-                state.stationSettings.longitude = settings.longitude
+                state.stationSettings.locationType = settings.locationType ?? LocationTypes.NONE
+
+                if(settings.locationType == LocationTypes.FIXED) {
+                    state.stationSettings.latitude = settings.latitude
+                    state.stationSettings.longitude = settings.longitude
+                    state.stationSettings.transmitInterval = settings.transmitInterval ?? 15
+                } else {
+                    state.stationSettings.latitude = null
+                    state.stationSettings.longitude = null
+                    state.stationSettings.isTransmitPosition = false
+                    // TODO: Kill anything trying to send position packets
+                }
 
                 LocalStorage.set(StorageKeys.STATION_SETTINGS, _mapper.Map<StationSettings>(state.stationSettings, StationSettings))
 
@@ -287,15 +295,15 @@ export default store(function (/* { ssrContext } */) {
         , strict: !!process.env.DEBUGGING,
     })
 
-    let dataListener = global.connectionService.getDataStream((data) => {
+    const dataListener = global.connectionService.getDataStream((data) => {
         Store.dispatch(ActionTypes.ADD_DATA, [ data[0], data[1].toString() ])
     })
 
-    let packetListener = global.connectionService.getPacketStream((packet) => {
+    const packetListener = global.connectionService.getPacketStream((packet) => {
         Store.dispatch(ActionTypes.ADD_PACKET, packet)
     })
 
-    let connectionStatusListener = global.connectionService.getConnectionStatusStream((e, connectionId) => {
+    const connectionStatusListener = global.connectionService.getConnectionStatusStream((e, connectionId) => {
         Store.dispatch(ActionTypes.UPDATE_CONNECTION_STATUS, { id: connectionId, status: e })
     })
 

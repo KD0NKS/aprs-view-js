@@ -81,6 +81,11 @@ ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_DELETE_CONNECTION, async (event,
     connectionService.deleteConnection(connectionId)
 })
 
+// sendPacket
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_SEND_PACKET, async (event, packet) => {
+    connectionService.sendPacket(packet)
+})
+
 // setConnectionStatus
 ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_SET_CONNECTION_STATUS, async (event, connectionId, isEnabled) => {
     connectionService.updateConnectionStatus(connectionId, isEnabled)

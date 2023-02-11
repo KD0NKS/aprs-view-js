@@ -11,10 +11,9 @@ import { IConnection } from '../../../src/models/connections/IConnection'
 import { IStationSettings } from '../../../src/models/settings/IStationSettings'
 import { ConnectionEventTypes } from '../../../src/enums/ConnectionEventTypes'
 import { DataEventTypes } from '../../enums/DataEventTypes'
-import { aprsParser } from 'js-aprs-fap'
+import { aprsParser, KissUtil } from 'js-aprs-fap'
 import { TerminalSettings } from '../../tnc/configurations/TerminalSettings'
 import { KissTcipSocket } from '../../tnc/connections/KissTcipSocket'
-import { KissUtil } from 'js-aprs-fap'
 
 export class ConnectionService extends EventEmitter {
     private _callsign = ''
@@ -48,7 +47,7 @@ export class ConnectionService extends EventEmitter {
                 (connection as ISSocket).connect()
             }
         } else if(setting.connectionType == 'KISS_TCIP') {
-            connection = new KissTcipSocket(setting["host"], setting["port"], setting["id"] ?? uid())
+            connection = new KissTcipSocket(setting["host"], setting["port"], setting["id"] ?? uid(), setting["isAllowTransmit"])
             this._connections.push(connection)
 
             this.attachListeners(connection)
@@ -128,6 +127,29 @@ export class ConnectionService extends EventEmitter {
         return false
     }
 
+    // TODO: Accept a destination,
+    public sendPacket(packet: string) {
+        _.each(_.filter(this._connections, (c) => {
+                return ((c instanceof KissTcipSocket) && c.isTransmitEnabled == true)
+                    || ((c instanceof ISSocket) && c.isConnected() == true)
+            })
+            , c => {
+                if(c instanceof KissTcipSocket) {
+                    let path = "WIDE2-2"
+                    let toSend = this._kissUtil.tnc2ToKiss(`${this._callsign}>APZ678,${path}:${packet}`)
+
+                    if(!!toSend) {
+                        c.send(toSend)
+                    }
+                } else if(c instanceof ISSocket) {
+                    // header TCPIP*
+                    c.sendLine(`${this._callsign}>APZ678,TCIP*:${packet}`)
+                    console.log(`${this._callsign}>APZ678,TCIP*:${packet}`)
+                }
+            }
+        )
+    }
+
     public updateConnection(setting: IConnection): void {
         let connection = this.findConnection(setting.id)
 
@@ -151,6 +173,8 @@ export class ConnectionService extends EventEmitter {
                 this.deleteConnection(setting.id)
                 connection = this.addConnection(setting)
             }
+
+            (connection as KissTcipSocket).isTransmitEnabled = setting.isAllowTransmit
         } else {
             // It is easier to delete and re-add a TNC connection than to try and update it.  This else also applies for switching connection types.
             this.deleteConnection(setting.id)

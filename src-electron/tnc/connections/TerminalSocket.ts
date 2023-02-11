@@ -9,7 +9,7 @@ export class TerminalSocket extends SerialPort {
     private _id: string | number
     private _options: TerminalSettings
     private _pipe: any
-    private _pipeListener = null
+    private _pipeListener: any = null
 
     // TODO: override callback
     constructor(options: TerminalSettings, openCallback?: any) {    // TODO: Any needs to be specific here

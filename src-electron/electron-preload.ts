@@ -15,7 +15,7 @@
  *     doAThing: () => {}
  *   })
  */
-import { contextBridge, ipcMain, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { ConnectionEventTypes } from '../src/enums/ConnectionEventTypes'
 
 import { IConnection } from '../src/models/connections/IConnection'
@@ -38,6 +38,9 @@ contextBridge.exposeInMainWorld('connectionService', {
     }
     , setConnectionStatus(connectionId, isEnabled) {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_SET_CONNECTION_STATUS, connectionId, isEnabled)
+    }
+    , sendPacket: async (packet: string) => {
+        ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_SEND_PACKET, packet)
     }
     , updateConnection: (settings: IConnection) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_CONNECTION, settings)
