@@ -5,7 +5,8 @@ export interface IStationSettings {
     symbol?: string
     symbolOverlay?: string
     isTransmitPosition: boolean
-    latitude: number
+    latitude?: number
     locationType: string
-    longitude: number
+    longitude?: number
+    transmitInterval: number
 }

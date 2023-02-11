@@ -1,4 +1,4 @@
-import _, { map } from 'lodash';
+import _ from 'lodash';
 import { Control } from 'ol/control';
 
 // Reference: https://openlayers.org/en/latest/examples/custom-controls.html

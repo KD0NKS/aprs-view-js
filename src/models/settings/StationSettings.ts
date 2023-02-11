@@ -9,7 +9,10 @@ export class StationSettings implements IStationSettings {
     symbolOverlay?: string = null
 
     isTransmitPosition: boolean = false
-    locationType: string = LocationTypes.FIXED
-    longitude: number = 0
-    latitude: number = 0
+    locationType: string = LocationTypes.NONE
+    longitude?: number = null
+    latitude?: number = null
+
+    // in minutes
+    transmitInterval = 15
 }

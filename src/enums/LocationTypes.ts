@@ -1,3 +1,4 @@
 export enum LocationTypes {
-    FIXED = 'Fixed'
+    NONE = "None"
+    , FIXED = "Fixed"
 }
