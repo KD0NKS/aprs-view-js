@@ -105,6 +105,16 @@
                     </div>
                 </div>
 
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-input label="Comment"
+                                v-model="settings.comment"
+                                :rules="[ rules.commentChars, rules.commentLength ]"
+                                v-if="settings.locationType != 'None'"
+                                dense />
+                    </div>
+                </div>
+
                 <static-location-settings v-if="settings.locationType == 'Fixed'"
                         :latitude="settings.latitude"
                         :longitude="settings.longitude"
@@ -161,6 +171,9 @@
                 , symbolSvc
                 , rules: {
                     required: value => !!value || 'Required.'
+                    // TODO: This probably needs adjusting as it's a made up number.  Packets cannot exceed a certain length, but there is no actual limit to comment length.
+                    , commentLength: value => value.length <= 80 || "Must be less than 80 characters."
+                    , commentChars: value => !(value.indexOf('~') > -1 || value.indexOf('|') > -1) || "Cannot contain special chars '~' or '|'."
                 }
                 , onSubmit() {
                     store.dispatch(ActionTypes.SET_STATION_SETTINGS, settings.value)
@@ -185,10 +198,11 @@
 
             }
             , isDisableTransmitPostion(): boolean {
-                return (this.settings.locationType == null || this.settings.locationType == LocationTypes.NONE)
+                return (this.settings?.locationType == null || this.settings?.locationType == LocationTypes.NONE)
             }
             , isDisableSendPosition() {
-                return this.isDisableTransmitPosition == true || this.settings.isTransmitPosition == false
+                // duplicate code for isDisableTransmitPostion condition because of a warning on render
+                return this.settings?.locationType == null || this.settings?.locationType == LocationTypes.NONE || this.settings?.isTransmitPosition == false
             }
             , locationTypeOptions() {
                 return _.map(
@@ -234,7 +248,6 @@
             , updateLocationType() {
                 if(this.settings.locationType == null || this.settings.locationType == LocationTypes.NONE) {
                     this.settings.isTransmitPosition = ref(false)
-
                 }
             }
             , sendPacket() {
@@ -247,7 +260,8 @@
                         ) {
                     const packet = this.packetFactory.makePosition(
                         new BuildPositionModel({
-                            latitude: stationSettings.latitude
+                            comment: stationSettings.comment
+                            , latitude: stationSettings.latitude
                             , longitude: stationSettings.longitude
                             , symbols: (stationSettings.overlaySymbol && stationSettings.overlaySymbol != null && stationSettings.overlaySymbol != '')
                                     ? `${stationSettings.symbol}${stationSettings.overlaySymbol}`
@@ -257,18 +271,6 @@
 
                     global.connectionService.sendPacket(packet)
                 }
-
-                /*
-                isTransmitPosition: boolean = false
-                locationType: string = LocationTypes.FIXED
-                longitude: number = 0
-                latitude: number = 0
-                */
-
-                /*
-                let packet;
-                global.connectionService.sendPacket(packet)
-                */
             }
         }
     })

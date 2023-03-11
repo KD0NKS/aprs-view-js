@@ -27,7 +27,7 @@ import { EventedArray } from '@/models/arrays/EventedArray'
 
 const _mapper = new Mapper()
 const appId = 'js-aprs-view 0.0.1'
-const aprsAppId = 'APZ678'
+const aprsAppId = 'APRS'
 
 export interface IState {
     // Define your own store structure, using submodules if needed
@@ -201,10 +201,12 @@ export default store(function (/* { ssrContext } */) {
                 state.stationSettings.locationType = settings.locationType ?? LocationTypes.NONE
 
                 if(settings.locationType == LocationTypes.FIXED) {
+                    state.stationSettings.comment = settings.comment
                     state.stationSettings.latitude = settings.latitude
                     state.stationSettings.longitude = settings.longitude
                     state.stationSettings.transmitInterval = settings.transmitInterval ?? 15
                 } else {
+                    state.stationSettings.comment = null;
                     state.stationSettings.latitude = null
                     state.stationSettings.longitude = null
                     state.stationSettings.isTransmitPosition = false

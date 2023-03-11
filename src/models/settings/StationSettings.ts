@@ -8,6 +8,8 @@ export class StationSettings implements IStationSettings {
     symbol?: string = null
     symbolOverlay?: string = null
 
+    // location settings
+    comment?: string = null
     isTransmitPosition: boolean = false
     locationType: string = LocationTypes.NONE
     longitude?: number = null

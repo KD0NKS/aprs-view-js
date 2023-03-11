@@ -4,6 +4,9 @@ export interface IStationSettings {
     ssid: string
     symbol?: string
     symbolOverlay?: string
+
+    // location
+    comment?: string
     isTransmitPosition: boolean
     latitude?: number
     locationType: string
