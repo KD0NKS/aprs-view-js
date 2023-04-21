@@ -58,6 +58,7 @@ module.exports = configure(function (ctx) {
             '@': path.resolve(__dirname, "./src")
         }
       },
+      minify: true,
 
       // transpile: false,
       // publicPath: '/',

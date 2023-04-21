@@ -150,13 +150,16 @@
                     className: 'ambiguity-layer'
                     , minZoom: 8
                     , source: this.ambiguityVector
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
                 /*
+                // watches
                 , new ImageLayer({
-                    className: "nowcoast-short-duration-hazards"
+                    className: "nowcoast-short-duration-watches"
                     , source: new ImageArcGISRest({
                         // TODO: Refresh source every minute
-                        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
+                        url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_watches_time/MapServer'
                         , params: {
                             'FORMAT': 'PNG32'
                         }
@@ -169,11 +172,28 @@
                         "refreshTime": 60000
                     }
                 })
-
+                // warnings
+                , new ImageLayer({
+                    className: "nowcoast-short-duration-warnings"
+                    , source: new ImageArcGISRest({
+                        // TODO: Refresh source every minute
+                        url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
+                        , params: {
+                            'FORMAT': 'PNG32'
+                        }
+                        , attributions: [
+                            '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
+                        ]
+                    })
+                    , opacity: 0.5
+                    , properties: {
+                        "refreshTime": 60000
+                    }
+                })
                 , new ImageLayer({
                     className: "nowcoast-long-duration-hazards"
                     , source: new ImageArcGISRest({
-                        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_longduration_hazards_time/MapServer'
+                        url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_longduration_hazards_time/MapServer'
                         , params: {
                             'FORMAT': 'PNG32'
                         }
@@ -183,11 +203,12 @@
                     })
                     , opacity: 0.5
                 })
+                // radar
                 , new ImageLayer({
                     className: "nowcoast-nexrad"
                     , source: new ImageArcGISRest({
                         // TODO: Refresh every 2 -5 min... rtfm here: https://nowcoast.noaa.gov/help/#!section=updateschedule
-                        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer'
+                        url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer'
                         , params: {
                             'LAYERS': '1,3'
                             , 'FORMAT': 'PNG32'

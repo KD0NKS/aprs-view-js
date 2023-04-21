@@ -1,4 +1,4 @@
-export enum IpcEventTypes{
+export enum IpcEventTypes {
     CONNECTION_SERVICE_ADD_CONNECTION = 'connection-service.add-connection'
     , CONNECTION_SERVICE_DELETE_CONNECTION = 'connection-service.delete-connection'
     , CONNECTION_SERVICE_SEND_PACKET = 'connection-service.send-packet'
