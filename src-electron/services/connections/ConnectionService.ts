@@ -31,7 +31,7 @@ export class ConnectionService extends EventEmitter {
     public constructor() {
         super()
 
-        this._connections = new Array<ISSocket | TerminalSocket>()
+        this._connections = new Array<ISSocket | KissTcipSocket | TerminalSocket>()
     }
 
     // NOTE: This expects the front end is always creating an IS Socket.  To change it to any other type, you have to update the connection.

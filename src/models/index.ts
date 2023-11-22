@@ -1,4 +1,4 @@
-import { APRSSymbol } from '@/models/APRSSymbol'
+import { APRSSymbol } from './APRSSymbol'
 
 export {
     APRSSymbol

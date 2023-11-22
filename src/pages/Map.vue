@@ -23,52 +23,61 @@
     import 'ol/ol.css'
 
     import { defineComponent, onMounted, ref } from 'vue'
-    import { useStore } from '@/store'
-    import { NumberUtil, PacketUtil } from '@/utils'
 
-    import Stamen from 'ol/source/Stamen'
+    import { useMapSettingsStore } from '../stores/mapSettingsStore';
+    import { usePacketStore } from '../stores/packetStore';
+    import { useStationSettingsStore } from '../stores/stationSettingsStore';
+
+    import { NumberUtil, PacketUtil } from '../utils'
+    import _ from 'lodash'
+    import { APRSSymbolService, MapService } from '../services'
+    import { APRSSymbol } from '../models'
+
+
+
     import BaseLayer from 'ol/layer/Base'
     import { Heatmap as HeatmapLayer, Tile as TileLayer, Image } from 'ol/layer'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import { fromLonLat, toLonLat } from 'ol/proj'
     import { aprsPacket } from 'js-aprs-fap'
     import Point from 'ol/geom/Point'
-    import Geometry from 'ol/geom/Geometry'
-    import _ from 'lodash'
-    import { APRSSymbolService, MapService } from '@/services'
     import VectorSource from 'ol/source/Vector'
-    import { APRSSymbol } from '@/models'
-    import { Style, Fill, Stroke, Text, Icon } from 'ol/style'
     import VectorLayer from 'ol/layer/Vector'
-    import { ActionTypes, GetterTypes, LocationTypes } from '@/enums'
+    import StadiaMaps from 'ol/source/StadiaMaps'
+    import Geometry from 'ol/geom/Geometry'
+    import { Style, Fill, Stroke, Text, Icon } from 'ol/style'
+    import { LocationTypes } from '../enums'
     import LineString from 'ol/geom/LineString'
-    import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
-    import MapContextMenu from '@/components/maps/MapContextMenu.vue'
-    import { FeatureSearch } from '@/models/ol/controls/FeatureSearch'
+    import StationFeatureCard from '../components/maps/StationFeatureCard.vue'
+    import MapContextMenu from '../components/maps/MapContextMenu.vue'
+    import { FeatureSearch } from '../models/ol/controls/FeatureSearch'
     import { defaults as defaultControls} from 'ol/control'
     import ImageLayer from 'ol/layer/Image'
     import ImageArcGISRest from 'ol/source/ImageArcGISRest'
+import { FeatureLike } from 'ol/Feature';
 
     const map = null
 
     export default defineComponent({
-    components: { StationFeatureCard, MapContextMenu },
+        components: { StationFeatureCard, MapContextMenu },
         name: 'Map'
         , setup() {
-            const store = useStore()
+            const mapSettingsStore = useMapSettingsStore();
+            const packetStore = usePacketStore();
+            const stationSettingsStore = useStationSettingsStore();
+            const stationSettings = stationSettingsStore.stationSettings;
 
-            const packetUtil: PacketUtil = new PacketUtil()
-            const mapService = new MapService()
-            const mapSettings = store.getters[GetterTypes.MAP_SETTINGS]
-            const stationSettings = store.getters[GetterTypes.STATION_SETTINGS]
+            const packetUtil: PacketUtil = new PacketUtil();
+            const mapService = new MapService();
+            const mapSettings = mapSettingsStore.mapSettings;
 
-            const currentStationPositionVector: VectorSource<Geometry> = new VectorSource({})
-            const genericPointVector: VectorSource<Geometry> = new VectorSource({})
-            const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
+            const currentStationPositionVector: VectorSource<FeatureLike> = new VectorSource({})
+            const genericPointVector: VectorSource<FeatureLike> = new VectorSource({})
+            const stationPositionVector: VectorSource<FeatureLike> = new VectorSource({})
             const symbolService: APRSSymbolService = new APRSSymbolService()
-            const trailVector: VectorSource<Geometry> = new VectorSource({})
+            const trailVector: VectorSource<FeatureLike> = new VectorSource({})
 
-            const packets = store.getters[GetterTypes.GET_PACKETS]
+            const packets = packetStore.getPackets
             const packetAddedListener = ref(null)
             const packetRemovedListener = ref(null)
 
@@ -81,18 +90,18 @@
             const stationConnectionId = ref(null)
             const stationIconOverlay = ref(new APRSSymbol({
                     key: "logo"
-                    , value: require('@/assets/radio-tower.png')
+                    , value: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAABHlJREFUaN7tmW1ollUYx3+Pj7OWmqlbUG5z2ofypQ/inOuTWPZV5ocsEvbBXCm+JSKEiCAIrj5FMkxs0ZdUfCHKl4QgUqJAUNQUtkEQFkXOUh+HbjJ9/HCfR+/9z/XcL88eHdT+cGDXff3P/1zXuc9zznWfwQhG8P9Gpkw6WaARWAjMBV4CngPGOX8v8CfQBZwBvgdOA/eGewJqgTbgDyCfsv0O7ABqhiPwamA30F9C4Nr6gV1A1eMK/m3gnzIEru0q8NajDLwC2BMRwA1gL7ACmOfeUoVr1e5ZK7APyEXofOr6lBVPAceLDNgFLHecNHrvAN1FNI+l1IudeSv4W8BGYPQQtTcBtw39o5TpTVjLphuYXa4ZApoItlkdZ9dQhZcZomcJ1rSFOmAtcALoJNj/e93fJ4A1BFuvhRrgvDHem6UGX42/23QXCb4G6AAGiN9tBoDPgClFdP4Sfg8wuZQEduOveWvZNAM3EwSuLQcsNvSagD7htqcNvhb/kNpo8NYDd0sIvtDuAusM3a3C6yPlid0mAl34u01zkeAvuMRmAWNdm+We/VIkCX0T4/CX0o6kwWfxa5vlwqnBXzZ9wCpgVIz2auPt5oDnhbtKOJdjtB/gFel4A/9Q6TCCX5h0hoBXjST2CGesMUmNScQ3S6e94q/D321Wpgi+gDWiMYC/zvcL54Mkwoel0wrxr8Vf8/pqa4FDBEsjB3wFvCicLHBRtFYL513xH0ySgIrOE/+34l9vBG9Vq//iH2IbhHNM/PONyYqFDq51epf4Z4r/kBF8oR0Q7mzxd4r/WfH3JElAf1xjxK+l8PgYv24IYYwXf078T4i/T4O1tqV8TIKjYvi3IvqqLxNjK7xvaCsBnaUJYl8Re6rYP0QEoL46sf8W+2mx9Q2ZCeg6mya2rtNFYrdFJPCh2K/FaE8XWyfPTOCS2C+L/V3MrDVEJNAQ01e1dWyNzYQeZF+Kvw64w8MfZaX4T1L8R3xSuJVOI+80dZvdJ/0THWQN+Pu3BvmF83XI83qCH1qh7z3Drpc+hbLkcyO56xLLnCQJZPCLuRbh1ALXgAXyfIv0+9G18LMt0meBmyQtI1qk32VS3CRuxz9gssJ53RDslH7vuRZ1WGXwN4LRhta2pMFDUNrqgbYupk8j/qEz0TX9woqrKt8Xfj/BXWsqfCIivQSXtsWwU/iHQz4tEHdG6MxwY4X5H6cNHmASwXWffplZH9gVBOdHmNsc8jeLrwf7zqcK/7LrCsFbLAlviFgeOOeSC2OxcK4yuIYaY0yGfkZOcto63pJSgy+gXQTv4FeoB4XTnkBHa/sqHp4vSZZaYmQZXCJ/Lf4JBEVaeOAmQ0c/VW8DzwjnGxlnKNeWg/AkwV1lHlgqvlYJrBt7v87gr+9W4Sx1z4+4McuKLPAR/ql8SoLaGqGh9z2nxF9JUPBleUyYil8qvBDBrzf40xkCEt2zRKCFwcvlJ+DXCP5vwM8hO0PwH59hg1U6xGElyX4zjxx6Y9BPsltkq7SYPxwJjGAE/wXcB8J8eESa001CAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTAzLTE2VDAxOjEzOjM4KzAwOjAw6TzNwwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wMy0xNlQwMToxMzozOCswMDowMJhhdX8AAAAodEVYdHN2ZzpiYXNlLXVyaQBmaWxlOi8vL3RtcC9tYWdpY2stQ092U29IUHBpvouTAAAAAElFTkSuQmCC"
                     , name: "Radio Tower"
                     }))
 
             const stationIcon = ref(new APRSSymbol({
                     key: "logo"
-                    , value: require('@/assets/radio-tower.png')
+                    , value: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAABHlJREFUaN7tmW1ollUYx3+Pj7OWmqlbUG5z2ofypQ/inOuTWPZV5ocsEvbBXCm+JSKEiCAIrj5FMkxs0ZdUfCHKl4QgUqJAUNQUtkEQFkXOUh+HbjJ9/HCfR+/9z/XcL88eHdT+cGDXff3P/1zXuc9zznWfwQhG8P9Gpkw6WaARWAjMBV4CngPGOX8v8CfQBZwBvgdOA/eGewJqgTbgDyCfsv0O7ABqhiPwamA30F9C4Nr6gV1A1eMK/m3gnzIEru0q8NajDLwC2BMRwA1gL7ACmOfeUoVr1e5ZK7APyEXofOr6lBVPAceLDNgFLHecNHrvAN1FNI+l1IudeSv4W8BGYPQQtTcBtw39o5TpTVjLphuYXa4ZApoItlkdZ9dQhZcZomcJ1rSFOmAtcALoJNj/e93fJ4A1BFuvhRrgvDHem6UGX42/23QXCb4G6AAGiN9tBoDPgClFdP4Sfg8wuZQEduOveWvZNAM3EwSuLQcsNvSagD7htqcNvhb/kNpo8NYDd0sIvtDuAusM3a3C6yPlid0mAl34u01zkeAvuMRmAWNdm+We/VIkCX0T4/CX0o6kwWfxa5vlwqnBXzZ9wCpgVIz2auPt5oDnhbtKOJdjtB/gFel4A/9Q6TCCX5h0hoBXjST2CGesMUmNScQ3S6e94q/D321Wpgi+gDWiMYC/zvcL54Mkwoel0wrxr8Vf8/pqa4FDBEsjB3wFvCicLHBRtFYL513xH0ySgIrOE/+34l9vBG9Vq//iH2IbhHNM/PONyYqFDq51epf4Z4r/kBF8oR0Q7mzxd4r/WfH3JElAf1xjxK+l8PgYv24IYYwXf078T4i/T4O1tqV8TIKjYvi3IvqqLxNjK7xvaCsBnaUJYl8Re6rYP0QEoL46sf8W+2mx9Q2ZCeg6mya2rtNFYrdFJPCh2K/FaE8XWyfPTOCS2C+L/V3MrDVEJNAQ01e1dWyNzYQeZF+Kvw64w8MfZaX4T1L8R3xSuJVOI+80dZvdJ/0THWQN+Pu3BvmF83XI83qCH1qh7z3Drpc+hbLkcyO56xLLnCQJZPCLuRbh1ALXgAXyfIv0+9G18LMt0meBmyQtI1qk32VS3CRuxz9gssJ53RDslH7vuRZ1WGXwN4LRhta2pMFDUNrqgbYupk8j/qEz0TX9woqrKt8Xfj/BXWsqfCIivQSXtsWwU/iHQz4tEHdG6MxwY4X5H6cNHmASwXWffplZH9gVBOdHmNsc8jeLrwf7zqcK/7LrCsFbLAlviFgeOOeSC2OxcK4yuIYaY0yGfkZOcto63pJSgy+gXQTv4FeoB4XTnkBHa/sqHp4vSZZaYmQZXCJ/Lf4JBEVaeOAmQ0c/VW8DzwjnGxlnKNeWg/AkwV1lHlgqvlYJrBt7v87gr+9W4Sx1z4+4McuKLPAR/ql8SoLaGqGh9z2nxF9JUPBleUyYil8qvBDBrzf40xkCEt2zRKCFwcvlJ+DXCP5vwM8hO0PwH59hg1U6xGElyX4zjxx6Y9BPsltkq7SYPxwJjGAE/wXcB8J8eESa001CAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTAzLTE2VDAxOjEzOjM4KzAwOjAw6TzNwwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wMy0xNlQwMToxMzozOCswMDowMJhhdX8AAAAodEVYdHN2ZzpiYXNlLXVyaQBmaWxlOi8vL3RtcC9tYWdpY2stQ092U29IUHBpvouTAAAAAElFTkSuQmCC"
                     , name: "Radio Tower"
                     }))
 
             return {
-                store
+                packetStore
                 , contextMenuX
                 , contextMenuY
                 , isShowStationInfo: ref(false)
@@ -130,10 +139,12 @@
                 //    })
                 //})
                 new TileLayer({
-                    className: 'stamen-base-layer'
+                    className: "stamen-base-layer"
                     , preload: 1
-                    , source: new Stamen({
-                        layer: 'toner-lite'
+                    , source: new StadiaMaps({
+                        layer: 'stamen_toner_lite'
+                        , apiKey: null
+                        , retina: false
                     })
                 })
                 /*
@@ -197,8 +208,8 @@
                 })
             ]
 
-            const centerLon = this.stationSettings.longitude ?? -98.5795
-            const centerLat = this.stationSettings.latitude ?? 39.8283
+            const centerLon = this.stationSettings?.longitude ?? -98.5795
+            const centerLat = this.stationSettings?.latitude ?? 39.8283
 
             const map = new OLMap({
                 target: 'map'
@@ -222,7 +233,7 @@
 
                 // Prevent trying to fetch data if a trail is clicked
                 if(feature && feature.getGeometry().getType() != "LineString") {
-                    let pkt = this.store.getters[GetterTypes.GET_PACKET](feature.getId())
+                    let pkt = this.packetStore.getPacket(feature.getId())
 
                     this.stationConnectionId = pkt[0]
 
@@ -232,6 +243,8 @@
 
                     this.stationInfoPacket = pkt[1] as aprsPacket
                     this.isShowStationInfo = true
+
+                    console.log(pkt)
                 }
 
                 return
@@ -388,15 +401,19 @@
                 return
             }
             , async clearAllStations() {
-                this.store.dispatch(ActionTypes.REMOVE_PACKETS, _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
-                    result.push((value as Feature<Geometry>).getId())
-                    return result
-                }, []))
+                this.packetStore.removePackets(
+                    _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
+                        result.push((value as Feature<Geometry>).getId())
+                        return result
+                    }, [])
+                )
 
-                this.store.dispatch(ActionTypes.REMOVE_PACKETS, _.reduce(this.stationPositionVector.getFeatures(), (result, value) => {
-                    result.push((value as Feature<Geometry>).getId())
-                    return result
-                }, []))
+                this.packetStore.removePackets(
+                    _.reduce(this.stationPositionVector.getFeatures(), (result, value) => {
+                        result.push((value as Feature<Geometry>).getId())
+                        return result
+                    }, [])
+                )
 
                 return
             }
@@ -503,7 +520,7 @@
             }
             , getAllLocationPackets(): [ (string | number), aprsPacket ][] {
                 const packets = _.reduce(
-                        this.store.getters[GetterTypes.GET_PACKETS]
+                        this.packetStore.getPackets
                         , (result, value) => {
                             if(value[1]) {
                                 result.push(value[1])
@@ -530,7 +547,7 @@
             }
             , async loadMapData() {
                 // get the current station and show it's position
-                if(this.stationSettings.locationType == LocationTypes.FIXED) {
+                if(this.stationSettings?.locationType == LocationTypes.FIXED) {
                     const symbols = await this.symbolService.GetAPRSSymbol(this.stationSettings.symbol, this.stationSettings.symbolOverlay)
 
                     let packet = new aprsPacket();
@@ -562,7 +579,7 @@
 
                 return
             }
-            , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[]): Promise<void> {
+            , async removePoints(vector: VectorSource<FeatureLike>, ids?: number[] | string[]): Promise<void> {
                 if(ids != null && ids.length > 0) {
                     const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
@@ -573,7 +590,7 @@
 
                                 this.generateTrail(f.get('label'))
 
-                                f.dispose()
+                                //f.dispose()
                                 f = null
                             }
                         }

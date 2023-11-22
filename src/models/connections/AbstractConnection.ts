@@ -1,7 +1,7 @@
-import { StringUtil } from "@/utils"
+import { StringUtil } from "../../utils"
 import { uid } from "quasar"
 
-import { IConnection } from "@/models/connections"
+import { IConnection } from "."
 
 export abstract class AbstractConnection {
     public id: string = uid()

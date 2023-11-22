@@ -1,5 +1,5 @@
-import { LocationTypes } from '@/enums/LocationTypes'
-import { IStationSettings } from '@/models/settings'
+import { LocationTypes } from '../../enums/LocationTypes'
+import { IStationSettings } from '../../models/settings'
 
 export class StationSettings implements IStationSettings {
     callsign: string = 'N0CALL'

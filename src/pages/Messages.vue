@@ -23,23 +23,21 @@
 
 <script lang="ts">
     import { defineComponent, ref } from 'vue'
-    import { useStore } from '@/store'
+    import { usePacketStore } from '../stores/packetStore'
     import _ from 'lodash'
-
-    import { GetterTypes } from '@/enums'
 
     import { aprsPacket, PacketTypeEnum } from 'js-aprs-fap'
 
     export default defineComponent({
         name: "Messages"
         , setup() {
-            const store = useStore()
+            const packetStore = usePacketStore()
             const messages = ref([])
-            const packets = store.getters[GetterTypes.GET_PACKETS]
+            const packets = packetStore.getPackets
             const packetAddedListener = ref(null)
 
             return {
-                store
+                store: packetStore
                 , messages
                 , packets
                 , packetAddedListener

@@ -66,12 +66,12 @@
 
 <script lang="ts">
     import { defineComponent, ref } from "vue"
-    import { useStore } from "@/store"
+    import { useConectionStore } from "../../stores/connectionStore"
+    import { useSoftwareSettingsStore } from "../../stores/softwareSettingsStore"
 
-    import { ConversionUtil } from "@/utils"
+    import { ConversionUtil } from "../../utils"
 
-    import { APRSSymbol } from "@/models"
-    import { GetterTypes } from "@/enums"
+    import { APRSSymbol } from "../../models"
 
     export default defineComponent({
         name: "MapContextMenu"
@@ -94,10 +94,11 @@
             }
         }
         , setup() {
-            const store = useStore()
+            const connectionStore = useConectionStore()
+            const softwareSettingsStore = useSoftwareSettingsStore()
 
-            const connections = store.getters[GetterTypes.GET_CONNECTIONS]
-            const softwareSettings = store.getters[GetterTypes.SOFTWARE_SETTINGS]
+            const connections = connectionStore.connections
+            const softwareSettings = softwareSettingsStore.softwareSettings
 
             return {
                 connections
