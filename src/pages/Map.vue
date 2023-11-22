@@ -33,8 +33,6 @@
     import { APRSSymbolService, MapService } from '../services'
     import { APRSSymbol } from '../models'
 
-
-
     import BaseLayer from 'ol/layer/Base'
     import { Heatmap as HeatmapLayer, Tile as TileLayer, Image } from 'ol/layer'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
@@ -52,16 +50,16 @@
     import MapContextMenu from '../components/maps/MapContextMenu.vue'
     import { FeatureSearch } from '../models/ol/controls/FeatureSearch'
     import { defaults as defaultControls} from 'ol/control'
-    import ImageLayer from 'ol/layer/Image'
-    import ImageArcGISRest from 'ol/source/ImageArcGISRest'
-import { FeatureLike } from 'ol/Feature';
+    import { Coordinate } from 'ol/coordinate';
+    import { Circle } from 'ol/geom';
 
-    const map = null
+    const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'red', width: 2, lineDash: [ 8, 8 ] }) })
 
     export default defineComponent({
         components: { StationFeatureCard, MapContextMenu },
         name: 'Map'
         , setup() {
+            // services and settings
             const mapSettingsStore = useMapSettingsStore();
             const packetStore = usePacketStore();
             const stationSettingsStore = useStationSettingsStore();
@@ -70,30 +68,34 @@ import { FeatureLike } from 'ol/Feature';
             const packetUtil: PacketUtil = new PacketUtil();
             const mapService = new MapService();
             const mapSettings = mapSettingsStore.mapSettings;
-
-            const currentStationPositionVector: VectorSource<FeatureLike> = new VectorSource({})
-            const genericPointVector: VectorSource<FeatureLike> = new VectorSource({})
-            const stationPositionVector: VectorSource<FeatureLike> = new VectorSource({})
             const symbolService: APRSSymbolService = new APRSSymbolService()
-            const trailVector: VectorSource<FeatureLike> = new VectorSource({})
 
+            // vectors
+            const ambiguityVector: VectorSource<Geometry> = new VectorSource({})
+            const currentStationPositionVector: VectorSource<Geometry> = new VectorSource({})
+            const genericPointVector: VectorSource<Geometry> = new VectorSource({})
+            const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
+            const trailVector: VectorSource<Geometry> = new VectorSource({})
+
+            // data
+            const contextMenuX = ref(0)
+            const contextMenuY = ref(0)
             const packets = packetStore.getPackets
+            const stationInfoPacket = ref(null)
+            const stationConnectionId = ref(null)
+
+            // listeners
             const packetAddedListener = ref(null)
             const packetRemovedListener = ref(null)
 
-            const contextMenuX = ref(0)
-            const contextMenuY = ref(0)
-
-            //const map: OLMap = ref(null)
-
-            const stationInfoPacket = ref(null)
-            const stationConnectionId = ref(null)
+            // Default: /assets/radio-tower.png
             const stationIconOverlay = ref(new APRSSymbol({
                     key: "logo"
                     , value: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAABHlJREFUaN7tmW1ollUYx3+Pj7OWmqlbUG5z2ofypQ/inOuTWPZV5ocsEvbBXCm+JSKEiCAIrj5FMkxs0ZdUfCHKl4QgUqJAUNQUtkEQFkXOUh+HbjJ9/HCfR+/9z/XcL88eHdT+cGDXff3P/1zXuc9zznWfwQhG8P9Gpkw6WaARWAjMBV4CngPGOX8v8CfQBZwBvgdOA/eGewJqgTbgDyCfsv0O7ABqhiPwamA30F9C4Nr6gV1A1eMK/m3gnzIEru0q8NajDLwC2BMRwA1gL7ACmOfeUoVr1e5ZK7APyEXofOr6lBVPAceLDNgFLHecNHrvAN1FNI+l1IudeSv4W8BGYPQQtTcBtw39o5TpTVjLphuYXa4ZApoItlkdZ9dQhZcZomcJ1rSFOmAtcALoJNj/e93fJ4A1BFuvhRrgvDHem6UGX42/23QXCb4G6AAGiN9tBoDPgClFdP4Sfg8wuZQEduOveWvZNAM3EwSuLQcsNvSagD7htqcNvhb/kNpo8NYDd0sIvtDuAusM3a3C6yPlid0mAl34u01zkeAvuMRmAWNdm+We/VIkCX0T4/CX0o6kwWfxa5vlwqnBXzZ9wCpgVIz2auPt5oDnhbtKOJdjtB/gFel4A/9Q6TCCX5h0hoBXjST2CGesMUmNScQ3S6e94q/D321Wpgi+gDWiMYC/zvcL54Mkwoel0wrxr8Vf8/pqa4FDBEsjB3wFvCicLHBRtFYL513xH0ySgIrOE/+34l9vBG9Vq//iH2IbhHNM/PONyYqFDq51epf4Z4r/kBF8oR0Q7mzxd4r/WfH3JElAf1xjxK+l8PgYv24IYYwXf078T4i/T4O1tqV8TIKjYvi3IvqqLxNjK7xvaCsBnaUJYl8Re6rYP0QEoL46sf8W+2mx9Q2ZCeg6mya2rtNFYrdFJPCh2K/FaE8XWyfPTOCS2C+L/V3MrDVEJNAQ01e1dWyNzYQeZF+Kvw64w8MfZaX4T1L8R3xSuJVOI+80dZvdJ/0THWQN+Pu3BvmF83XI83qCH1qh7z3Drpc+hbLkcyO56xLLnCQJZPCLuRbh1ALXgAXyfIv0+9G18LMt0meBmyQtI1qk32VS3CRuxz9gssJ53RDslH7vuRZ1WGXwN4LRhta2pMFDUNrqgbYupk8j/qEz0TX9woqrKt8Xfj/BXWsqfCIivQSXtsWwU/iHQz4tEHdG6MxwY4X5H6cNHmASwXWffplZH9gVBOdHmNsc8jeLrwf7zqcK/7LrCsFbLAlviFgeOOeSC2OxcK4yuIYaY0yGfkZOcto63pJSgy+gXQTv4FeoB4XTnkBHa/sqHp4vSZZaYmQZXCJ/Lf4JBEVaeOAmQ0c/VW8DzwjnGxlnKNeWg/AkwV1lHlgqvlYJrBt7v87gr+9W4Sx1z4+4McuKLPAR/ql8SoLaGqGh9z2nxF9JUPBleUyYil8qvBDBrzf40xkCEt2zRKCFwcvlJ+DXCP5vwM8hO0PwH59hg1U6xGElyX4zjxx6Y9BPsltkq7SYPxwJjGAE/wXcB8J8eESa001CAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTAzLTE2VDAxOjEzOjM4KzAwOjAw6TzNwwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wMy0xNlQwMToxMzozOCswMDowMJhhdX8AAAAodEVYdHN2ZzpiYXNlLXVyaQBmaWxlOi8vL3RtcC9tYWdpY2stQ092U29IUHBpvouTAAAAAElFTkSuQmCC"
                     , name: "Radio Tower"
                     }))
 
+            // Default: /assets/radio-tower.png
             const stationIcon = ref(new APRSSymbol({
                     key: "logo"
                     , value: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAABHlJREFUaN7tmW1ollUYx3+Pj7OWmqlbUG5z2ofypQ/inOuTWPZV5ocsEvbBXCm+JSKEiCAIrj5FMkxs0ZdUfCHKl4QgUqJAUNQUtkEQFkXOUh+HbjJ9/HCfR+/9z/XcL88eHdT+cGDXff3P/1zXuc9zznWfwQhG8P9Gpkw6WaARWAjMBV4CngPGOX8v8CfQBZwBvgdOA/eGewJqgTbgDyCfsv0O7ABqhiPwamA30F9C4Nr6gV1A1eMK/m3gnzIEru0q8NajDLwC2BMRwA1gL7ACmOfeUoVr1e5ZK7APyEXofOr6lBVPAceLDNgFLHecNHrvAN1FNI+l1IudeSv4W8BGYPQQtTcBtw39o5TpTVjLphuYXa4ZApoItlkdZ9dQhZcZomcJ1rSFOmAtcALoJNj/e93fJ4A1BFuvhRrgvDHem6UGX42/23QXCb4G6AAGiN9tBoDPgClFdP4Sfg8wuZQEduOveWvZNAM3EwSuLQcsNvSagD7htqcNvhb/kNpo8NYDd0sIvtDuAusM3a3C6yPlid0mAl34u01zkeAvuMRmAWNdm+We/VIkCX0T4/CX0o6kwWfxa5vlwqnBXzZ9wCpgVIz2auPt5oDnhbtKOJdjtB/gFel4A/9Q6TCCX5h0hoBXjST2CGesMUmNScQ3S6e94q/D321Wpgi+gDWiMYC/zvcL54Mkwoel0wrxr8Vf8/pqa4FDBEsjB3wFvCicLHBRtFYL513xH0ySgIrOE/+34l9vBG9Vq//iH2IbhHNM/PONyYqFDq51epf4Z4r/kBF8oR0Q7mzxd4r/WfH3JElAf1xjxK+l8PgYv24IYYwXf078T4i/T4O1tqV8TIKjYvi3IvqqLxNjK7xvaCsBnaUJYl8Re6rYP0QEoL46sf8W+2mx9Q2ZCeg6mya2rtNFYrdFJPCh2K/FaE8XWyfPTOCS2C+L/V3MrDVEJNAQ01e1dWyNzYQeZF+Kvw64w8MfZaX4T1L8R3xSuJVOI+80dZvdJ/0THWQN+Pu3BvmF83XI83qCH1qh7z3Drpc+hbLkcyO56xLLnCQJZPCLuRbh1ALXgAXyfIv0+9G18LMt0meBmyQtI1qk32VS3CRuxz9gssJ53RDslH7vuRZ1WGXwN4LRhta2pMFDUNrqgbYupk8j/qEz0TX9woqrKt8Xfj/BXWsqfCIivQSXtsWwU/iHQz4tEHdG6MxwY4X5H6cNHmASwXWffplZH9gVBOdHmNsc8jeLrwf7zqcK/7LrCsFbLAlviFgeOOeSC2OxcK4yuIYaY0yGfkZOcto63pJSgy+gXQTv4FeoB4XTnkBHa/sqHp4vSZZaYmQZXCJ/Lf4JBEVaeOAmQ0c/VW8DzwjnGxlnKNeWg/AkwV1lHlgqvlYJrBt7v87gr+9W4Sx1z4+4McuKLPAR/ql8SoLaGqGh9z2nxF9JUPBleUyYil8qvBDBrzf40xkCEt2zRKCFwcvlJ+DXCP5vwM8hO0PwH59hg1U6xGElyX4zjxx6Y9BPsltkq7SYPxwJjGAE/wXcB8J8eESa001CAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTAzLTE2VDAxOjEzOjM4KzAwOjAw6TzNwwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wMy0xNlQwMToxMzozOCswMDowMJhhdX8AAAAodEVYdHN2ZzpiYXNlLXVyaQBmaWxlOi8vL3RtcC9tYWdpY2stQ092U29IUHBpvouTAAAAAElFTkSuQmCC"
@@ -102,6 +104,7 @@ import { FeatureLike } from 'ol/Feature';
 
             return {
                 packetStore
+                , ambiguityVector
                 , contextMenuX
                 , contextMenuY
                 , isShowStationInfo: ref(false)
@@ -129,15 +132,6 @@ import { FeatureLike } from 'ol/Feature';
         }
         , async mounted() {
             const layers: BaseLayer[] = [
-                //new TileLayer({
-                //    className: 'osm-base-layer'
-                //    , source: new OSM({
-                //        attributions: [
-                //            '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                //        ]
-                //        , cacheSize: 100
-                //    })
-                //})
                 new TileLayer({
                     className: "stamen-base-layer"
                     , preload: 1
@@ -147,7 +141,37 @@ import { FeatureLike } from 'ol/Feature';
                         , retina: false
                     })
                 })
+                , new VectorLayer({
+                    className: 'ambiguity-layer'
+                    , minZoom: 8
+                    , source: this.ambiguityVector
+                })
                 /*
+                , new ImageLayer({
+                    source: new ImageArcGISRest({
+                        // TODO: Refresh source every minute
+                        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
+                        , params: {
+                            'FORMAT': 'PNG32'
+                        }
+                        , attributions: [
+                            '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
+                        ]
+                    })
+                    , opacity: 0.5
+                })
+                , new ImageLayer({
+                    source: new ImageArcGISRest({
+                        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_longduration_hazards_time/MapServer'
+                        , params: {
+                            'FORMAT': 'PNG32'
+                        }
+                        , attributions: [
+                            '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
+                        ]
+                    })
+                    , opacity: 0.5
+                })
                 , new ImageLayer({
                     source: new ImageArcGISRest({
                         // TODO: Refresh every 2 -5 min... rtfm here: https://nowcoast.noaa.gov/help/#!section=updateschedule
@@ -162,31 +186,22 @@ import { FeatureLike } from 'ol/Feature';
                     })
                     , opacity: 0.5
                 })
-                , new ImageLayer({
-                    source: new ImageArcGISRest({
-                        // TODO: Refresh source every minute
-                        url: 'https://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
-                        , params: {
-                            'FORMAT': 'PNG32'
-                        }
-                        , attributions: [
-                            '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
-                        ]
-                    })
-                    , opacity: 0.5
-                })
                 */
                 , new VectorLayer({
                     className: 'trail-layer'
                     , declutter: true
                     , minZoom: 8
                     , source: this.trailVector
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
                 , new VectorLayer({
                     className: 'generic-point-layer'
                     , declutter: true
                     , minZoom: 8
                     , source: this.genericPointVector
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
                 , new HeatmapLayer({
                     gradient: [ '#600', '#900', '#C00', '#F00'   ]
@@ -199,12 +214,16 @@ import { FeatureLike } from 'ol/Feature';
                     , declutter: false
                     , source: this.currentStationPositionVector
                     , opacity: 0.7
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
                 , new VectorLayer({
                     className: 'station-position-layer'
                     , declutter: false
                     , minZoom: 8
                     , source: this.stationPositionVector
+                    , updateWhileAnimating: false
+                    , updateWhileInteracting: false
                 })
             ]
 
@@ -230,10 +249,9 @@ import { FeatureLike } from 'ol/Feature';
                 // TODO: This seems to be getting the one on the bottom of the pile
                 let feature = _.filter(map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")[0]
 
-
                 // Prevent trying to fetch data if a trail is clicked
                 if(feature && feature.getGeometry().getType() != "LineString") {
-                    let pkt = this.packetStore.getPacket(feature.getId())
+                    const pkt = this.packetStore.getPacket(feature.getId())
 
                     this.stationConnectionId = pkt[0]
 
@@ -243,8 +261,6 @@ import { FeatureLike } from 'ol/Feature';
 
                     this.stationInfoPacket = pkt[1] as aprsPacket
                     this.isShowStationInfo = true
-
-                    console.log(pkt)
                 }
 
                 return
@@ -299,6 +315,7 @@ import { FeatureLike } from 'ol/Feature';
             this.packetRemovedListener = this.packets.on('remove', (packet) => {
                 this.removePoints(this.genericPointVector, [ packet[1].id ])
                 this.removePoints(this.stationPositionVector, [ packet[1].id ])
+                this.removePoints(this.ambiguityVector, [ packet[1].id ], false)
             })
 
             this.$nextTick(function() {
@@ -313,10 +330,10 @@ import { FeatureLike } from 'ol/Feature';
                     // TODO: For some reason this doesn't work on initial load
                     let existingFeatures = await _.filter(this.stationPositionVector.getFeatures(), f => {
                         return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
-                                        && f.get('receivedTime') <= packet.receivedTime
+                                && f.get('receivedTime') <= packet.receivedTime
                     })
 
-                    var mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
+                    const mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
                         result.push(value.get('receivedTime'))
                         return result
                     }, []))
@@ -365,11 +382,17 @@ import { FeatureLike } from 'ol/Feature';
                         )
 
                         if(genericPointIds && genericPointIds != null && genericPointIds.length > 0) {
+                            this.removePoints(this.ambiguityVector, genericPointIds, false)
                             this.removePoints(this.genericPointVector, genericPointIds)
                         }
                     }
 
-                    if(existingFeatures && existingFeatures != undefined && existingFeatures != null && existingFeatures.length > 0) {
+                    if(!!packet && packet.posambiguity > 0) {
+                        this.generateAmbiguity(packet.id, packet.itemname ?? packet.objectname ?? packet.sourceCallsign
+                                , packet.posambiguity, fromLonLat([ packet.longitude, packet.latitude ]))
+                    }
+
+                    if(!!existingFeatures && existingFeatures.length > 0) {
                         _.map(existingFeatures, f => {
                             if(f != undefined) {
                                 this.stationPositionVector.removeFeature(f)
@@ -377,6 +400,33 @@ import { FeatureLike } from 'ol/Feature';
                             }
                         })
                     }
+                }
+
+                return
+            }
+            , async generateAmbiguity(id: string, name: string, ambiguity: number, coordinate: Coordinate): Promise<void> {
+                if(this.mapSettings.isShowAmbiguity == true && !!ambiguity && ambiguity > 0) {
+                    let radius: number = 1852   // meters in a nautical mile
+
+                    if(ambiguity == 1) {
+                        radius = 185.2  // 0.1 nautical miles
+                    } else if(ambiguity == 3) {
+                        radius = 18520  // 10 nautical miles
+                    } else if(ambiguity == 4) {
+                        radius = 111120 // 60 nautical miles
+                    }
+
+                    let feature = new Feature(
+                        new Circle(coordinate, radius)
+                    )
+
+                    feature.setId(id)
+                    feature.setProperties({
+                        name: name
+                    })
+
+                    feature.setStyle(amgibuityStyle)
+                    this.ambiguityVector.addFeature(feature)
                 }
 
                 return
@@ -447,7 +497,7 @@ import { FeatureLike } from 'ol/Feature';
                         new Text({
                             text: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                             , fill: MapService.blackTextFill
-                            , stroke: MapService.whiteTextStroke
+                            , stroke: MapService.getLabelTextStroke(packet)
                             , offsetX: 10
                             , offsetY: -15
                             , font: 'bold 12px/1 Verdana'
@@ -459,17 +509,17 @@ import { FeatureLike } from 'ol/Feature';
                 retVal.push(shadowStyle)
 
                 if(overlay != null && overlay != undefined) {
-                    const overlayStyle = new Style({
-                        text: new Text({
-                            text: packet.symboltable
-                            , fill: MapService.whiteTextFill
-                            , stroke: MapService.blackTextStroke
-                            , font: 'normal 16px/1 Verdana'
-                            , textAlign: 'center'
+                    retVal.push(
+                        new Style({
+                            text: new Text({
+                                text: packet.symboltable
+                                , fill: MapService.whiteTextFill
+                                , stroke: MapService.blackTextStroke
+                                , font: 'normal 16px/1 Verdana'
+                                , textAlign: 'center'
+                            })
                         })
-                    })
-
-                    retVal.push(overlayStyle)
+                    )
                 }
 
                 return retVal
@@ -554,6 +604,8 @@ import { FeatureLike } from 'ol/Feature';
                     packet.sourceCallsign = this.stationSettings.callsign
                     packet.latitude = this.stationSettings.latitude
                     packet.longitude = this.stationSettings.longitude
+                    // TODO: Hardcoded for now until messaging is supported
+                    packet.messaging = false
 
                     const styles = await this.generateIcon(packet, symbols)
 
@@ -579,7 +631,7 @@ import { FeatureLike } from 'ol/Feature';
 
                 return
             }
-            , async removePoints(vector: VectorSource<FeatureLike>, ids?: number[] | string[]): Promise<void> {
+            , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[], isGenerateTrail = true): Promise<void> {
                 if(ids != null && ids.length > 0) {
                     const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
@@ -588,7 +640,9 @@ import { FeatureLike } from 'ol/Feature';
                             if(f != undefined) {
                                 vector.removeFeature(f)
 
-                                this.generateTrail(f.get('label'))
+                                if(isGenerateTrail == true) {
+                                    this.generateTrail(f.get('label'))
+                                }
 
                                 //f.dispose()
                                 f = null
@@ -610,3 +664,4 @@ import { FeatureLike } from 'ol/Feature';
     height: 100vh
     width: 100%
 </style>
+

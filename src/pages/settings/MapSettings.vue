@@ -20,6 +20,14 @@
                 </div>
 
                 <div class="q-gutter-md row items-start">
+                    <q-toggle label="Show Ambiguity"
+                            v-model="settings.isShowAmbiguity"
+                            class="col-6"
+                            dense
+                            />
+                </div>
+
+                <div class="q-gutter-md row items-start">
                     <q-toggle label="Show Labels"
                             v-model="settings.isShowLabels"
                             class="col-6"
@@ -75,3 +83,4 @@
         }
     })
 </script>
+
