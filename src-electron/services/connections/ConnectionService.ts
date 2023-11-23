@@ -361,3 +361,4 @@ export class ConnectionService extends EventEmitter {
         return _.find(this._connections, { id: id })
     }
 }
+

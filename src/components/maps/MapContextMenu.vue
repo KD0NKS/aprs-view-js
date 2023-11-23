@@ -22,8 +22,7 @@
 
 <script lang="ts">
     import { defineComponent, ref } from "vue"
-    import { useStore } from "@/store"
-    import { ActionTypes } from "@/enums"
+    import { useStationSettingsStore } from "../../stores/stationSettingsStore"
 
     export default defineComponent({
         name: "MapContextMenu"
@@ -38,7 +37,7 @@
             }
         }
         , setup() {
-            const store = useStore()
+            const store = useStationSettingsStore()
 
             return {
                 store
@@ -46,7 +45,7 @@
         }
         , methods: {
             setStationPosition() {
-                this.store.dispatch(ActionTypes.SET_STATION_LOCATION, { latitude: this.latitude.toFixed(4), longitude: this.longitude.toFixed(4) })
+                this.store.setStationLocation({ latitude: this.latitude.toFixed(4), longitude: this.longitude.toFixed(4) })
             }
         }
     })

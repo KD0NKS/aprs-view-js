@@ -1,7 +1,7 @@
-import { ConversionUtil } from '@/utils/ConversionUtil'
-import { PacketUtil } from '@/utils/PacketUtil'
-import { NumberUtil } from '@/utils/NumberUtil'
-import { StringUtil } from '@/utils/StringUtil'
+import { ConversionUtil } from './ConversionUtil'
+import { PacketUtil } from './PacketUtil'
+import { NumberUtil } from './NumberUtil'
+import { StringUtil } from './StringUtil'
 
 export {
     ConversionUtil

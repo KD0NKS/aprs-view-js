@@ -48,13 +48,13 @@
 
 <script lang="ts">
     import { defineComponent, ref } from "vue"
-    import { useStore } from '@/store'
+    import { useStationSettingsStore } from "../stores/stationSettingsStore"
 
-    import { StringUtil } from "@/utils"
+    import { StringUtil } from "../utils"
 
     import NavigationLink from 'components/NavigationLink.vue'
-    import { APRSSymbol } from "@/models"
-    import { APRSSymbolService } from "@/services"
+    import { APRSSymbol } from "../models"
+    import { APRSSymbolService } from "../services"
 
     const items = [
         { title: "Map", icon: "map", action: "/map" }
@@ -80,12 +80,14 @@
         }
         , setup() {
             const miniState = ref(false)
+            const stationSettingsStore = useStationSettingsStore()
             const symbolSvc = new APRSSymbolService()
 
             return {
                 drawer: ref(false)
                 , miniState
                 , essentialLinks: items
+                , stationSettingsStore
                 , symbolSvc
                 , drawerClick(e: any) {
                     // if in "mini" state and user
@@ -100,15 +102,14 @@
         }
         , computed: {
             callsign(): string {
-                if(!StringUtil.IsNullOrWhiteSpace(this.$store.state?.stationSettings?.ssid)) {
-                    return `${this.$store.state.stationSettings.callsign}-${this.$store.state.stationSettings.ssid}`
+                if(!StringUtil.IsNullOrWhiteSpace(this.stationSettingsStore.stationSettings?.ssid)) {
+                    return `${this.stationSettingsStore.stationSettings.callsign}-${this.stationSettingsStore.stationSettings.ssid}`
                 }
 
-                return this.$store.state?.stationSettings?.callsign
+                return this.stationSettingsStore.stationSettings?.callsign
             }
             , aprsSymbol() {
-                if(StringUtil.IsNullOrWhiteSpace(this.$store.state?.stationSettings?.symbol)) {
-                    // /assets/radio-tower.png
+                if(StringUtil.IsNullOrWhiteSpace(this.stationSettingsStore.stationSettings?.symbol)) {
                     return {
                         symbol: new APRSSymbol({
                             key: "logo"
@@ -118,7 +119,7 @@
                     }
                 }
 
-                return this.symbolSvc.GetAPRSSymbol(this.$store.state.stationSettings.symbol, this.$store.state.stationSettings.symbolOverlay)
+                return this.symbolSvc.GetAPRSSymbol(this.stationSettingsStore.stationSettings.symbol, this.stationSettingsStore.stationSettings.symbolOverlay)
             }
         }
     })
@@ -128,3 +129,4 @@
 .avatar-img
     background: transparent
 </style>
+

@@ -23,55 +23,60 @@
     import 'ol/ol.css'
 
     import { defineComponent, ref } from 'vue'
-    import { useStore } from '@/store'
-    import { NumberUtil, PacketUtil } from '@/utils'
 
-    import Stamen from 'ol/source/Stamen'
+    import { useMapSettingsStore } from '../stores/mapSettingsStore';
+    import { usePacketStore } from '../stores/packetStore';
+    import { useStationSettingsStore } from '../stores/stationSettingsStore';
+
+    import { NumberUtil, PacketUtil } from '../utils'
+    import _ from 'lodash'
+    import { APRSSymbolService, MapService } from '../services'
+    import { APRSSymbol } from '../models'
+
     import BaseLayer from 'ol/layer/Base'
     import { Heatmap as HeatmapLayer, Tile as TileLayer, Image, Graticule } from 'ol/layer'
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import { fromLonLat, toLonLat } from 'ol/proj'
     import { aprsPacket } from 'js-aprs-fap'
-    import { Coordinate } from 'ol/coordinate'
     import Point from 'ol/geom/Point'
-    import { Circle } from 'ol/geom'
-    import Geometry from 'ol/geom/Geometry'
-    import _ from 'lodash'
-    import { APRSSymbolService, MapService } from '@/services'
     import VectorSource from 'ol/source/Vector'
-    import { APRSSymbol } from '@/models'
-    import { Icon, Stroke, Style, Text } from 'ol/style'
     import VectorLayer from 'ol/layer/Vector'
-    import { ActionTypes, GetterTypes, LocationTypes } from '@/enums'
+    import StadiaMaps from 'ol/source/StadiaMaps'
+    import Geometry from 'ol/geom/Geometry'
+    import { Style, Fill, Stroke, Text, Icon } from 'ol/style'
+    import { LocationTypes } from '../enums'
     import LineString from 'ol/geom/LineString'
-    import StationFeatureCard from '@/components/maps/StationFeatureCard.vue'
-    import MapContextMenu from '@/components/maps/MapContextMenu.vue'
-    import { FeatureSearch } from '@/models/ol/controls/FeatureSearch'
+    import StationFeatureCard from '../components/maps/StationFeatureCard.vue'
+    import MapContextMenu from '../components/maps/MapContextMenu.vue'
+    import { FeatureSearch } from '../models/ol/controls/FeatureSearch'
     import { defaults as defaultControls} from 'ol/control'
-    import ImageLayer from 'ol/layer/Image'
-    import ImageArcGISRest from 'ol/source/ImageArcGISRest'
+    import { Coordinate } from 'ol/coordinate';
+    import { Circle } from 'ol/geom';
+    import { FeatureLike } from 'ol/Feature';
 
-    const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'black', width: 2, lineDash: [ 8, 8 ] }) })
+    const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'red', width: 2, lineDash: [ 8, 8 ] }) })
 
     export default defineComponent({
-    components: { StationFeatureCard, MapContextMenu },
+        components: { StationFeatureCard, MapContextMenu },
         name: 'Map'
         , setup() {
-            const store = useStore()
-
             // services and settings
-            const packetUtil: PacketUtil = new PacketUtil()
-            const mapService = new MapService()
-            const mapSettings = store.getters[GetterTypes.MAP_SETTINGS]
-            const stationSettings = store.getters[GetterTypes.STATION_SETTINGS]
+            const mapSettingsStore = useMapSettingsStore();
+            const packetStore = usePacketStore();
+            const stationSettingsStore = useStationSettingsStore();
+            const stationSettings = stationSettingsStore.stationSettings;
+
+            const packetUtil: PacketUtil = new PacketUtil();
+            const mapService = new MapService();
+            const mapSettings = mapSettingsStore.mapSettings;
             const symbolService: APRSSymbolService = new APRSSymbolService()
 
             // vectors
-            const ambiguityVector: VectorSource<Geometry> = new VectorSource<Geometry>({})
-            const currentStationPositionVector: VectorSource<Geometry> = new VectorSource({})
-            const genericPointVector: VectorSource<Geometry> = new VectorSource({})
-            const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
-            const trailVector: VectorSource<Geometry> = new VectorSource({})
+            const ambiguityVector: VectorSource<FeatureLike> = new VectorSource({})
+            const currentStationPositionVector: VectorSource<FeatureLike> = new VectorSource({})
+            const genericPointVector: VectorSource<FeatureLike> = new VectorSource({})
+            const stationPositionVector: VectorSource<FeatureLike> = new VectorSource({})
+            const trailVector: VectorSource<FeatureLike> = new VectorSource({})
 
             // timers
             const layerTimers = {}
@@ -79,7 +84,7 @@
             // data
             const contextMenuX = ref(0)
             const contextMenuY = ref(0)
-            const packets = store.getters[GetterTypes.GET_PACKETS]
+            const packets = packetStore.getPackets
             const stationInfoPacket = ref(null)
             const stationConnectionId = ref(null)
 
@@ -104,7 +109,7 @@
                     }))
 
             return {
-                store
+                packetStore
                 , ambiguityVector
                 , contextMenuX
                 , contextMenuY
@@ -140,10 +145,12 @@
         , async mounted() {
             const layers: BaseLayer[] = [
                 new TileLayer({
-                    className: 'stamen-base-layer'
+                    className: "stamen-base-layer"
                     , preload: 1
-                    , source: new Stamen({
-                        layer: 'toner-lite'
+                    , source: new StadiaMaps({
+                        layer: 'stamen_toner_lite'
+                        , apiKey: null
+                        , retina: false
                     })
                 })
                 , new VectorLayer({
@@ -263,8 +270,8 @@
                 })
             ]
 
-            const centerLon = this.stationSettings.longitude ?? -98.5795
-            const centerLat = this.stationSettings.latitude ?? 39.8283
+            const centerLon = this.stationSettings?.longitude ?? -98.5795
+            const centerLat = this.stationSettings?.latitude ?? 39.8283
 
             _.each(_.filter(layers, l => l.get("refreshTime") != null), l => {
                 const interval = setInterval(() => { l.get("source").refresh(); console.log(`Refreshing ${l.getClassName()}`) }, l.get("refreshTime"))
@@ -292,7 +299,7 @@
 
                 // Prevent trying to fetch data if a trail is clicked
                 if(feature && feature.getGeometry().getType() != "LineString") {
-                    let pkt = this.store.getters[GetterTypes.GET_PACKET](feature.getId())
+                    const pkt = this.packetStore.getPacket(feature.getId())
 
                     this.stationConnectionId = pkt[0]
 
@@ -495,15 +502,19 @@
                 return
             }
             , async clearAllStations() {
-                this.store.dispatch(ActionTypes.REMOVE_PACKETS, _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
-                    result.push((value as Feature<Geometry>).getId())
-                    return result
-                }, []))
+                this.packetStore.removePackets(
+                    _.reduce(this.genericPointVector.getFeatures(), (result, value) => {
+                        result.push((value as Feature<Geometry>).getId())
+                        return result
+                    }, [])
+                )
 
-                this.store.dispatch(ActionTypes.REMOVE_PACKETS, _.reduce(this.stationPositionVector.getFeatures(), (result, value) => {
-                    result.push((value as Feature<Geometry>).getId())
-                    return result
-                }, []))
+                this.packetStore.removePackets(
+                    _.reduce(this.stationPositionVector.getFeatures(), (result, value) => {
+                        result.push((value as Feature<Geometry>).getId())
+                        return result
+                    }, [])
+                )
 
                 return
             }
@@ -610,7 +621,7 @@
             }
             , getAllLocationPackets(): [ (string | number), aprsPacket ][] {
                 const packets = _.reduce(
-                        this.store.getters[GetterTypes.GET_PACKETS]
+                        this.packetStore.getPackets
                         , (result, value) => {
                             if(value[1]) {
                                 result.push(value[1])
@@ -637,7 +648,7 @@
             }
             , async loadMapData() {
                 // get the current station and show it's position
-                if(this.stationSettings.locationType == LocationTypes.FIXED) {
+                if(this.stationSettings?.locationType == LocationTypes.FIXED) {
                     const symbols = await this.symbolService.GetAPRSSymbol(this.stationSettings.symbol, this.stationSettings.symbolOverlay)
 
                     let packet = new aprsPacket();
@@ -671,7 +682,7 @@
 
                 return
             }
-            , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[], isGenerateTrail = true): Promise<void> {
+            , async removePoints(vector: VectorSource<FeatureLike>, ids?: number[] | string[], isGenerateTrail = true): Promise<void> {
                 if(ids != null && ids.length > 0) {
                     const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
@@ -684,7 +695,7 @@
                                     this.generateTrail(f.get('label'))
                                 }
 
-                                f.dispose()
+                                //f.dispose()
                                 f = null
                             }
                         }
@@ -704,3 +715,4 @@
     height: 100vh
     width: 100%
 </style>
+

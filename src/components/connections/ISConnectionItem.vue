@@ -17,7 +17,7 @@
 <script lang="ts">
     import { defineComponent } from "vue"
 
-    import { ISConnection } from "@/models/connections"
+    import { ISConnection } from "../../models/connections"
 
     export default defineComponent({
         props: {
@@ -35,3 +35,4 @@
         }
     })
 </script>
+

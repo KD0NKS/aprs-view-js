@@ -23,14 +23,18 @@
 
 <script lang="ts">
     import { defineComponent } from 'vue'
-    import { mapState } from 'vuex'
+    import { mapState } from 'pinia'
+
+    import { useConectionStore } from '../stores/connectionStore'
+    import { usePacketStore } from '../stores/packetStore'
 
     import _ from 'lodash'
 
     export default defineComponent({
         name: "Output"
         , computed: {
-            ...mapState([ 'aprsData', 'connections' ])
+            ...mapState(usePacketStore, [ 'aprsData' ])
+            , ...mapState(useConectionStore, [ 'connections' ])
             , processedData() {
                 return _.reduce(this.aprsData, (result, data) => {
                     result.push([ this.getConnectionName(data[0]), data[1] ])

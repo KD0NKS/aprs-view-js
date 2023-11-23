@@ -1,5 +1,5 @@
 import { aprsPacket } from "js-aprs-fap";
-import { StringUtil } from "@/utils";
+import { StringUtil } from "../utils";
 
 export class PacketUtil {
     public isValidPacket(packet: aprsPacket) {

@@ -82,7 +82,7 @@
         <div class="col-xs-6">
             <q-list dense>
                 <draggable v-model="model.initCommands" item-key="index" @start="drag=true" @end="drag=false" handle=".handle" dense>
-                    <template #item="{ element, index }" dense>
+                    <template #item="{ element, index }">
                         <TNCCommand :command="element"
                                 @removeCommand="removeCommand(model.initCommands, index)"
                                 @updateCommand="updateCommand(model.initCommands, index, $event)"
@@ -115,14 +115,13 @@
 
 <script lang="ts">
     import { defineComponent, ref } from "vue"
-    import { useStore } from '@/store'
     import draggable from 'vuedraggable'
     import _ from "lodash"
 
-    import { EolCharEnum, GetterTypes } from "@/enums"
-    import { TNCConnection } from "@/models/connections"
+    import { EolCharEnum } from "../../enums"
+    import { TNCConnection } from "../../models/connections"
 
-    import TNCCommand from '@/components/connections/TNCCommand.vue'
+    import TNCCommand from '../../components/connections/TNCCommand.vue'
 
     export default defineComponent({
         props: {
@@ -137,7 +136,6 @@
         }
         , setup() {
             const comPorts = ref<string[]>([])
-            const store = useStore()
 
             return {
                 comPorts
@@ -148,7 +146,6 @@
                     required: value => !!value || 'Required.'
                 }
                 , stopBitOptions: [ 1, 2 ]
-                , store
             }
         }
         , mounted() {
@@ -179,7 +176,7 @@
             }
             , async updateSerialPorts(): Promise<void> {
                 // TODO: Sort by name
-                this.comPorts = await this.store.getters[GetterTypes.GET_COM_PORTS]
+                this.comPorts = await window.connectionService.getComPorts()
             }
         }
         // TODO: May need watchers here

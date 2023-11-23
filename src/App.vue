@@ -4,78 +4,61 @@
 
 <script lang="ts">
     import { defineComponent } from 'vue'
-    import { useStore } from '@/store'
-    import { Dark, LocalStorage } from 'quasar'
+    import { Dark } from 'quasar'
 
     import _ from 'lodash'
+    import { useConectionStore } from './stores/connectionStore'
+    import { usePacketStore } from './stores/packetStore'
+    import { useSoftwareSettingsStore } from './stores/softwareSettingsStore'
 
-    import { ActionTypes, ConnectionEventTypes, GetterTypes, StorageKeys } from '@/enums'
-    import { IConnection, ISConnection, KissTcipConnection, TNCConnection } from '@/models/connections'
+    import { ConnectionEventTypes } from './enums'
+    import { useStationSettingsStore } from './stores/stationSettingsStore'
 
     export default defineComponent({
         name: 'App',
         setup() {
-            const store = useStore()
+            const connectionStore = useConectionStore()
+            const packetStore = usePacketStore()
+            const softwareSettingsStore = useSoftwareSettingsStore()
+            const stationSettingsStore = useStationSettingsStore()
 
-            try {
-                store.dispatch(ActionTypes.SET_MAP_SETTINGS, LocalStorage.getItem(StorageKeys.MAP_SETTINGS))
-            } catch {
-                console.log('Could not load map settings.')
+            const dataListener = window.connectionService.getDataStream(data => packetStore.addData([ data[0], data[1].toString() ]))
+            const packetListener = window.connectionService.getPacketStream(packet => packetStore.addPacket(packet))
+            const connectionStatusListener = window.connectionService.getConnectionStatusStream((e, connectionid) => {
+                connectionStore.updateConnectionStatus(connectionid, e)
+            })
+
+            Dark.set(softwareSettingsStore.softwareSettings.isDarkMode)
+
+            return {
+                connectionStore
+                , connectionStatusListener
+                , dataListener
+                , packetListener
+                , stationSettingsStore
             }
-
-            try {
-                const softwareSettings = LocalStorage.getItem(StorageKeys.SOFTWARE_SETTINGS)
-                store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, softwareSettings)
-
-                if(softwareSettings != null && softwareSettings['isDarkMode'] != null) {
-                    Dark.set(softwareSettings['isDarkMode'])
-                }
-            } catch {
-                console.log('Could not load software settings.')
-            }
-
-            try {
-                store.dispatch(ActionTypes.SET_STATION_SETTINGS, LocalStorage.getItem(StorageKeys.STATION_SETTINGS))
-            } catch {
-                console.log('Could not load station settings.')
-            }
-
-            try {
-                _.each(_.filter(LocalStorage.getAllKeys(), x => x.startsWith('connection')), x => {
-                    let settings = LocalStorage.getItem(x) as IConnection
-                    let connection = null
-
-                    if(settings.connectionType == 'IS_SOCKET') {
-                        connection = new ISConnection(settings)
-                    } else if(settings.connectionType == 'KISS_TCIP') {
-                        connection = new KissTcipConnection(settings)
-                    } else if(settings.connectionType == 'SERIAL_TNC') {
-                        connection = new TNCConnection(settings)
-                    }
-                    // TODO: Throw error if neither of these
-
-                    if(connection != null) {
-                        store.dispatch(ActionTypes.ADD_CONNECTION, connection)
-                    }
-                })
-            } catch(e: any) {
-                console.log(`Could not load connections.\r ${e}`)
-            }
-
-            return { store }
         }
         , async mounted() {
-            for(let connection of this.store.getters[GetterTypes.GET_CONNECTIONS]) {
-                const status = await global.connectionService.getConnectionStatus(connection.id)
+            await window.connectionService.updateStationSettings(_.clone(this.stationSettingsStore.stationSettings))
+
+            for(let connection of this.connectionStore.connections) {
+                await window.connectionService.addConnection(_.cloneDeep(connection))
+
+                const status = await window.connectionService.getConnectionStatus(connection.id)
 
                 if(status == true) {
-                    this.store.dispatch(ActionTypes.UPDATE_CONNECTION_STATUS, { id: connection.id, status: ConnectionEventTypes.CONNECTED })
+                    this.connectionStore.updateConnectionStatus(connection.id, ConnectionEventTypes.CONNECTED)
                 } else {
-                    this.store.dispatch(ActionTypes.UPDATE_CONNECTION_STATUS, { id: connection.id, status: ConnectionEventTypes.DISCONNECTED })
+                    this.connectionStore.updateConnectionStatus(connection.id, ConnectionEventTypes.DISCONNECTED)
                 }
             }
 
             return
+        }
+        , async onBeforeUnmount() {
+            this.connectionStatusListener()
+            this.dataListener()
+            this.packetListener()
         }
     })
 </script>

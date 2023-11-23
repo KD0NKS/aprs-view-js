@@ -1,4 +1,4 @@
-import { Mapper } from '@/utils/mappers/Mapper'
+import { Mapper } from './Mapper'
 
 export {
     Mapper
