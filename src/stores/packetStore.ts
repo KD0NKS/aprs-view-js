@@ -6,10 +6,6 @@ import { aprsPacket, PacketTypeEnum } from "js-aprs-fap";
 
 import { useMapSettingsStore } from "./mapSettingsStore";
 
-interface State {
-    aprsData: Array<[ string | number, aprsPacket ]>;
-}
-
 const _maxDataLength = 100
 //const _mapSettingsStore = useMapSettingsStore()
 

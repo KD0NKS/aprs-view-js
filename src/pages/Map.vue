@@ -64,11 +64,11 @@
             const mapSettingsStore = useMapSettingsStore();
             const packetStore = usePacketStore();
             const stationSettingsStore = useStationSettingsStore();
-            const stationSettings = stationSettingsStore.stationSettings;
+            const stationSettings = stationSettingsStore.getStationSettings;
 
             const packetUtil: PacketUtil = new PacketUtil();
             const mapService = new MapService();
-            const mapSettings = mapSettingsStore.mapSettings;
+            const mapSettings = mapSettingsStore.getMapSettings;
             const symbolService: APRSSymbolService = new APRSSymbolService()
 
             // vectors

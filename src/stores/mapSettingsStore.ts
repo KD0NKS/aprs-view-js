@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { useStorage } from "@vueuse/core";
-//import { LocalStorage } from "quasar";
 
 import _ from "lodash";
 
@@ -14,7 +13,6 @@ const _mapper = new Mapper();
 
 export const useMapSettingsStore = defineStore('mapSettings', {
     state: () => ({
-        //mapSettings: LocalStorage.getItem(StorageKeys.MAP_SETTINGS) ? _mapper.CopyInto<IMapSettings, MapSettings>(LocalStorage.getItem(StorageKeys.MAP_SETTINGS), new MapSettings()) : new MapSettings()
         mapSettings: useStorage(StorageKeys.MAP_SETTINGS, new MapSettings())
     }),
     getters: {
@@ -39,3 +37,4 @@ export const useMapSettingsStore = defineStore('mapSettings', {
         }
     },
 });
+

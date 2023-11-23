@@ -162,12 +162,11 @@
             const symbolSvc = new APRSSymbolService()
             const store = useStationSettingsStore()
 
-            mapper.CopyInto<StationSettings, StationSettings>(store.stationSettings, settings.value)
+            mapper.CopyInto<StationSettings, StationSettings>(store.getStationSettings, settings.value)
 
             return {
                 packetFactory
                 , settings
-                , store
                 , symbolSvc
                 , rules: {
                     required: value => !!value || 'Required.'
@@ -179,7 +178,7 @@
                     store.setStationSettings(settings.value)
                 }
                 , onReset() {
-                    mapper.CopyInto<StationSettings, StationSettings>(store.stationSettings, settings.value)
+                    mapper.CopyInto<StationSettings, StationSettings>(store.getStationSettings, settings.value)
                 }
             }
         }
@@ -251,7 +250,7 @@
                 }
             }
             , sendPacket() {
-                let stationSettings = this.store.stationSettings
+                let stationSettings = this.stationSettings
 
                 if(stationSettings.locationType == LocationTypes.FIXED
                         && stationSettings.isTransmitPosition == true
