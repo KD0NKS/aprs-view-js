@@ -251,7 +251,7 @@
                 }
             }
             , sendPacket() {
-                let stationSettings = this.store.state.stationSettings
+                let stationSettings = this.store.stationSettings
 
                 if(stationSettings.locationType == LocationTypes.FIXED
                         && stationSettings.isTransmitPosition == true
@@ -269,7 +269,7 @@
                         })
                     )
 
-                    global.connectionService.sendPacket(packet)
+                    window.connectionService.sendPacket(packet)
                 }
             }
         }
