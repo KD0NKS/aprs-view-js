@@ -1,8 +1,8 @@
-import { AbstractConnection } from "@/models/connections/AbstractConnection"
-import { IConnection } from "@/models/connections/IConnection"
-import { ISConnection } from "@/models/connections/ISConnection"
-import { KissTcipConnection } from "@/models/connections/KissTcipConnection"
-import { TNCConnection } from "@/models/connections/TNCConnection"
+import { AbstractConnection } from "./AbstractConnection"
+import { IConnection } from "./IConnection"
+import { ISConnection } from "./ISConnection"
+import { KissTcipConnection } from "./KissTcipConnection"
+import { TNCConnection } from "./TNCConnection"
 
 export {
     AbstractConnection

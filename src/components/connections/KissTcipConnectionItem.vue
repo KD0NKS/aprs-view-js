@@ -9,7 +9,7 @@
 <script lang="ts">
     import { defineComponent } from "vue"
 
-    import { KissTcipConnection } from "@/models/connections/KissTcipConnection"
+    import { KissTcipConnection } from "../../models/connections/KissTcipConnection"
 
     export default defineComponent({
         props: {

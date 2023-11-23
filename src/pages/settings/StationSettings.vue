@@ -114,19 +114,19 @@
 
 <script lang="ts">
     import { defineComponent, ref } from 'vue'
-    import { useStore } from '@/store'
+    import { useStationSettingsStore } from "../../stores/stationSettingsStore"
     import _ from 'lodash'
 
-    import { ActionTypes, LocationTypes } from '@/enums'
+    import { LocationTypes } from '../../enums'
 
-    import { Mapper } from '@/utils/mappers'
+    import { Mapper } from '../../utils/mappers'
 
-    import { APRSSymbol } from '@/models/APRSSymbol'
-    import { StationSettings } from '@/models/settings'
+    import { APRSSymbol } from '../../models/APRSSymbol'
+    import { StationSettings } from '../../models/settings'
 
-    import { APRSSymbolService } from '@/services/'
+    import { APRSSymbolService } from '../../services/'
 
-    import StaticLocationSettings from '@/components/location/StaticLocationSettings.vue'
+    import StaticLocationSettings from '../../components/location/StaticLocationSettings.vue'
 
     export default defineComponent({
         name: 'StationSettings'
@@ -134,9 +134,9 @@
             const mapper = new Mapper()
             const settings = ref(new StationSettings())
             const symbolSvc = new APRSSymbolService()
-            const $store = useStore()
+            const store = useStationSettingsStore()
 
-            mapper.CopyInto<StationSettings, StationSettings>($store.state.stationSettings, settings.value)
+            mapper.CopyInto<StationSettings, StationSettings>(store.stationSettings, settings.value)
 
             return {
                 settings
@@ -145,10 +145,10 @@
                     required: value => !!value || 'Required.'
                 }
                 , onSubmit() {
-                    $store.dispatch(ActionTypes.SET_STATION_SETTINGS, settings.value)
+                    store.setStationSettings(settings.value)
                 }
                 , onReset() {
-                    mapper.CopyInto<StationSettings, StationSettings>($store.state.stationSettings, settings.value)
+                    mapper.CopyInto<StationSettings, StationSettings>(store.stationSettings, settings.value)
                 }
             }
         }

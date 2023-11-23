@@ -14,19 +14,19 @@
 
 <script lang="ts">
     import { defineComponent, ref } from 'vue'
-    import { useStore } from '@/store'
+    import { useConectionStore } from '../../stores/connectionStore'
     import { uid } from "quasar"
 
-    import { ActionTypes } from '@/enums'
-    import ConnectionItem from '@/components/connections/ConnectionItem.vue'
-    import { ISConnection } from '@/models/connections'
+    import ConnectionItem from '../../components/connections/ConnectionItem.vue'
+
+    import { ISConnection } from '../../models/connections'
 
     export default defineComponent({
         name: 'ConnectionSettings'
         , setup() {
-            const store = useStore()
+            const store = useConectionStore()
 
-            const connections = ref(store.state.connections)
+            const connections = store.getConnections
 
             return {
                 connections
@@ -47,7 +47,7 @@
                 newConnection.port = 14580
                 newConnection.filter = "r/39.00/-91.00/1000"
 
-                this.store.dispatch(ActionTypes.ADD_CONNECTION, newConnection)
+                this.store.addConnection(newConnection)
             }
         }
     })

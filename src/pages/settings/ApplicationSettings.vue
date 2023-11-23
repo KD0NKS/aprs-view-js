@@ -57,32 +57,32 @@
 
     import { defineComponent, ref } from 'vue'
     import { useQuasar } from 'quasar'
-    import { useStore } from '@/store'
+    import { useSoftwareSettingsStore } from '../../stores/softwareSettingsStore'
 
-    import { Mapper } from '@/utils/mappers'
-    import { ActionTypes, DistanceUnitTypes, GetterTypes, TemperatureUnitTypes } from '@/enums'
+    import { Mapper } from '../../utils/mappers'
+    import { DistanceUnitTypes, TemperatureUnitTypes } from '../../enums'
 
-    import { SoftwareSettings } from '@/models/settings'
+    import { SoftwareSettings } from '../../models/settings'
 
     export default defineComponent({
         name: 'ApplicationSettings'
         , setup() {
             const mapper = new Mapper()
             const settings = ref(new SoftwareSettings())
-            const store = useStore()
+            const store = useSoftwareSettingsStore()
             const $q = useQuasar()
 
-            mapper.CopyInto<SoftwareSettings, SoftwareSettings>(store.getters[GetterTypes.SOFTWARE_SETTINGS], settings.value)
+            mapper.CopyInto<SoftwareSettings, SoftwareSettings>(store.getSoftwareSettings, settings.value)
 
             return {
                 settings
                 , onSubmit() {
-                    store.dispatch(ActionTypes.SET_SOFTWARE_SETTINGS, settings.value)
+                    store.setSoftwareSettings(settings.value)
 
                     $q.dark.set(settings.value.isDarkMode)
                 }
                 , onReset() {
-                    mapper.CopyInto<SoftwareSettings, SoftwareSettings>(store.getters[GetterTypes.SOFTWARE_SETTINGS], settings.value)
+                    mapper.CopyInto<SoftwareSettings, SoftwareSettings>(store.getSoftwareSettings, settings.value)
                 }
             }
         }

@@ -68,32 +68,34 @@ TODO:
     - Performance Resources- Ideas for improving
         - https://dev.to/camptocamp-geo/integrating-an-openlayers-map-in-vue-js-a-step-by-step-guide-2n1p
     - Options
-        - [x] Point lifetime
-        - [ ] Number of points for a map?
-        - Layers
-            - [ ] Layer Sources - Needs auth inputs
-            - [ ] Tile Sources - Needs auth inputs
-            - [ ] User defined maps
-            - [ ] User defined layers
-            - [ ] Opacity of layers
-            - [ ] User configured
-            - [ ] Default - ???
-            - [ ] Weather station data layers
-            - [ ] Radar
-                - https://openlayers.org/en/latest/examples/wms-time.html
-                - nowCoast
-            - [ ] NWS watches/warnings
-                - nowCoast
-        - Location options
-            - [ ] Restore location and zoom level when switching screens
-            - [ ] Map start coordinates
-            - [ ] Map zoom level
-            - [ ] Weather station data layers - lots of data can be extracted from weather stations
-        - Labels
-            - [x] Show labels
-            - [ ] Label options
-                - [x] Object/Callsign
-                - [ ] Weather data?
+        - Map
+            - [x] Point lifetime
+            - [ ] Number of points for a map?
+            - Layers
+                - [ ] Layer Sources - Needs auth inputs
+                - [ ] Tile Sources - Needs auth inputs
+                - [ ] User defined maps
+                - [ ] User defined layers
+                - [ ] Opacity of layers
+                - [ ] User configured
+                - [ ] Default - ???
+                - [ ] User defined layers
+                - [ ] Weather station data layers
+                - [ ] Radar
+                    - https://openlayers.org/en/latest/examples/wms-time.html
+                    - nowCoast
+                - [ ] NWS watches/warnings
+                    - nowCoast
+                - Location options
+                    - [ ] Restore location and zoom level when switching screens
+                    - [ ] Map start coordinates
+                    - [ ] Map zoom level
+                    - [ ] Weather station data layers - lots of data can be extracted from weather stations
+                - Labels
+                    - [x] Show labels
+                    - [ ] Label options
+                        - [x] Object/Callsign
+                        - [ ] Weather data?
         - [ ] Station info panel - see aprs.fi
         - [ ] Track station/Track my station
     - ContextMenu

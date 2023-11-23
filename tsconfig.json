@@ -1,6 +1,6 @@
 {
-  "extends": "@quasar/app-webpack/tsconfig-preset"
-  , "compilerOptions": {
+  "extends": "@quasar/app-vite/tsconfig-preset",
+  "compilerOptions": {
     "allowSyntheticDefaultImports": true
     , "baseUrl": "."
     , "declaration": true

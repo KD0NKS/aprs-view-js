@@ -1,23 +1,17 @@
-import { ActionTypes } from "@/enums/ActionTypes"
-import { ConnectionEventTypes } from "@/enums/ConnectionEventTypes"
-import { ConnectionTypes } from "@/enums/ConnectionTypes"
-import { DistanceUnitTypes } from "@/enums/DistanceUnitTypes"
-import { EolCharEnum } from "@/enums/EolCharEnum"
-import { GetterTypes } from "@/enums/GetterTypes"
+import { ConnectionEventTypes } from "./ConnectionEventTypes"
+import { ConnectionTypes } from "./ConnectionTypes"
+import { DistanceUnitTypes } from "./DistanceUnitTypes"
+import { EolCharEnum } from "./EolCharEnum"
 import { LocationTypes } from "./LocationTypes"
-import { MutationTypes } from "@/enums/MutationTypes"
-import { StorageKeys } from "@/enums/StorageKeys"
-import { TemperatureUnitTypes } from "@/enums/TemperatureUnitTypes"
+import { StorageKeys } from "./StorageKeys"
+import { TemperatureUnitTypes } from "./TemperatureUnitTypes"
 
 export {
-    ActionTypes
-    , ConnectionEventTypes
+    ConnectionEventTypes
     , ConnectionTypes
     , DistanceUnitTypes
     , EolCharEnum
-    , GetterTypes
     , LocationTypes
-    , MutationTypes
     , StorageKeys
     , TemperatureUnitTypes
 }

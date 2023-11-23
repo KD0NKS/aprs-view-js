@@ -1,5 +1,5 @@
-import { DistanceUnitTypes, TemperatureUnitTypes } from "@/enums"
-import { ISoftwareSettings } from "@/models/settings"
+import { DistanceUnitTypes, TemperatureUnitTypes } from "../../enums"
+import { ISoftwareSettings } from "../../models/settings"
 
 export class SoftwareSettings implements ISoftwareSettings {
     public distanceUnitType: string = DistanceUnitTypes.IMPERIAL

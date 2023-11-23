@@ -1,6 +1,6 @@
 import _ from "lodash"
 
-import { AbstractConnection, IConnection } from "@/models/connections"
+import { AbstractConnection, IConnection } from "."
 
 export class KissTcipConnection extends AbstractConnection {
     public host?: string = null

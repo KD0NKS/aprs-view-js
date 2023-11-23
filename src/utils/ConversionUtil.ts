@@ -1,4 +1,4 @@
-import { DistanceUnitTypes, TemperatureUnitTypes } from "@/enums"
+import { DistanceUnitTypes, TemperatureUnitTypes } from "../enums"
 
 export class ConversionUtil {
     public static kmhToMph(speed: number) {

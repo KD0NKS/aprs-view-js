@@ -53,20 +53,20 @@
 </template>
 
 <script lang="ts">
-    import { ActionTypes } from '@/enums'
-    import { MapSettings } from '@/models/settings'
-    import { useStore } from '@/store'
-    import { Mapper } from '@/utils/mappers'
     import { defineComponent, ref } from 'vue'
+
+    import { MapSettings } from '../../models/settings'
+    import { useMapSettingsStore } from '../../stores/mapSettingsStore'
+    import { Mapper } from '../../utils/mappers'
 
     export default defineComponent({
         name: 'MapSettings'
         , setup() {
             const mapper = new Mapper()
             const settings = ref(new MapSettings())
-            const store = useStore()
+            const store = useMapSettingsStore()
 
-            mapper.CopyInto<MapSettings, MapSettings>(store.state.mapSettings, settings.value)
+            mapper.CopyInto<MapSettings, MapSettings>(store.getMapSettings, settings.value)
 
             return {
                 settings
@@ -74,12 +74,13 @@
                     positiveNum: value => value >= 0 || 'Must be a positive number.'
                 }
                 , onSubmit() {
-                    store.dispatch(ActionTypes.SET_MAP_SETTINGS, settings.value)
+                    store.setMapSettings(settings.value)
                 }
                 , onReset() {
-                    mapper.CopyInto<MapSettings, MapSettings>(store.state.mapSettings, settings.value)
+                    mapper.CopyInto<MapSettings, MapSettings>(store.getMapSettings, settings.value)
                 }
             }
         }
     })
 </script>
+

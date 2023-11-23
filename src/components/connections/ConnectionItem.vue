@@ -54,16 +54,16 @@
 
 <script lang="ts">
     import { defineComponent, ref } from "vue"
-    import { useStore } from '@/store'
+    import { useConectionStore } from '../../stores/connectionStore'
     import _ from "lodash"
 
-    import { ActionTypes, ConnectionTypes } from "@/enums"
-    import { Mapper } from "@/utils/mappers"
-    import { ISConnection, KissTcipConnection, TNCConnection } from "@/models/connections"
+    import { ConnectionTypes } from "../../enums"
+    import { Mapper } from "../../utils/mappers"
+    import { ISConnection, KissTcipConnection, TNCConnection } from "../../models/connections"
 
-    import ISConnectionItem from "@/components/connections/ISConnectionItem.vue"
-    import KissTcipConnectionItem from "@/components/connections/KissTcipConnectionItem.vue"
-    import TNCConnectionItem from "@/components/connections/TNCConnectionItem.vue"
+    import ISConnectionItem from "./ISConnectionItem.vue"
+    import KissTcipConnectionItem from "./KissTcipConnectionItem.vue"
+    import TNCConnectionItem from "./TNCConnectionItem.vue"
 
     export default defineComponent({
         props: {
@@ -80,7 +80,7 @@
         }
         , setup(props, { emit }) {
             const mapper = new Mapper()
-            const store = useStore()
+            const store = useConectionStore()
             let temp = null
 
             if(props.connection.connectionType == 'IS_SOCKET') {
@@ -116,7 +116,7 @@
                     // TODO: Else throw error
                 }
                 , onSubmit() {
-                    store.dispatch(ActionTypes.SAVE_CONNECTION, _.cloneDeep(model.value))
+                    store.saveConnection(model.value)
                 }
             }
         }
@@ -176,10 +176,10 @@
                 }
             }
             , setConnectionStatus() {
-                this.store.dispatch(ActionTypes.SET_CONNECTION_STATUS, { connectionId: this.model.id, isEnabled: this.model.isEnabled })
+                this.store.setConnectionStatus(this.model.id, this.model.isEnabled)
             }
             , deleteConnection() {
-                this.store.dispatch(ActionTypes.DELETE_CONNECTION, this.model.id)
+                this.store.deleteConnection(this.model.id)
             }
         }
     })
