@@ -22,7 +22,7 @@
 <script lang="ts">
     import 'ol/ol.css'
 
-    import { defineComponent, onMounted, ref } from 'vue'
+    import { defineComponent, ref } from 'vue'
 
     import { useMapSettingsStore } from '../stores/mapSettingsStore';
     import { usePacketStore } from '../stores/packetStore';
@@ -52,6 +52,7 @@
     import { defaults as defaultControls} from 'ol/control'
     import { Coordinate } from 'ol/coordinate';
     import { Circle } from 'ol/geom';
+import { FeatureLike } from 'ol/Feature';
 
     const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'red', width: 2, lineDash: [ 8, 8 ] }) })
 
@@ -71,11 +72,11 @@
             const symbolService: APRSSymbolService = new APRSSymbolService()
 
             // vectors
-            const ambiguityVector: VectorSource<Geometry> = new VectorSource({})
-            const currentStationPositionVector: VectorSource<Geometry> = new VectorSource({})
-            const genericPointVector: VectorSource<Geometry> = new VectorSource({})
-            const stationPositionVector: VectorSource<Geometry> = new VectorSource({})
-            const trailVector: VectorSource<Geometry> = new VectorSource({})
+            const ambiguityVector: VectorSource<FeatureLike> = new VectorSource({})
+            const currentStationPositionVector: VectorSource<FeatureLike> = new VectorSource({})
+            const genericPointVector: VectorSource<FeatureLike> = new VectorSource({})
+            const stationPositionVector: VectorSource<FeatureLike> = new VectorSource({})
+            const trailVector: VectorSource<FeatureLike> = new VectorSource({})
 
             // data
             const contextMenuX = ref(0)
@@ -631,7 +632,7 @@
 
                 return
             }
-            , async removePoints(vector: VectorSource<Geometry>, ids?: number[] | string[], isGenerateTrail = true): Promise<void> {
+            , async removePoints(vector: VectorSource<FeatureLike>, ids?: number[] | string[], isGenerateTrail = true): Promise<void> {
                 if(ids != null && ids.length > 0) {
                     const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
