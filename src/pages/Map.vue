@@ -54,7 +54,7 @@
     import { Circle } from 'ol/geom';
     import { FeatureLike } from 'ol/Feature';
 
-    const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'red', width: 2, lineDash: [ 8, 8 ] }) })
+    const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'black', width: 2, lineDash: [ 8, 8 ] }) })
 
     export default defineComponent({
         components: { StationFeatureCard, MapContextMenu },

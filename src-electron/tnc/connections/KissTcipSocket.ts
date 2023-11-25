@@ -51,6 +51,8 @@ export class KissTcipSocket extends Socket {
         // TODO: Do we want to throw errors if the host or port are null?
 
         this.on('data', (rawData: string) => {
+            rawData = rawData.split('c010')[0];
+
             let data: RegExpMatchArray | null = rawData.match(/.{2}/g);
 
             if(data && data.length > 0) {

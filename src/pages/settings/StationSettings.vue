@@ -250,21 +250,19 @@
                 }
             }
             , sendPacket() {
-                let stationSettings = this.stationSettings
-
-                if(stationSettings.locationType == LocationTypes.FIXED
-                        && stationSettings.isTransmitPosition == true
-                        && stationSettings.latitude && stationSettings.latitude != null
-                        && stationSettings.longitude && stationSettings.longitude != null
+                if(this.settings.locationType == LocationTypes.FIXED
+                        && this.settings.isTransmitPosition == true
+                        && this.settings.latitude && this.settings.latitude != null
+                        && this.settings.longitude && this.settings.longitude != null
                         ) {
                     const packet = this.packetFactory.makePosition(
                         new BuildPositionModel({
-                            comment: stationSettings.comment
-                            , latitude: stationSettings.latitude
-                            , longitude: stationSettings.longitude
-                            , symbols: (stationSettings.overlaySymbol && stationSettings.overlaySymbol != null && stationSettings.overlaySymbol != '')
-                                    ? `${stationSettings.symbol}${stationSettings.overlaySymbol}`
-                                    : stationSettings.symbol
+                            comment: this.settings.comment
+                            , latitude: this.settings.latitude
+                            , longitude: this.settings.longitude
+                            , symbols: (this.settings.overlaySymbol && this.settings.overlaySymbol != null && this.settings.overlaySymbol != '')
+                                    ? `${this.settings.symbol}${this.settings.overlaySymbol}`
+                                    : this.settings.symbol
                         })
                     )
 
