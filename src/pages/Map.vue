@@ -301,14 +301,16 @@
                 if(feature && feature.getGeometry().getType() != "LineString") {
                     const pkt = this.packetStore.getPacket(feature.getId())
 
-                    this.stationConnectionId = pkt[0]
+                    if(!!pkt) {
+                        this.stationConnectionId = pkt[0]
 
-                    const icon = this.symbolService.GetAPRSSymbol(pkt[1].symbolcode, pkt[1].symboltable)
-                    this.stationIcon = ref(icon['symbol'])
-                    this.stationIconOverlay = ref(icon['overlay'])
+                        const icon = this.symbolService.GetAPRSSymbol(pkt[1].symbolcode, pkt[1].symboltable)
+                        this.stationIcon = ref(icon['symbol'])
+                        this.stationIconOverlay = ref(icon['overlay'])
 
-                    this.stationInfoPacket = pkt[1] as aprsPacket
-                    this.isShowStationInfo = true
+                        this.stationInfoPacket = pkt[1] as aprsPacket
+                        this.isShowStationInfo = true
+                    }
                 }
 
                 return
