@@ -28,6 +28,8 @@
                 connectionStore.updateConnectionStatus(connectionid, e)
             })
 
+            const packetTimer = null
+
             Dark.set(softwareSettingsStore.softwareSettings.isDarkMode)
 
             return {
@@ -35,6 +37,8 @@
                 , connectionStatusListener
                 , dataListener
                 , packetListener
+                , packetStore
+                , packetTimer
                 , stationSettingsStore
             }
         }
@@ -51,6 +55,15 @@
                 } else {
                     this.connectionStore.updateConnectionStatus(connection.id, ConnectionEventTypes.DISCONNECTED)
                 }
+            }
+
+            if(!this.packetTimer) {
+                // Set the interval to the new time
+                this.packetTimer = setInterval(
+                    () => {
+                        this.packetStore.clearOldPackets()
+                    }
+                    , 60000) // 60000ms per minute
             }
 
             return

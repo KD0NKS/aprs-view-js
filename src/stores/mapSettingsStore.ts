@@ -22,13 +22,6 @@ export const useMapSettingsStore = defineStore('mapSettings', {
         setMapSettings(settings: IMapSettings) {
             const packetStore = usePacketStore()
 
-            if(!this.packetTimer) {
-                // Set the interval to the new time
-                this.packetTimer = setInterval(
-                    () => packetStore.clearOldPackets
-                    , 60000) // 60000ms per minute
-            }
-
             if(settings.pointLifetime != this.mapSettings.pointLifetime) {
                 packetStore.clearOldPackets
             }

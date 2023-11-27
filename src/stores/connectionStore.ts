@@ -38,6 +38,7 @@ export const useConectionStore = defineStore('connection', {
     }),
     getters: {
         getConnections: state => state.connections
+        , getConnectionName: (state) => { return (connectionId: string | number) => state.connections.find((c) => c.id == connectionId)?.name }
     },
     actions: {
         addConnection(settings: IConnection) {

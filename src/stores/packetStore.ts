@@ -7,7 +7,6 @@ import { aprsPacket, PacketTypeEnum } from "js-aprs-fap";
 import { useMapSettingsStore } from "./mapSettingsStore";
 
 const _maxDataLength = 100
-//const _mapSettingsStore = useMapSettingsStore()
 
 /* NOTE!  For performance reasons, DO NOT use a state level array for this! */
 const aprsPackets = new EventedArray<[ string | number, aprsPacket ]>()
@@ -17,7 +16,8 @@ export const usePacketStore = defineStore('packets', {
         aprsData: new Array<[ string | number, aprsPacket ]>()
     }),
     getters: {
-        getPacket: state => id => _.find(aprsPackets, p => p[1].id == id)
+        getAprsData: state => state.aprsData
+        , getPacket: state => id => _.find(aprsPackets, p => p[1].id == id)
         , getPackets: state => aprsPackets
         , getPacketsByName: state => name => _.filter(aprsPackets, p => (p[1].itemname == name || p[1].objectname == name || p[1].sourceCallsign == name))
     },
@@ -37,11 +37,11 @@ export const usePacketStore = defineStore('packets', {
             return
         }
         , async clearOldPackets() {
+            const mapSettingsStore = useMapSettingsStore()
+
             // DO NOT! use lodash here.  Its internal bowels use Array.prototype.splice rather than the given array's overridden version.
             aprsPackets.remove(packet => (
-                // TODO: FIX ME!!!
-                // (new Date().getTime() - packet[1].receivedTime) >= (_mapSettingsStore.mapSettings.pointLifetime * 60000)
-                (new Date().getTime() - packet[1].receivedTime) >= (30 * 60000)
+                (new Date().getTime() - packet[1].receivedTime) >= (mapSettingsStore.getMapSettings.pointLifetime * 60000)
                 && (
                        packet[1].type == null
                     || packet[1].type == undefined

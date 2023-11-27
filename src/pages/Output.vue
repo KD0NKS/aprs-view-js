@@ -32,12 +32,21 @@
 
     export default defineComponent({
         name: "Output"
+        , setup() {
+            const packetStore = usePacketStore()
+            const connectionStore = useConectionStore()
+
+            return {
+                packetStore
+                , connectionStore
+            }
+        }
         , computed: {
-            ...mapState(usePacketStore, [ 'aprsData' ])
+            ...mapState(usePacketStore, [ 'getAprsData' ])
             , ...mapState(useConectionStore, [ 'connections' ])
             , processedData() {
-                return _.reduce(this.aprsData, (result, data) => {
-                    result.push([ this.getConnectionName(data[0]), data[1] ])
+                return _.reduce(this.getAprsData, (result, data) => {
+                    result.push([ this.connectionStore.getConnectionName(data[0]), data[1] ])
                     return result
                 }, [])
             }
