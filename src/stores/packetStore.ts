@@ -17,7 +17,13 @@ export const usePacketStore = defineStore('packets', {
     }),
     getters: {
         getAprsData: state => state.aprsData
-        , getPacket: state => id => _.find(aprsPackets, p => p[1].id == id)
+        , getPacket: state => id => {
+            if(id != undefined && id != null && id != "") {
+                return _.find(aprsPackets, p => p[1].id == id);
+            }
+
+            return null;
+        }
         , getPackets: state => aprsPackets
         , getPacketsByName: state => name => _.filter(aprsPackets, p => (p[1].itemname == name || p[1].objectname == name || p[1].sourceCallsign == name))
     },

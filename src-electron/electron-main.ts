@@ -14,6 +14,8 @@ import _ from 'lodash'
 const platform = process.platform || os.platform();
 const connectionService = new ConnectionService()
 
+app.setName("aprs-view-js")
+
 try {
   if (platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
     require('fs').unlinkSync(

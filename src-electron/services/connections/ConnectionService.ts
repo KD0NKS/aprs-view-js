@@ -131,7 +131,7 @@ export class ConnectionService extends EventEmitter {
     public sendPacket(packet: string) {
         _.each(_.filter(this._connections, (c) => {
                 return ((c instanceof KissTcipSocket) && c.isConnected() && c.isTransmitEnabled == true)
-                    || ((c instanceof ISSocket) && c.isConnected() == true)
+                    || ((c instanceof ISSocket) && c.isConnected() == true) // TODO: istransmitEnabled
             })
             , c => {
                 if(c instanceof KissTcipSocket) {
