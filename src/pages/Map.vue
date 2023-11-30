@@ -13,7 +13,8 @@
         <map-context-menu
             :latitude="contextMenuX"
             :longitude="contextMenuY"
-            v-on:clearAll="clearAllStations()"
+            @clearAll="clearAllStations()"
+            @stationCoordinatesUpdate="updateCurrentStationCoordinates()"
             >
         </map-context-menu>
     </div>
@@ -64,7 +65,7 @@
             const mapSettingsStore = useMapSettingsStore();
             const packetStore = usePacketStore();
             const stationSettingsStore = useStationSettingsStore();
-            const stationSettings = stationSettingsStore.getStationSettings;
+            const stationSettings = stationSettingsStore.stationSettings;
 
             const packetUtil: PacketUtil = new PacketUtil();
             const mapService = new MapService();
@@ -649,33 +650,7 @@
                 )
             }
             , async loadMapData() {
-                // get the current station and show it's position
-                if(this.stationSettings?.locationType == LocationTypes.FIXED) {
-                    const symbols = await this.symbolService.GetAPRSSymbol(this.stationSettings.symbol, this.stationSettings.symbolOverlay)
-
-                    let packet = new aprsPacket();
-                    packet.sourceCallsign = this.stationSettings.callsign
-                    packet.latitude = this.stationSettings.latitude
-                    packet.longitude = this.stationSettings.longitude
-                    // TODO: Hardcoded for now until messaging is supported
-                    packet.messaging = false
-
-                    const styles = await this.generateIcon(packet, symbols)
-
-                    let feature = new Feature({
-                        geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
-                    })
-
-                    feature.setId(packet.id)
-                    feature.setProperties({
-                        name: packet.sourceCallsign
-                        , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
-                        , receivedTime: packet.receivedTime
-                    })
-
-                    feature.setStyle(await styles)
-                    await this.currentStationPositionVector.addFeature(feature)
-                }
+                this.updateCurrentStationCoordinates();
 
                 // get all the location packets and add them
                 for(const p of this.getAllLocationPackets()) {
@@ -707,6 +682,40 @@
                 }
 
                 return
+            }
+            , async updateCurrentStationCoordinates(): Promise<void> {
+                this.currentStationPositionVector.clear();
+
+                // get the current station and show it's position
+                if(this.stationSettings.locationType == LocationTypes.FIXED) {
+                    const symbols = await this.symbolService.GetAPRSSymbol(this.stationSettings.symbol, this.stationSettings.symbolOverlay);
+
+                    let packet = new aprsPacket();
+
+                    packet.sourceCallsign = this.stationSettings.callsign;
+                    packet.latitude = this.stationSettings.latitude;
+                    packet.longitude = this.stationSettings.longitude;
+                    // TODO: Hardcoded for now until messaging is supported
+                    packet.messaging = false;
+
+                    const styles = await this.generateIcon(packet, symbols);
+
+                    let feature = new Feature({
+                        geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
+                    });
+
+                    feature.setId(packet.id);
+                    feature.setProperties({
+                        name: packet.sourceCallsign
+                        , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
+                        , receivedTime: packet.receivedTime
+                    });
+
+                    feature.setStyle(await styles);
+                    await this.currentStationPositionVector.addFeature(feature);
+                }
+
+                return;
             }
         }
     })

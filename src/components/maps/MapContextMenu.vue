@@ -36,6 +36,10 @@
                 , requried: false
             }
         }
+        , emits: [
+            "clearAll"
+            , "stationCoordinatesUpdate"
+        ]
         , setup() {
             const store = useStationSettingsStore()
 
@@ -45,7 +49,9 @@
         }
         , methods: {
             setStationPosition() {
-                this.store.setStationLocation({ latitude: this.latitude.toFixed(4), longitude: this.longitude.toFixed(4) })
+                useStationSettingsStore().setStationLocation({ latitude: this.latitude, longitude: this.longitude })
+
+                this.$emit('stationCoordinatesUpdate', { latitude: this.latitude, longitude: this.longitude })
             }
         }
     })
