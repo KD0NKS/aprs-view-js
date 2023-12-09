@@ -14,13 +14,13 @@ export const useStationSettingsStore = defineStore('stationSettings', {
         getStationSettings: state => state.stationSettings
     },
     actions: {
-        setStationLocation(latLong) {
+        setStationLocation(latLong: { latitude: number; longitude: number }) {
             if(latLong && latLong.latitude && latLong.longitude) {
                 this.stationSettings.latitude = latLong.latitude.toFixed(4)
                 this.stationSettings.longitude = latLong.longitude.toFixed(4)
             }
 
-            window.connectionService.updateStationSettings(_.clone(this.settings))
+            window.connectionService.updateStationSettings(_.clone(this.stationSettings))
         }
         , setStationSettings(settings: IStationSettings) {
             // state.stationSettings.propname = settings.propname doesn't work here
@@ -30,8 +30,6 @@ export const useStationSettingsStore = defineStore('stationSettings', {
             this.stationSettings.symbol = settings.symbol
             this.stationSettings.symbolOverlay = settings.symbolOverlay
             this.stationSettings.isTransmitPosition = settings.isTransmitPosition ?? false
-            this.stationSettings.latitude = settings.latitude
-            this.stationSettings.longitude = settings.longitude
             this.stationSettings.locationType = settings.locationType ?? LocationTypes.NONE
 
             if(settings.locationType == LocationTypes.FIXED) {
@@ -46,8 +44,6 @@ export const useStationSettingsStore = defineStore('stationSettings', {
                 this.stationSettings.isTransmitPosition = false
                 // TODO: Kill anything trying to send position packets
             }
-
-            //LocalStorage.set(StorageKeys.STATION_SETTINGS, _mapper.Map<StationSettings>(this.stationSettings, StationSettings))
 
             window.connectionService.updateStationSettings(_.clone(settings))
         }
