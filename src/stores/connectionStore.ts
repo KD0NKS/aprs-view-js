@@ -57,7 +57,6 @@ export const useConectionStore = defineStore('connection', {
 
             if(index > -1) {
                 this.connections.splice(index, 1)
-                //LocalStorage.remove(`connections.${connectionId}`)
 
                 window.connectionService.deleteConnection(connectionId)
             }
