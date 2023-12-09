@@ -39,46 +39,46 @@ import { IpcEventTypes } from './enums/IpcEventTypes'
 
 // TODO/NOTE: connection service may need to be in main
 contextBridge.exposeInMainWorld('connectionService', {
-    addConnection: (settings: IConnection) => {
+    addConnection: async (settings: IConnection) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_ADD_CONNECTION, settings)
     }
-    , deleteConnection: (connectionId: string | number) => {
+    , deleteConnection: async (connectionId: string | number) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_DELETE_CONNECTION, connectionId)
     }
     , getConnectionStatus: async (connectionId: string | number) => {
         return await ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_GET_CONNECTION_STATUS, connectionId)
     }
-    , setConnectionStatus(connectionId, isEnabled) {
+    , setConnectionStatus: async (connectionId, isEnabled) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_SET_CONNECTION_STATUS, connectionId, isEnabled)
     }
     , sendPacket: async (packet: string) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_SEND_PACKET, packet)
     }
-    , updateConnection: (settings: IConnection) => {
+    , updateConnection: async (settings: IConnection) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_CONNECTION, settings)
     }
-    , updateConnectionStatus: (id: string, isEnabled: boolean) => {
+    , updateConnectionStatus: async (id: string, isEnabled: boolean) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_CONNECTION_STATUS, id, isEnabled)
     }
-    , updateStationSettings: (settings: IStationSettings) => {
+    , updateStationSettings: async (settings: IStationSettings) => {
         ipcRenderer.invoke(IpcEventTypes.CONNECTION_SERVICE_UPDATE_STATION_SETTINGS, settings)
     }
     , getComPorts: async () => {   // TODO: Make a system api
         return await ipcRenderer.invoke(IpcEventTypes.GET_COM_PORTS)
     }
-    , getConnectionStatusStream: (fn) => {
+    , getConnectionStatusStream: async (fn) => {
         const subscription = (evt: string, id: string | number) => fn(evt, id)
 
-        ipcRenderer.on(ConnectionEventTypes.CONNECTED, (event, arg) => subscription(ConnectionEventTypes.CONNECTED, arg))
-        ipcRenderer.on(ConnectionEventTypes.DISCONNECTED, (event, arg) => subscription(ConnectionEventTypes.DISCONNECTED, arg))
+        ipcRenderer.on(ConnectionEventTypes.CONNECTED, async (event, arg) => subscription(ConnectionEventTypes.CONNECTED, arg))
+        ipcRenderer.on(ConnectionEventTypes.DISCONNECTED, async (event, arg) => subscription(ConnectionEventTypes.DISCONNECTED, arg))
 
         return () => {
             ipcRenderer.removeListener(ConnectionEventTypes.CONNECTED, subscription)
             ipcRenderer.removeListener(ConnectionEventTypes.DISCONNECTED, subscription)
         }
     }
-    , getDataStream: (fn) => {
-        const subscription = (evt, data: string) => fn(data)
+    , getDataStream: async (fn) => {
+        const subscription = async (evt, data: string) => fn(data)
         ipcRenderer.on(DataEventTypes.DATA, subscription)
 
         // Return a function to kill the event listener
@@ -86,8 +86,8 @@ contextBridge.exposeInMainWorld('connectionService', {
             ipcRenderer.removeListener(DataEventTypes.DATA, fn)
         }
     }
-    , getPacketStream: (fn) => {
-        const subscription = (evt, packet: string) => fn(packet)
+    , getPacketStream: async (fn) => {
+        const subscription = async (evt, packet: string) => fn(packet)
         ipcRenderer.on(DataEventTypes.PACKET, subscription)
 
         // Return a function to kill the event listener
