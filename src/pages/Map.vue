@@ -80,7 +80,7 @@
             const trailVector: VectorSource<FeatureLike> = new VectorSource({})
 
             // timers
-            const layerTimers = {}
+            const layerTimers = []
 
             // data
             const contextMenuX = ref(0)
@@ -118,6 +118,7 @@
                 , packetUtil
                 , currentStationPositionVector
                 , genericPointVector
+                , layers: ref(null)
                 , layerTimers
                 , mapService
                 , mapSettings
@@ -139,19 +140,20 @@
             this.packets.removeListener('add', this.packetAddedListener)
             this.packets.removeListener('remove', this.packetRemovedListener)
 
-            _.each(this.layerTimers, (t) => {
+            for(const t of this.layerTimers) {
                 clearInterval(t)
-            })
+            }
         }
-        , async mounted() {
-            const layers: BaseLayer[] = [
+        , async created() {
+            this.layers = [
                 new TileLayer({
-                    className: "stamen-base-layer"
+                    className: "base-layer"
                     , preload: 1
                     , source: new StadiaMaps({
                         layer: 'stamen_toner_lite'
                         , apiKey: null
                         , retina: false
+                        , maxZoom: 20
                     })
                 })
                 , new VectorLayer({
@@ -271,106 +273,17 @@
                 })
             ]
 
-            const centerLon = this.stationSettings?.longitude ?? -98.5795
-            const centerLat = this.stationSettings?.latitude ?? 39.8283
 
-            _.each(_.filter(layers, l => l.get("refreshTime") != null), l => {
-                const interval = setInterval(() => { l.get("source").refresh(); console.log(`Refreshing ${l.getClassName()}`) }, l.get("refreshTime"))
-                this.layerTimers[l.getClassName()] = interval
-            })
+        }
+        , async mounted() {
+            await this.initializeMap()
 
-            const map = new OLMap({
-                target: 'map'
-                , controls: defaultControls().extend([
-                    new FeatureSearch()
-                ])
-                , layers: layers
-                , view: new View({
-                    center: fromLonLat([ centerLon, centerLat ]) // Default to center of the US
-                    , zoom: 10
-                })
-            })
+            //await this.loadMapData()
+            //await this.initializeListeners()
 
-            // TODO: force handle nav/map resizing https://quasar.dev/vue-components/resize-observer
-
-            // display popup on click
-            map.on('singleclick', async (evt) => {
-                // TODO: This seems to be getting the one on the bottom of the pile
-                let feature = _.filter(map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")[0]
-
-                // Prevent trying to fetch data if a trail is clicked
-                if(feature && feature.getGeometry().getType() != "LineString") {
-                    const pkt = this.packetStore.getPacket(feature.getId())
-
-                    if(!!pkt) {
-                        this.stationConnectionId = pkt[0]
-
-                        const icon = this.symbolService.GetAPRSSymbol(pkt[1].symbolcode, pkt[1].symboltable)
-                        this.stationIcon = ref(icon['symbol'])
-                        this.stationIconOverlay = ref(icon['overlay'])
-
-                        this.stationInfoPacket = pkt[1] as aprsPacket
-                        this.isShowStationInfo = true
-                    }
-                }
-
-                return
-            })
-
-            // Adds a right click/contextmenu listener to the map
-            map.addEventListener('contextmenu', (evt: MapBrowserEvent<UIEvent>) => {
-                if(evt.coordinate) {
-                    const coord = toLonLat(evt.coordinate)
-
-                    if(coord && coord.length > 0) {
-                        this.contextMenuY = coord[0]
-                        this.contextMenuX = coord[1]
-                    }
-                }
-
-                return
-            })
-
-            this.packetAddedListener = this.packets.on('add', (p) => {
-                const packet = p[1]
-
-                if(packet.alive == null || packet.alive == true) {
-                    this.addPacket(packet, this.mapSettings.isShowTrails)
-                } else {
-                    // Remove "killed" objects/items
-                    _.map(
-                        _.compact(
-                            _.filter(
-                                this.stationPositionVector.getFeatures()
-                                , f =>
-                                    f.get('label') == packet.itemname || f.get('label') == packet.objectname
-                                )
-                        )
-                        , f => {
-                            try {
-                                if(f != undefined)
-                                    this.stationPositionVector.removeFeature(f)
-
-                                // TODO: remove the entire trail... assume it won't be used again
-                                const trail = this.trailVector.getFeatureById(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
-                                if(trail && trail != undefined)
-                                    this.trailVector.removeFeature(trail)
-                            } catch(e) {
-                                console.log(`Failed to add packet: ${e}`)
-                            }
-                        }
-                    )
-                }
-            })
-
-            this.packetRemovedListener = this.packets.on('remove', (packet) => {
-                this.removePoints(this.genericPointVector, [ packet[1].id ])
-                this.removePoints(this.stationPositionVector, [ packet[1].id ])
-                this.removePoints(this.ambiguityVector, [ packet[1].id ], false)
-            })
-
-            this.$nextTick(function() {
-                this.loadMapData()
+            this.$nextTick(async () => {
+                await this.loadMapData();
+                await this.initializeListeners();
             })
 
             return
@@ -379,20 +292,18 @@
             async addPacket(packet: aprsPacket, isGenerateTrail: boolean) {
                 if(this.packetUtil.isValidPacket(packet) == true) {
                     // TODO: For some reason this doesn't work on initial load
-                    let existingFeatures = await _.filter(this.stationPositionVector.getFeatures(), f => {
-                        return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
+                    const existingFeatures = this.stationPositionVector.getFeatures()
+                        .filter((f) => {
+                            return (f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign))
                                 && f.get('receivedTime') <= packet.receivedTime
-                    })
+                        });
 
-                    const mostRecentTime = await _.max(_.reduce(existingFeatures, (result, value) => {
-                        result.push(value.get('receivedTime'))
-                        return result
-                    }, []))
-
+                    // There should only be one existing feature on the stationPositionVector.
+                    const mostRecentTime = existingFeatures.length > 0 ? existingFeatures[0].receivedTime : null
                     const symbols = await this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
-                    const styles = await this.generateIcon(packet, symbols)
+                    const styles = this.generateIcon(packet, symbols)
                     // if no existing features || received time > all existing features
-                    if((!mostRecentTime || mostRecentTime == null) || packet.receivedTime > mostRecentTime) {
+                    if(!mostRecentTime || mostRecentTime == null || packet.receivedTime > mostRecentTime) {
                         // programatically set the property on the locations object to be reactive
                         let feature = new Feature({
                             geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
@@ -418,21 +329,16 @@
                             this.generateTrail(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
                         }
                     } else {
-                        const genericPointIds = _.compact(
-                            _.reduce(
-                                _.filter(
-                                    this.genericPointVector.getFeatures()
-                                    , f => {
-                                        return f.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                        const genericPointIds = this.genericPointVector.getFeatures()
+                            .reduce(
+                                (result, value) => {
+                                    if(value.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign)) {
+                                        result.push((value as Feature<Geometry>).getId());
                                     }
-                                )
-                                , (result, value) => {
-                                    result.push((value as Feature<Geometry>).getId())
-                                    return result
-                                }
-                                , []
-                            )
-                        )
+
+                                    return result;
+                                }, []
+                            );
 
                         if(genericPointIds && genericPointIds != null && genericPointIds.length > 0) {
                             this.removePoints(this.ambiguityVector, genericPointIds, false)
@@ -447,12 +353,20 @@
 
                     // Remove all existing features from stationPositionVector
                     if(!!existingFeatures && existingFeatures.length > 0) {
-                        _.map(existingFeatures, f => {
-                            if(f != undefined) {
-                                this.stationPositionVector.removeFeature(f)
-                                return
+                        for(const f of existingFeatures) {
+                            if(!!f) {
+                                this.stationPositionVector.removeFeature(f);
                             }
-                        })
+                        }
+
+                        /*
+                        existingFeatures.forEach(async (f) => {
+                            if(f != undefined) {
+                                this.stationPositionVector.removeFeature(f);
+                                return;
+                            }
+                        });
+                        */
                     }
                 }
 
@@ -498,7 +412,7 @@
                         , receivedTime: packet.receivedTime
                     })
 
-                    feature.setStyle(MapService.oldPositionStyle)
+                    feature.setStyle(this.mapService.oldPositionStyle)
                     this.genericPointVector.addFeature(feature)
                 }
 
@@ -550,8 +464,8 @@
                     shadowStyle.setText(
                         new Text({
                             text: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
-                            , fill: MapService.blackTextFill
-                            , stroke: MapService.getLabelTextStroke(packet)
+                            , fill: this.mapService.blackTextFill
+                            , stroke: this.mapService.getLabelTextStroke(packet)
                             , offsetX: 10
                             , offsetY: -15
                             , font: 'bold 12px/1 Verdana'
@@ -567,8 +481,8 @@
                         new Style({
                             text: new Text({
                                 text: packet.symboltable
-                                , fill: MapService.whiteTextFill
-                                , stroke: MapService.blackTextStroke
+                                , fill: this.mapService.whiteTextFill
+                                , stroke: this.mapService.blackTextStroke
                                 , font: 'normal 16px/1 Verdana'
                                 , textAlign: 'center'
                             })
@@ -580,27 +494,21 @@
             }
             , async generateTrail(label: string) {
                 if(this.mapSettings.isShowTrails == true) {
-                    //TODO: force this to be serial processing? https://gist.github.com/joeytwiddle/37d2085425c049629b80956d3c618971
-                    const coords = _.reduce(
-                        _.sortBy(
-                            _.compact(
-                                _.filter(this.genericPointVector.getFeatures(), f => {
-                                    return (f.get('label') == label)
-                                })
-                            )
-                            , f => f.get('receivedTime')
-                        )
-                        , (result, value) => {
-                            result.push(value.getGeometry()["flatCoordinates"])
-                            return result
-                        }
-                        , []
-                    )
+                    const coords = this.genericPointVector.getFeatures()
+                            .filter(f => !!f && f.get("label") == label)
+                            .sort((a, b) => a.get("receivedTime") - b.get("receivedTime"))
+                            .reduce(
+                                (result, value) => {
+                                    result.push(value.getGeometry()["flatCoordinates"]);
 
-                    if(coords != null) {
+                                    return result;
+                                }, []
+                            );
+
+                    if(!!coords) {
                         const trail = this.trailVector.getFeatureById(label)
 
-                        if(trail != null) {
+                        if(!!trail) {
                             (trail.getGeometry() as LineString).setCoordinates(coords)
                             // TODO: append coordinate rather than re-render entire trail
                             // how to remove first instance of a given coordinate?
@@ -622,58 +530,215 @@
 
                 return
             }
-            , getAllLocationPackets(): [ (string | number), aprsPacket ][] {
-                const packets = _.reduce(
-                        this.packetStore.getPackets
-                        , (result, value) => {
-                            if(value[1]) {
-                                result.push(value[1])
+            , getAllLocationPackets(): Array<aprsPacket>[] {
+                return this.packetStore.getPackets
+                    .reduce((result, value) => {
+                            if(value[1]
+                                    && this.packetUtil.isValidPacket(value[1])
+                                    //&& (new Date().getTime() - value[1].receivedTime < this.maxPacketAge)
+                                    && value[1].latitude != null
+                                    && value[1].longitude != null) {
+                                result.push(value[1]);
                             }
 
-                            return result
+                            return result;
                         }
                         , []
                     )
+                    .sort((a, b) => ((a as aprsPacket).receivedTime - (b as aprsPacket).receivedTime));
+            }
+            , async initializeMap() {
+                const centerLon = this.stationSettings?.longitude ?? -98.5795
+                const centerLat = this.stationSettings?.latitude ?? 39.8283
 
-                return _.compact(
-                    _.sortBy(
-                        _.filter(
-                            packets
-                            , (p) => {
-                                return this.packetUtil.isValidPacket(p)
-                                    && ((new Date().getTime() - p.receivedTime) < this.maxPacketAge)
-                                    && p.latitude != null
-                                    && p.longitude != null
-                            })
-                        , p => (p as aprsPacket).receivedTime
-                    )
-                )
+                _.each(_.filter(this.layers, l => l.get("refreshTime") != null), l => {
+                    const interval = setInterval(() => { l.get("source").refresh(); console.log(`Refreshing ${l.getClassName()}`) }, l.get("refreshTime"))
+                    this.layerTimers[l.getClassName()] = interval
+                })
+
+                const map = new OLMap({
+                    target: 'map'
+                    , controls: defaultControls().extend([
+                        new FeatureSearch()
+                    ])
+                    , layers: this.layers
+                    , view: new View({
+                        center: fromLonLat([ centerLon, centerLat ]) // Default to center of the US
+                        , zoom: 10
+                    })
+                })
+
+                // TODO: force handle nav/map resizing https://quasar.dev/vue-components/resize-observer
+
+                // display popup on click
+                map.on('singleclick', async (evt) => {
+                    // TODO: This seems to be getting the one on the bottom of the pile
+                    let feature = _.filter(map.getFeaturesAtPixel(evt.pixel), f => f.getGeometry().getType() != "LineString")[0]
+
+                    // Prevent trying to fetch data if a trail is clicked
+                    if(feature && feature.getGeometry().getType() != "LineString") {
+                        const pkt = this.packetStore.getPacket(feature.getId())
+
+                        if(!!pkt) {
+                            this.stationConnectionId = pkt[0]
+
+                            const icon = this.symbolService.GetAPRSSymbol(pkt[1].symbolcode, pkt[1].symboltable)
+                            this.stationIcon = ref(icon['symbol'])
+                            this.stationIconOverlay = ref(icon['overlay'])
+
+                            this.stationInfoPacket = pkt[1] as aprsPacket
+                            this.isShowStationInfo = true
+                        }
+                    }
+
+                    return
+                })
+
+                // Adds a right click/contextmenu listener to the map
+                map.addEventListener('contextmenu', (evt: MapBrowserEvent<UIEvent>) => {
+                    if(evt.coordinate) {
+                        const coord = toLonLat(evt.coordinate)
+
+                        if(coord && coord.length > 0) {
+                            this.contextMenuY = coord[0]
+                            this.contextMenuX = coord[1]
+                        }
+                    }
+
+                    return
+                })
+
+                return
+            }
+            , async initializeListeners() {
+                this.packetAddedListener = this.packets.on('add', (p) => {
+                    const packet = p[1]
+
+                    if(packet.alive == null || packet.alive == true) {
+                        this.addPacket(packet, this.mapSettings.isShowTrails)
+                    } else {
+                        // Remove "killed" objects/items
+                        _.each(
+                            _.compact(
+                                _.filter(
+                                    this.stationPositionVector.getFeatures()
+                                    , f =>
+                                        f.get('label') == packet.itemname || f.get('label') == packet.objectname
+                                    )
+                            )
+                            , f => {
+                                try {
+                                    if(f != undefined)
+                                        this.stationPositionVector.removeFeature(f)
+
+                                    // Remove the entire trail assuming it won't be used again.
+                                    const trail = this.trailVector.getFeatureById(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                                    if(!!trail)
+                                        this.trailVector.removeFeature(trail)
+                                } catch(e) {
+                                    console.log(`Failed to add packet: ${e}`)
+                                }
+                            }
+                        )
+                    }
+                })
+
+                this.packetRemovedListener = this.packets.on('remove', (packet) => {
+                    this.removePoints(this.genericPointVector, [ packet[1].id ])
+                    this.removePoints(this.stationPositionVector, [ packet[1].id ])
+                    this.removePoints(this.ambiguityVector, [ packet[1].id ], false)
+                })
             }
             , async loadMapData() {
                 this.updateCurrentStationCoordinates();
 
                 // get all the location packets and add them
-                for(const p of this.getAllLocationPackets()) {
-                    await this.addPacket(p, true)
-                }
+                // TODO: iterating this is slow on a large feed
 
-                return
+                const startTime = new Date().getTime();
+                const numPackets = this.getAllLocationPackets().length
+
+                const packets = this.getAllLocationPackets()
+                    .reduce(( group, packet) => {
+                        const label = (packet.itemname ?? packet.objectname ?? packet.sourceCallsign);
+                        group[label] = group[label] ?? [];
+                        group[label].push(packet);
+                        return group;
+                    }, {}
+                );
+
+                await Object.entries(packets).forEach((group) => {
+                    const groupLength = ((group[1] as Array<aprsPacket>).length)
+                    let x = ((group[1] as Array<aprsPacket>).length) - 1;
+                    let packet = null;
+                    let symbol = null;
+
+                    // While the current one or next in the list is movable
+                    do {
+                        packet = group[1][x];
+                        symbol = this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
+
+                        if(x === (groupLength - 1)) {
+                            this.addPacket(packet, false);  // ambiguity automagically added here
+                        } else {
+                            if(packet.posambiguity > 0) {
+                                this.generateAmbiguity(group[0], packet.posambiguity, fromLonLat([ packet.longitude, packet.latitude ]));
+                            }
+                        }
+
+                        if(symbol.isMovable === false) {
+                            break;
+                        }
+
+                        this.addGenericPoint(packet);
+
+                        x--;
+                    } while(x > -1);
+
+                    this.generateTrail(group[0]);
+                });
+
+                /*
+                TODO:
+                    - group by packet.itemname ?? packet.objectname ?? packet.sourceCallsign
+                        - add point (last in list)
+                            - if it is movable, add generic points and trails
+                        - add ambiguity for all points
+                */
+
+
+                /*
+                for(let x = 0; x < packets.length; ++x) {
+                    await this.addPacket(packets[x], true);
+                }
+                */
+
+                console.log(`Time to load ${numPackets} packets: ${ new Date().getTime() - startTime } ms`);
+
+                return;
             }
             , async removePoints(vector: VectorSource<FeatureLike>, ids?: number[] | string[], isGenerateTrail = true): Promise<void> {
                 if(ids != null && ids.length > 0) {
                     const toRemove = _.compact(_.filter(vector.getFeatures(), (f) => _.indexOf(ids, f.getId()) > -1))
 
+                    /*
+                    vector.getFeatures().filter((f) => {
+
+                    });
+                    */
+
                     if(toRemove != null && toRemove.length > 0) {
-                        for(let f of toRemove) {
-                            if(f != undefined) {
-                                vector.removeFeature(f)
+                        for(let x = 0; x < toRemove.length; ++x) {
+                        //for(let f of toRemove) {
+                            if(!!toRemove[x]) {
+                                vector.removeFeature(toRemove[x])
 
                                 if(isGenerateTrail == true) {
-                                    this.generateTrail(f.get('label'))
+                                    this.generateTrail(toRemove[x].get('label'))
                                 }
 
                                 //f.dispose()
-                                f = null
+                                toRemove[x] = null
                             }
                         }
 

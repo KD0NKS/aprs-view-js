@@ -130,18 +130,18 @@ ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_GET_CONNECTION_STATUS, async(eve
 })
 
 // Connection Events
-connectionService.on(ConnectionEventTypes.CONNECTED, id => {
+connectionService.on(ConnectionEventTypes.CONNECTED, async id => {
     mainWindow?.webContents.send(ConnectionEventTypes.CONNECTED, id)
 })
 
-connectionService.on(ConnectionEventTypes.DISCONNECTED, id => {
+connectionService.on(ConnectionEventTypes.DISCONNECTED, async id => {
     mainWindow?.webContents.send(ConnectionEventTypes.DISCONNECTED, id)
 })
 
-connectionService.on(DataEventTypes.DATA, data => {
+connectionService.on(DataEventTypes.DATA, async data => {
     mainWindow?.webContents.send(DataEventTypes.DATA, data)
 })
 
-connectionService.on(DataEventTypes.PACKET, packet => {
+connectionService.on(DataEventTypes.PACKET, async packet => {
     mainWindow?.webContents.send(DataEventTypes.PACKET, packet)
 })
