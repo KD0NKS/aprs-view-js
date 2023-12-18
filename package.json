@@ -24,7 +24,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
-    "@electron/remote": "^2.1.0",
+    "@electron/remote": "^2.1.1",
     "@quasar/app-vite": "^1.7.0",
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.9.4",
