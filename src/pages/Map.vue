@@ -42,6 +42,7 @@
     import Point from 'ol/geom/Point'
     import VectorSource from 'ol/source/Vector'
     import VectorLayer from 'ol/layer/Vector'
+    import VectorImageLayer from 'ol/layer/VectorImage';
     import StadiaMaps from 'ol/source/StadiaMaps'
     import Geometry from 'ol/geom/Geometry'
     import { Style, Fill, Stroke, Text, Icon } from 'ol/style'
@@ -156,12 +157,11 @@
                         , maxZoom: 20
                     })
                 })
-                , new VectorLayer({
+                , new VectorImageLayer({
                     className: 'ambiguity-layer'
                     , minZoom: 8
                     , source: this.ambiguityVector
-                    , updateWhileAnimating: false
-                    , updateWhileInteracting: false
+                    , style: amgibuityStyle
                 })
                 /*
                 // watches
@@ -233,21 +233,18 @@
                     }
                 })
                 */
-                , new VectorLayer({
+                , new VectorImageLayer({
                     className: 'trail-layer'
                     , declutter: true
                     , minZoom: 8
                     , source: this.trailVector
-                    , updateWhileAnimating: false
-                    , updateWhileInteracting: false
                 })
-                , new VectorLayer({
+                , new VectorImageLayer({
                     className: 'generic-point-layer'
                     , declutter: true
                     , minZoom: 8
                     , source: this.genericPointVector
-                    , updateWhileAnimating: false
-                    , updateWhileInteracting: false
+                    , style: this.mapService.oldPositionStyle
                 })
                 , new HeatmapLayer({
                     gradient: [ '#600', '#900', '#C00', '#F00'   ]
@@ -263,13 +260,13 @@
                     , updateWhileAnimating: false
                     , updateWhileInteracting: false
                 })
-                , new VectorLayer({
+                , new VectorImageLayer({
                     className: 'station-position-layer'
                     , declutter: false
                     , minZoom: 8
                     , source: this.stationPositionVector
-                    , updateWhileAnimating: false
-                    , updateWhileInteracting: false
+                    //, updateWhileAnimating: false
+                    //, updateWhileInteracting: false
                 })
             ]
 
@@ -278,12 +275,9 @@
         , async mounted() {
             await this.initializeMap()
 
-            //await this.loadMapData()
-            //await this.initializeListeners()
-
             this.$nextTick(async () => {
-                await this.loadMapData();
-                await this.initializeListeners();
+                this.loadMapData();
+                this.initializeListeners();
             })
 
             return
@@ -322,17 +316,19 @@
                         await this.stationPositionVector.addFeature(feature)
                     }
 
+                    const label = (packet.itemname ?? packet.objectname ?? packet.sourceCallsign);
+
                     if(symbols['symbol'].isMovable == true) {
                         await this.addGenericPoint(packet)
 
                         if(isGenerateTrail == true) {
-                            this.generateTrail(packet.itemname ?? packet.objectname ?? packet.sourceCallsign)
+                            this.generateTrail(label)
                         }
                     } else {
                         const genericPointIds = this.genericPointVector.getFeatures()
                             .reduce(
                                 (result, value) => {
-                                    if(value.get('label') == (packet.itemname ?? packet.objectname ?? packet.sourceCallsign)) {
+                                    if(value.get('label') == label) {
                                         result.push((value as Feature<Geometry>).getId());
                                     }
 
@@ -358,15 +354,6 @@
                                 this.stationPositionVector.removeFeature(f);
                             }
                         }
-
-                        /*
-                        existingFeatures.forEach(async (f) => {
-                            if(f != undefined) {
-                                this.stationPositionVector.removeFeature(f);
-                                return;
-                            }
-                        });
-                        */
                     }
                 }
 
@@ -393,13 +380,13 @@
                         name: name
                     })
 
-                    feature.setStyle(amgibuityStyle)
                     this.ambiguityVector.addFeature(feature)
                 }
 
                 return
             }
             , async addGenericPoint(packet: aprsPacket): Promise<void> {
+                // NOTE: Feature styles for generic points are on the layer level.
                 if(this.mapSettings.isShowTrails == true) {
                     let feature = new Feature({
                         geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
@@ -412,7 +399,6 @@
                         , receivedTime: packet.receivedTime
                     })
 
-                    feature.setStyle(this.mapService.oldPositionStyle)
                     this.genericPointVector.addFeature(feature)
                 }
 
@@ -493,7 +479,8 @@
                 return retVal
             }
             , async generateTrail(label: string) {
-                if(this.mapSettings.isShowTrails == true) {
+                if(this.mapSettings.isShowTrails === true && !!label) {
+                    // NOTE: Generating flat coordinates was slower than querying genericPointVector
                     const coords = this.genericPointVector.getFeatures()
                             .filter(f => !!f && f.get("label") == label)
                             .sort((a, b) => a.get("receivedTime") - b.get("receivedTime"))
@@ -667,7 +654,7 @@
                     }, {}
                 );
 
-                await Object.entries(packets).forEach((group) => {
+                Object.entries(packets).forEach((group) => {
                     const groupLength = ((group[1] as Array<aprsPacket>).length)
                     let x = ((group[1] as Array<aprsPacket>).length) - 1;
                     let packet = null;
@@ -729,15 +716,11 @@
 
                     if(toRemove != null && toRemove.length > 0) {
                         for(let x = 0; x < toRemove.length; ++x) {
-                        //for(let f of toRemove) {
                             if(!!toRemove[x]) {
                                 vector.removeFeature(toRemove[x])
 
-                                if(isGenerateTrail == true) {
-                                    this.generateTrail(toRemove[x].get('label'))
-                                }
+                                this.generateTrail(toRemove[x].get('label'))
 
-                                //f.dispose()
                                 toRemove[x] = null
                             }
                         }
@@ -753,7 +736,7 @@
 
                 // get the current station and show it's position
                 if(this.stationSettings.locationType == LocationTypes.FIXED) {
-                    const symbols = await this.symbolService.GetAPRSSymbol(this.stationSettings.symbol, this.stationSettings.symbolOverlay);
+                    const symbols = this.symbolService.GetAPRSSymbol(this.stationSettings.symbol, this.stationSettings.symbolOverlay);
 
                     let packet = new aprsPacket();
 
@@ -763,7 +746,7 @@
                     // TODO: Hardcoded for now until messaging is supported
                     packet.messaging = false;
 
-                    const styles = await this.generateIcon(packet, symbols);
+                    const styles = this.generateIcon(packet, await symbols);
 
                     let feature = new Feature({
                         geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
