@@ -8,15 +8,14 @@ import Style from "ol/style/Style"
 export class MapService {
     private _trailStyleIndex = 0
     private _trailStyles: Style[] = _.map([
-              "rgba(125 , 0     , 255   , 0.5)" // purple
-            , "rgba(0   , 0     , 255   , 0.5)" // blue
-            , "rgba(255 , 0     , 255   , 0.5)" // hot pink-ish
-            , "rgba(255 , 0     , 0     , 0.5)" // red
-            , "rgba(0   , 225   , 255   , 0.5)" // teal
-            , "rgba(255 , 64    , 0     , 0.5)" // orange
-            , "rgba(0   , 0     , 102   , 0.5)" // navy
-            , "rgba(128 , 0     , 0     , 0.5)" // maroon
-            , "rgba(0   , 0     , 0     , 0.5)" // black
+          "rgba(0   , 255   , 255   , 0.8)" // aqua
+        , "rgba(138 , 43    , 226   , 0.8)" // blue violet
+        , "rgba(248 , 131   , 121   , 0.8)" // coral pink
+        , "rgba(255 , 29    , 206   , 0.8)" // Hot Magenta
+        , "rgba(255 , 247   , 0     , 0.8)" // Lemon
+        , "rgba(124 , 252   , 0     , 0.8)" // Lawn Green
+        , "rgba(0   , 0     , 205   , 0.8)" // MediumBlue
+        , "rgba(255 , 79    , 0     , 0.8)" // International Orange
         ], c =>
             new Style({
                 stroke: new Stroke({

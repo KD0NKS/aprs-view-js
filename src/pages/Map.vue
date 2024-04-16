@@ -35,7 +35,8 @@
     import { APRSSymbol } from '../models'
 
     import BaseLayer from 'ol/layer/Base'
-    import { Heatmap as HeatmapLayer, Tile as TileLayer, Image, Graticule } from 'ol/layer'
+    import { Heatmap as HeatmapLayer, Tile as TileLayer, Image as ImageLayer, Graticule } from 'ol/layer'
+    import ImageArcGISRest from 'ol/source/ImageArcGISRest';
     import { Feature, Map as OLMap, MapBrowserEvent, View } from 'ol'
     import { fromLonLat, toLonLat } from 'ol/proj'
     import { aprsPacket } from 'js-aprs-fap'
@@ -43,6 +44,7 @@
     import VectorSource from 'ol/source/Vector'
     import VectorLayer from 'ol/layer/Vector'
     import VectorImageLayer from 'ol/layer/VectorImage';
+
     import StadiaMaps from 'ol/source/StadiaMaps'
     import Geometry from 'ol/geom/Geometry'
     import { Style, Fill, Stroke, Text, Icon } from 'ol/style'
@@ -163,25 +165,9 @@
                     , source: this.ambiguityVector
                     , style: amgibuityStyle
                 })
-                /*
                 // watches
-                , new ImageLayer({
-                    className: "nowcoast-short-duration-watches"
-                    , source: new ImageArcGISRest({
-                        // TODO: Refresh source every minute
-                        url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_watches_time/MapServer'
-                        , params: {
-                            'FORMAT': 'PNG32'
-                        }
-                        , attributions: [
-                            '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
-                        ]
-                    })
-                    , opacity: 0.5
-                    , properties: {
-                        "refreshTime": 60000
-                    }
-                })
+
+                /*
                 // warnings
                 , new ImageLayer({
                     className: "nowcoast-short-duration-warnings"
@@ -189,7 +175,7 @@
                         // TODO: Refresh source every minute
                         url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
                         , params: {
-                            'FORMAT': 'PNG32'
+                            'FORMAT': 'Image'
                         }
                         , attributions: [
                             '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
@@ -274,9 +260,9 @@
         }
         , async mounted() {
             await this.initializeMap()
+            this.loadMapData();
 
             this.$nextTick(async () => {
-                this.loadMapData();
                 this.initializeListeners();
             })
 
