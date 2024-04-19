@@ -148,14 +148,15 @@ export class KissTcipSocket extends Socket {
      */
     public send(packet: string) {
         if(this.isTransmitEnabled && this._isSocketConnected == true) {
-            console.log(packet)
-
             const buffer = Buffer.from(packet, 'ascii')
-            console.log(buffer)
 
-            this.write(buffer);
-
-            // TODO: Emit sent
+            this.write(buffer, err => {
+                if(err) {
+                    throw err;
+                } else {
+                    this.emit('sent', `${packet}`);
+                }
+            });
         }
     }
 
@@ -192,13 +193,6 @@ export class KissTcipSocket extends Socket {
      * @example connection.isConnected()
      */
     public isConnected(): boolean {
-        // use socket.writeable instead?
         return this._isSocketConnected === true;
-    }
-
-    private emitPackets(msgs: string[]) {
-        msgs.forEach(msg => {
-            this.emit("packet", msg)
-        });
     }
 };
