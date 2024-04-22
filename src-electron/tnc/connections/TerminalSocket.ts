@@ -74,6 +74,10 @@ export class TerminalSocket extends SerialPort {
         return this._id;
     }
 
+    public get isTransmitEnabled(): boolean {
+        return this._options.isTransmitEnabled ?? false;
+    }
+
     public setCallsign(callsign: string) {
         this._options.callsign = callsign.trim();
     }
@@ -108,6 +112,25 @@ export class TerminalSocket extends SerialPort {
             throw('No callsign defined')
         }
         */
+    }
+
+    /**
+     * @param {string} packet - packet already in KISS format.
+     */
+    public send(packet: string, callback?: any) {
+        if(this._options.isTransmitEnabled && this._pipe.isConnected && this._pipe.isEnabled) {
+            this.write(`${packet}${this._options.messageDelimeter}`, this._options.charset, err => {
+                if(err) {
+                    throw err
+                } else {
+                    this.emit('sent', `${packet}`)
+                }
+            })
+        }
+
+        if(!!callback) {
+            callback()
+        }
     }
 
     public override close(callback?: any | undefined, disconnectError?: Error | null): void {   // TODO: Any needs to be specific here
@@ -150,3 +173,4 @@ export class TerminalSocket extends SerialPort {
         return this._isSocketConnected === true;
     }
 }
+

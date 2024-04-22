@@ -58,6 +58,9 @@
     import { Circle } from 'ol/geom';
     import { FeatureLike } from 'ol/Feature';
 
+    import ImageWMS from 'ol/source/ImageWMS';
+    import TileWMS from 'ol/source/TileWMS';
+
     const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'black', width: 2, lineDash: [ 8, 8 ] }) })
 
     export default defineComponent({
@@ -165,21 +168,18 @@
                     , source: this.ambiguityVector
                     , style: amgibuityStyle
                 })
-                // watches
-
                 /*
-                // warnings
+                // watches/warnings
                 , new ImageLayer({
-                    className: "nowcoast-short-duration-warnings"
-                    , source: new ImageArcGISRest({
-                        // TODO: Refresh source every minute
-                        url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_shortduration_hazards_warnings_time/MapServer'
-                        , params: {
-                            'FORMAT': 'Image'
-                        }
-                        , attributions: [
-                            '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
-                        ]
+                    source: new ImageWMS({
+                        attributions: ['NOAA'],
+                        url: 'https://mapservices.weather.noaa.gov:443/eventdriven/services/WWA/watch_warn_adv/MapServer/WMSServer',
+                        params: {
+                            'FORMAT': 'image/png',
+                            'LAYERS': [ 0, 1 ]
+                        },
+                        projection: 'EPSG:3857',
+                        ratio: 1,
                     })
                     , opacity: 0.5
                     , properties: {
@@ -187,31 +187,15 @@
                     }
                 })
                 , new ImageLayer({
-                    className: "nowcoast-long-duration-hazards"
-                    , source: new ImageArcGISRest({
-                        url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteoceanhydro_longduration_hazards_time/MapServer'
-                        , params: {
-                            'FORMAT': 'PNG32'
-                        }
-                        , attributions: [
-                            '<br />Watches and warnings by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
-                        ]
-                    })
-                    , opacity: 0.5
-                })
-                // radar
-                , new ImageLayer({
-                    className: "nowcoast-nexrad"
-                    , source: new ImageArcGISRest({
-                        // TODO: Refresh every 2 -5 min... rtfm here: https://nowcoast.noaa.gov/help/#!section=updateschedule
-                        url: 'https://new.nowcoast.noaa.gov/arcgis/rest/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer'
-                        , params: {
-                            'LAYERS': '1,3'
-                            , 'FORMAT': 'PNG32'
-                        }
-                        , attributions: [
-                            '<br />Rardar tiles by <a href="https://nowcoast.noaa.gov/">nowCOAST<sup>tm</sup></a>'
-                        ]
+                    source: new ImageWMS({
+                        attributions: ['NOAA'],
+                        url: 'https://mapservices.weather.noaa.gov:443/eventdriven/services/radar/radar_base_reflectivity/MapServer/WMSServer',
+                        params: {
+                            'FORMAT': 'image/png',
+                            'LAYERS': [ 0, 1 ]
+                        },
+                        projection: 'EPSG:3857',
+                        ratio: 1,
                     })
                     , opacity: 0.5
                     , properties: {

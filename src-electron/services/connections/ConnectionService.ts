@@ -88,6 +88,7 @@ export class ConnectionService extends EventEmitter {
             const terminalSettings: TerminalSettings = new TerminalSettings()
 
             terminalSettings.id = setting.id
+            terminalSettings.isTransmitEnabled = setting.isAllowTransmit
             terminalSettings.path = setting["comPort"]
             // For whatever reason, setting the datatype on the input to number isn't enough and passes it as a string.
             terminalSettings.baudRate = setting["baudRate"] ? parseInt(setting["baudRate"]) : 9600
@@ -172,6 +173,8 @@ export class ConnectionService extends EventEmitter {
                     // header TCPIP*
                     c.send(`${this._callsign}>APZ678,TCIP*:${packet}`)
                     console.log(`${this._callsign}>APZ678,TCIP*:${packet}`)
+                } else if(c instanceof TerminalSocket) {
+                    console.log(`${this._callsign}>APZ678,${path}:${packet}`)
                 }
             }
         )
@@ -206,6 +209,7 @@ export class ConnectionService extends EventEmitter {
             // It is easier to delete and re-add a TNC connection than to try and update it.  This else also applies for switching connection types.
             this.deleteConnection(setting.id)
             connection = this.addConnection(setting)
+            // TODO: If connected
         }
     }
 
@@ -370,7 +374,7 @@ export class ConnectionService extends EventEmitter {
                     let msg = this._parser.parseaprs(data)
 
                     if(!!msg) {
-                    msg.id = uid()
+                        msg.id = uid()
                         this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
 
                         // Serial port on data event will emit character at a time.
