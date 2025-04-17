@@ -5,6 +5,7 @@
   "productName": "aprs-view-js",
   "author": "KD0NKS <KD0NKS@users.noreply.github.com>",
   "private": true,
+  "type": "module",
   "keywords": [
     "APRS",
     "APRS Client",
@@ -18,33 +19,33 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.16.11",
-    "@vueuse/core": "^10.9.0",
+    "@quasar/extras": "^1.16.17",
+    "@vueuse/core": "^13.1.0",
     "js-aprs-fap": "^2.0.0",
     "js-aprs-is": "^2.0.1",
     "lodash": "^4.17.21",
-    "ol": "^9.1.0",
-    "pinia": "^2.1.7",
-    "quasar": "^2.15.3",
-    "serialport": "^12.0.0",
-    "uuid": "^9.0.1",
-    "vue": "^3.4.24",
-    "vue-router": "^4.3.2",
+    "ol": "^10.5.0",
+    "pinia": "^3.0.2",
+    "quasar": "^2.18.1",
+    "serialport": "^13.0.0",
+    "uuid": "^11.1.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@electron/remote": "^2.1.2",
-    "@quasar/app-vite": "^1.8.2",
-    "@types/lodash": "^4.17.0",
-    "@types/node": "^20.12.7",
-    "autoprefixer": "^10.4.19",
-    "electron": "^30.0.1",
-    "typescript": "^5.4.5"
+    "@quasar/app-vite": "^2.2.0",
+    "@types/lodash": "^4.17.16",
+    "@types/node": "^22.14.1",
+    "autoprefixer": "^10.4.21",
+    "electron": "^35.1.5",
+    "typescript": "^5.8.3"
   },
   "engines": {
-    "node": "^20 || ^18",
+    "node": "^22 || ^20 || ^18",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
   },
-  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
+  "packageManager": "yarn@1.22.22"
 }

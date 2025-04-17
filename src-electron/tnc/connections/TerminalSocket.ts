@@ -1,9 +1,9 @@
-import _ from "lodash"
-import { v4 as uuidV4 } from 'uuid'
+import _ from "lodash";
+import { v4 as uuidV4 } from 'uuid';
 
-import { SerialPort } from 'serialport'
-import { DelimiterParser } from '@serialport/parser-delimiter'
-import { TerminalSettings } from '../configurations/TerminalSettings'
+import { DelimiterParser, SerialPort } from 'serialport';
+import { TerminalSettings } from '../configurations/TerminalSettings';
+import { DataEventTypes } from "../../enums/DataEventTypes";
 
 const DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout'];
 const CONNECT_EVENTS: string[] = ['open', 'connect', 'ready'];
@@ -11,10 +11,10 @@ const CONNECT_EVENTS: string[] = ['open', 'connect', 'ready'];
 export class TerminalSocket extends SerialPort {
     private _isSocketConnected: boolean;
 
-    private _id: string | number
-    private _options: TerminalSettings
-    private _pipe: any
-    private _pipeListener: any = null
+    private _id: string | number;
+    private _options: TerminalSettings;
+    private _pipe: DelimiterParser;
+    private _pipeListener: any = null;
 
     // TODO: override callback
     constructor(options: TerminalSettings, openCallback?: any) {    // TODO: Any needs to be specific here
@@ -89,12 +89,12 @@ export class TerminalSocket extends SerialPort {
             } else {
                 this.emit('sent', `${command}`);
             }
-        })
+        });
     }
 
     public sendMyCallCommand(callback?: any) {
         if(this.isOpen
-                && this.writable
+                && this.writable == true
                 && this._options.myCallCommand != null
                 && this._options.myCallCommand.trim().length > 0
                 && this._options.callsign != null
@@ -118,14 +118,39 @@ export class TerminalSocket extends SerialPort {
      * @param {string} packet - packet already in KISS format.
      */
     public send(packet: string, callback?: any) {
-        if(this._options.isTransmitEnabled && this._pipe.isConnected && this._pipe.isEnabled) {
-            this.write(`${packet}${this._options.messageDelimeter}`, this._options.charset, err => {
+        // TEST CODE FOR SENDING PACKET
+        console.log("Sending packet from terminal socket");
+
+        if(this._isSocketConnected == true
+                && this.writable
+                && this._options.isTransmitEnabled) {
+            this.write(`${this._options.messageDelimeter}`);
+
+            if(this._options.converseCommand != null && this._options.converseCommand !== undefined && this._options.converseCommand.trim() != "") {
+                console.log(`Sending convserse command: ${this._options.converseCommand}`);
+                this.sendCommand(`${this._options.messageDelimeter}`);
+                this.emit(DataEventTypes.SENT, `${this._options.messageDelimeter}`);
+                this.sendCommand(`${this._options.converseCommand}`);
+                this.emit(DataEventTypes.SENT, `${this._options.converseCommand}`);
+                setTimeout(() => {}, 1000);
+            }
+
+            this.write(`${packet}\r`, this._options.charset, err => {
                 if(err) {
-                    throw err
+                    console.log(err);
+                    throw err;
                 } else {
-                    this.emit('sent', `${packet}`)
+                    console.log(`Sent packet ${packet}\r\n`);
+                    this.emit('sent', `${packet}`);
+                    setTimeout(() => {}, 1000);
                 }
-            })
+            });
+
+            this.write(Buffer.from([0x03]), err => {
+                if(err) {
+                    throw err;
+                }
+            });
         }
 
         if(!!callback) {

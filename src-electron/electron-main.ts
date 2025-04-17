@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, nativeTheme } from "electron";
-import { enable } from "@electron/remote/main"
+import { enable } from "@electron/remote/main/index.js"
 import path from 'path';
+import { fileURLToPath } from "url";
 import os from 'os';
 
 import { IpcEventTypes } from './enums/IpcEventTypes'
@@ -12,39 +13,36 @@ import _ from 'lodash'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
-const connectionService = new ConnectionService()
+const connectionService = new ConnectionService();
+const currentDir = fileURLToPath(new URL('.', import.meta.url));
 
 app.setName("aprs-view-js")
 
-try {
-  if (platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
-    require('fs').unlinkSync(
-      path.join(app.getPath('userData'), 'DevTools Extensions')
-    );
-  }
-} catch (_) {}
-
 let mainWindow: BrowserWindow | undefined;
 
-function createWindow() {
+async function createWindow() {
   /**
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    icon: path.resolve(__dirname, 'icons/icon.png'), // tray icon
+    icon: path.resolve(currentDir, 'icons/icon.png'), // tray icon
     width: 1000,
     height: 600,
     useContentSize: true,
     webPreferences: {
       contextIsolation: true,
+      sandbox: false,
       nodeIntegrationInWorker: true,
       // More info: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
-      preload: path.resolve(__dirname, process.env.QUASAR_ELECTRON_PRELOAD),
-      sandbox: false,
+      preload: path.resolve(
+        currentDir,
+        path.join(process.env.QUASAR_ELECTRON_PRELOAD_FOLDER, 'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION),
+      ),
     },
   });
 
-  mainWindow.loadURL(process.env.APP_URL);
+  enable(mainWindow.webContents);
+  await mainWindow.loadURL(process.env.APP_URL);
 
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled
@@ -59,8 +57,6 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = undefined;
   });
-
-  enable(mainWindow.webContents);
 }
 
 app.whenReady().then(createWindow);

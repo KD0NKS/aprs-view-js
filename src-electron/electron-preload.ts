@@ -73,8 +73,8 @@ contextBridge.exposeInMainWorld('connectionService', {
         ipcRenderer.on(ConnectionEventTypes.DISCONNECTED, async (event, arg) => subscription(ConnectionEventTypes.DISCONNECTED, arg))
 
         return () => {
-            ipcRenderer.removeListener(ConnectionEventTypes.CONNECTED, subscription)
-            ipcRenderer.removeListener(ConnectionEventTypes.DISCONNECTED, subscription)
+            ipcRenderer.removeListener(ConnectionEventTypes.CONNECTED, fn)
+            ipcRenderer.removeListener(ConnectionEventTypes.DISCONNECTED, fn)
         }
     }
     , getDataStream: async (fn) => {
@@ -92,7 +92,7 @@ contextBridge.exposeInMainWorld('connectionService', {
 
         // Return a function to kill the event listener
         return () => {
-            ipcRenderer.removeListener(DataEventTypes.PACKET, subscription)
+            ipcRenderer.removeListener(DataEventTypes.PACKET, fn)
         }
     }
 })

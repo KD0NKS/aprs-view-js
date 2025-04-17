@@ -1,8 +1,8 @@
-import _ from 'lodash'
-import { SerialPort } from 'serialport'
+import _ from "lodash";
+import { SerialPort } from "serialport";
 
 export class SerialPortUtil {
     static getAvailableSerialPorts() {
-        return SerialPort.list()
+        return SerialPort.list();
     }
 }

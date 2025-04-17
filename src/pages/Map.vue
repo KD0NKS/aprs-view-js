@@ -59,7 +59,7 @@
     import { FeatureLike } from 'ol/Feature';
 
     import ImageWMS from 'ol/source/ImageWMS';
-    import TileWMS from 'ol/source/TileWMS';
+    import OSM from 'ol/source/OSM';
 
     const amgibuityStyle = new Style({ stroke: new Stroke({ color: 'black', width: 2, lineDash: [ 8, 8 ] }) })
 
@@ -124,7 +124,7 @@
                 , packetUtil
                 , currentStationPositionVector
                 , genericPointVector
-                , layers: ref(null)
+                , layers: null
                 , layerTimers
                 , mapService
                 , mapSettings
@@ -152,6 +152,13 @@
         }
         , async created() {
             this.layers = [
+                /*
+                new TileLayer({
+                    className: "base-layer"
+                    , preload: 1
+                    , source: new OSM(),
+                }),
+                */
                 new TileLayer({
                     className: "base-layer"
                     , preload: 1
@@ -159,7 +166,6 @@
                         layer: 'stamen_toner_lite'
                         , apiKey: null
                         , retina: false
-                        , maxZoom: 20
                     })
                 })
                 , new VectorImageLayer({
@@ -211,7 +217,7 @@
                 })
                 , new VectorImageLayer({
                     className: 'generic-point-layer'
-                    , declutter: true
+                    , declutter: false
                     , minZoom: 8
                     , source: this.genericPointVector
                     , style: this.mapService.oldPositionStyle
@@ -222,13 +228,13 @@
                     , source: this.stationPositionVector
                     , weight: '1'
                 })
-                , new VectorLayer({                 // layer for the current station's position
+                , new VectorImageLayer({                 // layer for the current station's position
                     className: 'station-layer'
                     , declutter: false
                     , source: this.currentStationPositionVector
                     , opacity: 0.7
-                    , updateWhileAnimating: false
-                    , updateWhileInteracting: false
+                    //, updateWhileAnimating: false
+                    //, updateWhileInteracting: false
                 })
                 , new VectorImageLayer({
                     className: 'station-position-layer'
@@ -239,11 +245,9 @@
                     //, updateWhileInteracting: false
                 })
             ]
-
-
         }
         , async mounted() {
-            await this.initializeMap()
+            await this.initializeMap();
             this.loadMapData();
 
             this.$nextTick(async () => {
