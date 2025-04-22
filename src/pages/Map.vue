@@ -147,8 +147,10 @@
             this.packets.removeListener('remove', this.packetRemovedListener)
 
             for(const t of this.layerTimers) {
-                clearInterval(t)
+                clearInterval(t);
             }
+
+            this.layerTimers = null;
         }
         , async created() {
             this.layers = [
@@ -165,7 +167,7 @@
                     , source: new StadiaMaps({
                         layer: 'stamen_toner_lite'
                         , apiKey: null
-                        , retina: false
+                        , retina: true
                     })
                 })
                 , new VectorImageLayer({
@@ -174,10 +176,11 @@
                     , source: this.ambiguityVector
                     , style: amgibuityStyle
                 })
-                /*
+
                 // watches/warnings
                 , new ImageLayer({
-                    source: new ImageWMS({
+                    className: 'watch-warn'
+                    , source: new ImageWMS({
                         attributions: ['NOAA'],
                         url: 'https://mapservices.weather.noaa.gov:443/eventdriven/services/WWA/watch_warn_adv/MapServer/WMSServer',
                         params: {
@@ -193,7 +196,8 @@
                     }
                 })
                 , new ImageLayer({
-                    source: new ImageWMS({
+                    className: 'radar'
+                    , source: new ImageWMS({
                         attributions: ['NOAA'],
                         url: 'https://mapservices.weather.noaa.gov:443/eventdriven/services/radar/radar_base_reflectivity/MapServer/WMSServer',
                         params: {
@@ -208,7 +212,7 @@
                         "refreshTime": 60000
                     }
                 })
-                */
+
                 , new VectorImageLayer({
                     className: 'trail-layer'
                     , declutter: true
@@ -220,7 +224,7 @@
                     , declutter: false
                     , minZoom: 8
                     , source: this.genericPointVector
-                    , style: this.mapService.oldPositionStyle
+                    //, style: this.mapService.oldPositionStyle
                 })
                 , new HeatmapLayer({
                     gradient: [ '#600', '#900', '#C00', '#F00'   ]
@@ -247,17 +251,18 @@
             ]
         }
         , async mounted() {
-            await this.initializeMap();
+            this.initializeMap();
             this.loadMapData();
 
             this.$nextTick(async () => {
                 this.initializeListeners();
+                return;
             })
 
-            return
+            return;
         }
         , methods: {
-            async addPacket(packet: aprsPacket, isGenerateTrail: boolean) {
+            async addPacket(packet: aprsPacket, isGenerateTrail: boolean) : Promise<void> {
                 if(this.packetUtil.isValidPacket(packet) == true) {
                     // TODO: For some reason this doesn't work on initial load
                     const existingFeatures = this.stationPositionVector.getFeatures()
@@ -363,17 +368,19 @@
                 // NOTE: Feature styles for generic points are on the layer level.
                 if(this.mapSettings.isShowTrails == true) {
                     let feature = new Feature({
-                        geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ]))
-                    })
+                        geometry: new Point(fromLonLat([ packet.longitude, packet.latitude ])),
+                    });
 
-                    feature.setId(packet.id)
+                    feature.setId(packet.id);
                     feature.setProperties({
                         name: packet.sourceCallsign
                         , label: packet.itemname ?? packet.objectname ?? packet.sourceCallsign
                         , receivedTime: packet.receivedTime
-                    })
+                    });
 
-                    this.genericPointVector.addFeature(feature)
+                    feature.setStyle(this.mapService.oldPositionStyle);
+
+                    this.genericPointVector.addFeature(feature);
                 }
 
                 return
@@ -513,7 +520,8 @@
                 const centerLat = this.stationSettings?.latitude ?? 39.8283
 
                 _.each(_.filter(this.layers, l => l.get("refreshTime") != null), l => {
-                    const interval = setInterval(() => { l.get("source").refresh(); console.log(`Refreshing ${l.getClassName()}`) }, l.get("refreshTime"))
+                    const interval = setInterval(() => { l.get("source").refresh();
+                    console.log(`Refreshing ${l.getClassName()}`) }, l.get("refreshTime"))
                     this.layerTimers[l.getClassName()] = interval
                 })
 
@@ -628,11 +636,19 @@
                     }, {}
                 );
 
-                Object.entries(packets).forEach((group) => {
+                console.log(`Grouping all packets: ${ new Date().getTime() - startTime } ms`)
+
+                const groups = Object.entries(packets);
+                console.log(`Groups of packets to process: ${groups.length}`);
+
+                for(let p = 0; p < groups.length; p++) {
+                    const group  = groups[p];
                     const groupLength = ((group[1] as Array<aprsPacket>).length)
                     let x = ((group[1] as Array<aprsPacket>).length) - 1;
                     let packet = null;
                     let symbol = null;
+
+                    let promises = [];
 
                     // While the current one or next in the list is movable
                     do {
@@ -640,39 +656,25 @@
                         symbol = this.symbolService.GetAPRSSymbol(packet.symbolcode, packet.symboltable)
 
                         if(x === (groupLength - 1)) {
-                            this.addPacket(packet, false);  // ambiguity automagically added here
+                            promises.push(this.addPacket(packet, false));  // ambiguity automagically added here
                         } else {
                             if(packet.posambiguity > 0) {
-                                this.generateAmbiguity(group[0], packet.posambiguity, fromLonLat([ packet.longitude, packet.latitude ]));
+                                promises.push(this.generateAmbiguity(group[0], packet.posambiguity, fromLonLat([ packet.longitude, packet.latitude ])));
                             }
                         }
 
-                        if(symbol.isMovable === false) {
-                            break;
+                        if(symbol.symbol.isMovable == true) {
+                            promises.push(this.addGenericPoint(packet));
                         }
-
-                        this.addGenericPoint(packet);
 
                         x--;
                     } while(x > -1);
 
-                    this.generateTrail(group[0]);
-                });
-
-                /*
-                TODO:
-                    - group by packet.itemname ?? packet.objectname ?? packet.sourceCallsign
-                        - add point (last in list)
-                            - if it is movable, add generic points and trails
-                        - add ambiguity for all points
-                */
-
-
-                /*
-                for(let x = 0; x < packets.length; ++x) {
-                    await this.addPacket(packets[x], true);
+                    Promise.all(promises).then(async () => {
+                        this.generateTrail(group[0]);
+                        return;
+                    });
                 }
-                */
 
                 console.log(`Time to load ${numPackets} packets: ${ new Date().getTime() - startTime } ms`);
 
