@@ -146,7 +146,7 @@
             this.packets.removeListener('add', this.packetAddedListener)
             this.packets.removeListener('remove', this.packetRemovedListener)
 
-            for(const t of this.layerTimers) {
+            for(let t of this.layerTimers) {
                 clearInterval(t);
             }
 
@@ -176,7 +176,7 @@
                     , source: this.ambiguityVector
                     , style: amgibuityStyle
                 })
-
+                /*
                 // watches/warnings
                 , new ImageLayer({
                     className: 'watch-warn'
@@ -212,7 +212,7 @@
                         "refreshTime": 60000
                     }
                 })
-
+                */
                 , new VectorImageLayer({
                     className: 'trail-layer'
                     , declutter: true
@@ -520,9 +520,12 @@
                 const centerLat = this.stationSettings?.latitude ?? 39.8283
 
                 _.each(_.filter(this.layers, l => l.get("refreshTime") != null), l => {
-                    const interval = setInterval(() => { l.get("source").refresh();
-                    console.log(`Refreshing ${l.getClassName()}`) }, l.get("refreshTime"))
-                    this.layerTimers[l.getClassName()] = interval
+                    const interval = setInterval(() => {
+                            l.get("source").refresh();
+                        }, l.get("refreshTime")
+                    );
+
+                    this.layerTimers.push(interval);
                 })
 
                 const map = new OLMap({
