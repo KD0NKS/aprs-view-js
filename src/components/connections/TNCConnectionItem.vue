@@ -77,7 +77,27 @@
             </q-select>
         </div>
     </div>
+    <!--
+    <div class="row justify-between">
+        <div class="col-xs-6">
+            <div class="col-xs-6 q-pa-sm">
+                <q-input label="Converse Command" v-model="model.converseCommand" dense />
+            </div>
+        </div>
 
+        <div class="col-xs-6">
+            <div class="col-xs-6 q-pa-sm">
+                <q-input label="Unproto Command" v-model="model.unprotoCommand" dense />
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-between">
+        <div class="col-xs-6">
+
+        </div>
+    </div>
+    -->
     <div class="row justify-between">
         <div class="col-xs-6">
             <q-list dense>
@@ -140,6 +160,7 @@
             return {
                 comPorts
                 , charSetOptions: [ 'ascii', 'utf8', 'utf16le', 'ucs2', 'base64', 'binary', 'hex' ]
+                , converseCommand: ""
                 , dataBitOptions: [ 5, 6, 7, 8 ]
                 , parityOptions: [ 'none', 'even', 'odd', 'mark', 'space' ]
                 , rules: {
@@ -163,6 +184,14 @@
                     }
                 )
             }
+            /*
+            , aprsPaths() {
+                //return _.map(
+                //    Object.keys(AprsPathEnum)
+                //)
+                return []
+            }
+            */
         }
         , methods: {
             addCommand(list: string[]): void {

@@ -10,7 +10,7 @@
                     @reset="onReset"
                     @submit="onSubmit">
                 <div class="row justify-between">
-                    <div class="col-md-6 q-pa-sm">
+                    <div class="col-sm-6 q-pa-sm">
                         <q-toggle
                             :label="themeLabel"
                             v-model="settings.isDarkMode"
@@ -21,7 +21,7 @@
                 </div>
 
                 <div class="row justify-between">
-                    <div class="col-md-6 q-pa-sm">
+                    <div class="col-sm-6 q-pa-sm">
                         <q-select label="Distance Units"
                                 v-model="settings.distanceUnitType"
                                 :options="distanceUnitTypeOptions"
@@ -34,7 +34,7 @@
                 </div>
 
                 <div class="row justify-between">
-                    <div class="col-md-6 q-pa-sm">
+                    <div class="col-sm-6 q-pa-sm">
                         <q-select label="Temperature Units"
                                 v-model="settings.temperatureUnitType"
                                 :options="temperatureUnitTypeOptions"
@@ -49,7 +49,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="q-gutter-sm col-md-6 q-pa-sm">
+                    <div class="q-gutter-sm col-sm-6 q-pa-sm">
                         <q-btn color="primary" label="Save" type="submit" />
                         <q-btn label="Reset" type="reset" />
                     </div>

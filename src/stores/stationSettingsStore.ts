@@ -5,6 +5,7 @@ import _ from "lodash";
 
 import { LocationTypes, StorageKeys } from "../enums";
 import { IStationSettings, StationSettings } from "../models/settings";
+import { AprsPathEnum } from "../../src-electron/enums";
 
 export const useStationSettingsStore = defineStore('stationSettings', {
     state: () => ({
@@ -30,6 +31,7 @@ export const useStationSettingsStore = defineStore('stationSettings', {
             this.stationSettings.symbol = settings.symbol
             this.stationSettings.symbolOverlay = settings.symbolOverlay
             this.stationSettings.isTransmitPosition = settings.isTransmitPosition ?? false
+            this.stationSettings.aprsPath = settings.aprsPath ?? AprsPathEnum.WIDE2_2;
             this.stationSettings.locationType = settings.locationType ?? LocationTypes.NONE
 
             if(settings.locationType == LocationTypes.FIXED) {

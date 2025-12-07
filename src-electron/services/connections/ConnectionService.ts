@@ -1,38 +1,80 @@
-import { uid } from 'quasar'
-import _ from 'lodash'
-import { EventEmitter } from 'events'
+import { uid } from 'quasar';
+import _ from 'lodash';
+import { EventEmitter } from 'events';
+import { filter, fromEvent, groupBy, map, mergeMap, throttleTime, window } from 'rxjs';
 
-import { ISSocket } from 'js-aprs-is'
-import { TerminalSocket } from '../../tnc/connections/TerminalSocket'
+import { ISSocket } from 'js-aprs-is';
+import { TerminalSocket } from '../../tnc/connections/TerminalSocket';
 
-import { StringUtil } from '../../../src/utils/StringUtil'
+import { StringUtil } from '../../../src/utils/StringUtil';
 
-import { IConnection } from '../../../src/models/connections/IConnection'
-import { IStationSettings } from '../../../src/models/settings/IStationSettings'
-import { ConnectionEventTypes } from '../../../src/enums/ConnectionEventTypes'
-import { DataEventTypes } from '../../enums/DataEventTypes'
-import { aprsParser, KissUtil } from 'js-aprs-fap'
-import { TerminalSettings } from '../../tnc/configurations/TerminalSettings'
-import { KissTcipSocket } from '../../tnc/connections/KissTcipSocket'
-import { KissSerialSocket } from '../../tnc/connections/KissSerialSocket'
+import { IConnection } from '../../../src/models/connections/IConnection';
+import { IStationSettings } from '../../../src/models/settings/IStationSettings';
+import { ConnectionEventTypes } from '../../../src/enums/ConnectionEventTypes';
+import { DataEventTypes } from '../../enums/DataEventTypes';
+import { aprsParser, KissUtil } from 'js-aprs-fap';
+import { TerminalSettings } from '../../tnc/configurations/TerminalSettings';
+import { KissTcipSocket } from '../../tnc/connections/KissTcipSocket';
+import { KissSerialSocket } from '../../tnc/connections/KissSerialSocket';
 
 export class ConnectionService extends EventEmitter {
-    private _callsign = ''
-    private _connections: Array<ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket>
-    private _kissUtil = new KissUtil()
-    private _parser = new aprsParser()
-    private _passcode = -1
-    private _ssid: string | null = null
-    private SOCKET_DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout']
-    private SOCKET_CONNECT_EVENTS: string[] = ['open', 'connect', 'ready']
+    private _aprsPath: AprsPathEnum = null;
+    private _callsign = '';
+    private _connections: Array<ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket>;
+    private _kissUtil = new KissUtil();
+    private _parser = new aprsParser();
+    private _passcode = -1;
+    private _ssid: string | null = null;
+    private SOCKET_DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout'];
+    private SOCKET_CONNECT_EVENTS: string[] = ['open', 'connect', 'ready'];
 
-    private readonly appId = 'js-aprs-view 0.0.1'
+    private readonly appId = 'js-aprs-view 0.0.1';
 
     public constructor() {
-        super()
+        super();
 
-        this._connections = new Array<ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket>()
+        this._connections = new Array<ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket>();
+
+        const dataEvent = fromEvent(this, DataEventTypes.DATA);
+        //const filteredPackets =
+        dataEvent.pipe(
+            filter((event) => event[1].trim() != ''),
+            groupBy((event) => {
+                var data = event[1];
+
+                if(data.indexOf('>') > -1 && data.indexOf(':') > -1) {
+                    let [name, body] = data.split('>');
+                    body = body.split(':')[1].trim()
+
+                    console.log(`Name: ${name}`)
+                    console.log(`Body: ${body}`)
+
+                    return `${name} > ${body}`
+                }
+
+                return event[1];
+            }),
+            mergeMap((eventGroup) => eventGroup.pipe(throttleTime(10000, undefined, { leading: true, trailing: false })))
+        ).subscribe(console.log)
+
+        /*
+        const filteredPackets = dataEvent.pipe(
+            window(
+                1000
+                ,
+            )
+        );
+        */
     }
+
+    /*
+    map((data: any[]) => {
+                    return data.filter((item, index, packets) => {
+                        //index === self.findIndex((x) => x.name === item.name)
+                        index === packets.findIndex((x) => x[1].split(":") === item[1].split(":")[1])
+                    })
+                })
+                    */
 
     // NOTE: This expects the front end is always creating an IS Socket.  To change it to any other type, you have to update the connection.
     public addConnection(setting: IConnection): ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket {
@@ -46,7 +88,8 @@ export class ConnectionService extends EventEmitter {
                     , this._passcode
                     , setting.isAllowTransmit
                     , setting["id"] ?? uid()
-                    , setting["filter"])
+                    , setting["filter"]
+                    )
 
             this._connections.push(connection)
             this.attachListeners(connection)
@@ -88,11 +131,12 @@ export class ConnectionService extends EventEmitter {
             const terminalSettings: TerminalSettings = new TerminalSettings()
 
             terminalSettings.id = setting.id
-            terminalSettings.isTransmitEnabled = setting.isAllowTransmit
+            terminalSettings.isTransmitEnabled = false // setting.isAllowTransmit
             terminalSettings.path = setting["comPort"]
             // For whatever reason, setting the datatype on the input to number isn't enough and passes it as a string.
             terminalSettings.baudRate = setting["baudRate"] ? parseInt(setting["baudRate"]) : 9600
             terminalSettings.charset = setting["charset"]
+            terminalSettings.converseCommand = setting["converseCommand"];
             terminalSettings.dataBits = setting["dataBits"]
             terminalSettings.myCallCommand = setting["myCallCommand"] ?? ""
             terminalSettings.parity = setting["parity"]
@@ -160,11 +204,11 @@ export class ConnectionService extends EventEmitter {
                 return ((c instanceof KissTcipSocket) && c.isConnected() && c.isTransmitEnabled == true)
                     || ((c instanceof KissSerialSocket) && c.isConnected() && c.isTransmitEnabled == true)
                     || ((c instanceof ISSocket) && c.isConnected() == true && c.isTransmitEnabled == true)
+                    || ((c instanceof TerminalSocket) && c.isConnected() == true && c.isTransmitEnabled == true)
             })
             , c => {
                 if(c instanceof KissTcipSocket || c instanceof KissSerialSocket) {
-                    let path = "WIDE2-2"
-                    let toSend = this._kissUtil.tnc2ToKiss(`${this._callsign}>APZ678,${path}:${packet}`)
+                    let toSend = this._kissUtil.tnc2ToKiss(`${this._callsign}>APZ678,${AprsPathEnum[this._aprsPath]}:${packet}`)
 
                     if(!!toSend) {
                         c.send(toSend)
@@ -174,7 +218,14 @@ export class ConnectionService extends EventEmitter {
                     c.send(`${this._callsign}>APZ678,TCIP*:${packet}`)
                     console.log(`${this._callsign}>APZ678,TCIP*:${packet}`)
                 } else if(c instanceof TerminalSocket) {
-                    console.log(`${this._callsign}>APZ678,${path}:${packet}`)
+                    /*
+                    console.log("Terminal Socket!!!!!");
+
+                    // TODO: TESTING ONLY!!!
+                    packet = '!0000.00N/00000.00W>aprs-view-js'
+                    c.send(packet)
+                    console.log(packet)
+                    */
                 }
             }
         )
@@ -254,6 +305,12 @@ export class ConnectionService extends EventEmitter {
             this._passcode = settings.passcode ?? -1
 
             isUpdated = true
+        }
+
+        if(this._aprsPath != settings.aprsPath) {
+            this._aprsPath = settings.aprsPath;
+
+            isUpdated = true;
         }
 
         if(isUpdated == true) {
@@ -384,6 +441,11 @@ export class ConnectionService extends EventEmitter {
                     this.emit(DataEventTypes.ERROR, [ connection.id, err ])
                 }
             })
+
+            connection.on(DataEventTypes.SENT, (data: string) => {
+                console.log(`${connection.id}: ${data}`)
+                this.emit(DataEventTypes.SENT, [ connection.id, data ])
+            });
 
             for(const e of this.SOCKET_DISCONNECT_EVENTS) {
                 connection.on(e, () => {

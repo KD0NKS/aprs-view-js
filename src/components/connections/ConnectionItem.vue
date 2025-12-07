@@ -21,11 +21,11 @@
                     @reset="onReset"
                     @submit="onSubmit">
                 <div class="row justify-between">
-                    <div class="col-md-8 q-pa-sm">
+                    <div class="col-sm-8 q-pa-sm">
                         <q-input label="Name" v-model="model.name" :rules="[ rules.required ]" dense />
                     </div>
 
-                    <div class="col-md-4 q-pa-sm">
+                    <div class="col-sm-4 q-pa-sm">
                         <q-select label="Connection Type"
                                 v-model="model.connectionType"
                                 :options="connectionTypeOptions"
@@ -38,9 +38,13 @@
                     </div>
                 </div>
 
-                <div class="row justify-between">
-                    <div class="col-md-6 q-pa-sm">
-                        <q-toggle v-model="model.isAllowTransmit" label="Allow Transmit" dense />
+                <div class="row justify-between" >
+                    <div class="col-sm-6 q-pa-sm">
+                        <q-toggle v-model="model.isAllowTransmit"
+                                label="Allow Transmit"
+                                :disable="model.connectionType == 'SERIAL_TNC'"
+                                dense
+                                />
                     </div>
                 </div>
 
@@ -50,7 +54,7 @@
                 <TNCConnectionItem :model="model" v-if="model.connectionType == 'SERIAL_TNC'" />
 
                 <div class="row">
-                    <div class="q-gutter-sm col-md-6 q-pa-sm">
+                    <div class="q-gutter-sm col-sm-6 q-pa-sm">
                         <q-btn label="Save" type="submit" color="primary" />
                         <q-btn label="Reset" type="reset" />
                         <q-btn label="Delete" @click="deleteConnection" color="red" />
@@ -66,7 +70,7 @@
     import { useConectionStore } from '../../stores/connectionStore'
     import _ from "lodash"
 
-    import { ConnectionTypes } from "../../enums"
+    import { ConnectionEventTypes, ConnectionTypes } from "../../enums"
     import { Mapper } from "../../utils/mappers"
     import { ISConnection, KissSerialConnection, KissTcipConnection, TNCConnection } from "../../models/connections"
 

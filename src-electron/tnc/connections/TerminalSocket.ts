@@ -90,6 +90,8 @@ export class TerminalSocket extends SerialPort {
                 this.emit('sent', `${command}`);
             }
         });
+
+        this.drain();
     }
 
     public sendMyCallCommand(callback?: any) {
@@ -114,44 +116,49 @@ export class TerminalSocket extends SerialPort {
         */
     }
 
+    private sendCtrlC() {
+        console.log("sending ctrl-c")
+        this.write(Buffer.from([0x03]));
+    }
+
     /**
      * @param {string} packet - packet already in KISS format.
      */
     public send(packet: string, callback?: any) {
+        /*
         // TEST CODE FOR SENDING PACKET
         console.log("Sending packet from terminal socket");
 
         if(this._isSocketConnected == true
                 && this.writable
                 && this._options.isTransmitEnabled) {
-            this.write(`${this._options.messageDelimeter}`);
-
             if(this._options.converseCommand != null && this._options.converseCommand !== undefined && this._options.converseCommand.trim() != "") {
+                this.sendCtrlC();
+
                 console.log(`Sending convserse command: ${this._options.converseCommand}`);
-                this.sendCommand(`${this._options.messageDelimeter}`);
-                this.emit(DataEventTypes.SENT, `${this._options.messageDelimeter}`);
                 this.sendCommand(`${this._options.converseCommand}`);
                 this.emit(DataEventTypes.SENT, `${this._options.converseCommand}`);
-                setTimeout(() => {}, 1000);
             }
 
-            this.write(`${packet}\r`, this._options.charset, err => {
+            this.write(`${packet}${this._options.messageDelimeter}`, this._options.charset, err => {
                 if(err) {
                     console.log(err);
+
+                    this.write('D\r');
+                    this.sendCtrlC();
+
                     throw err;
                 } else {
                     console.log(`Sent packet ${packet}\r\n`);
                     this.emit('sent', `${packet}`);
-                    setTimeout(() => {}, 1000);
                 }
             });
 
-            this.write(Buffer.from([0x03]), err => {
-                if(err) {
-                    throw err;
-                }
-            });
+            console.log("sending disconnect");
+            this.write('D\r');
+            this.sendCtrlC();
         }
+        */
 
         if(!!callback) {
             callback()

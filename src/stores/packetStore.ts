@@ -8,10 +8,10 @@ import { EventedArray } from "../models/arrays/EventedArray";
 
 import { useMapSettingsStore } from "./mapSettingsStore";
 
-const _maxDataLength = 100
+const _maxDataLength = 100;
 
 /* NOTE!  For performance reasons, DO NOT use a state level array for this! */
-const aprsPackets = new EventedArray<[ string | number, aprsPacket ]>()
+const aprsPackets = new EventedArray<[ string | number, aprsPacket ]>();
 
 export const usePacketStore = defineStore('packets', {
     state: () => ({

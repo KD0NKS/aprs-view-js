@@ -10,13 +10,13 @@
                     @reset="onReset"
                     @submit="onSubmit">
                 <div class="row justify-between">
-                    <div class="col-md-5 q-pa-sm"><q-input label="Callsign" v-model="settings.callsign" :rules="[ rules.required ]" dense /></div>
-                    <div class="col-md-2 q-pa-sm"><q-input label="SSID" v-model="settings.ssid" dense /></div>
-                    <div class="col-md-5 q-pa-sm"><q-input label="Passcode" v-model="settings.passcode" dense /></div>
+                    <div class="col-sm-5 q-pa-sm"><q-input label="Callsign" v-model="settings.callsign" :rules="[ rules.required ]" dense /></div>
+                    <div class="col-sm-2 q-pa-sm"><q-input label="SSID" v-model="settings.ssid" dense /></div>
+                    <div class="col-sm-5 q-pa-sm"><q-input label="Passcode" v-model="settings.passcode" dense /></div>
                 </div>
 
                 <div class="row justify-between">
-                    <div class="col-md-6 q-pa-sm">
+                    <div class="col-sm-6 q-pa-sm">
                         <q-select v-model="settings.symbol"
                                 :options="aprsSymbols"
                                 :option-value="opt => Object(opt) === opt && 'key' in opt ? opt.key : null"
@@ -46,7 +46,7 @@
                         </q-select>
                     </div>
 
-                    <div class="col-md-6 q-pa-sm">
+                    <div class="col-sm-6 q-pa-sm">
                         <q-select
                                 v-model="settings.symbolOverlay"
                                 :disable="isDisableOverlay"
@@ -79,7 +79,7 @@
                 </div>
 
                 <div class="row justify-between">
-                    <div class="col-md-6 q-pa-sm">
+                    <div class="col-sm-6 q-pa-sm">
                         <q-select label="Location Type"
                                 v-model="settings.locationType"
                                 :options="locationTypeOptions"
@@ -88,11 +88,12 @@
                                 @update:model-value="updateLocationType()"
                                 emit-value
                                 map-options
+                                dense
                                 >
                         </q-select>
                     </div>
 
-                    <div class="col-md-2 q-pa-sm">
+                    <div class="col-sm-2 q-pa-sm">
                         <q-toggle label="Transmit position"
                             v-model="settings.isTransmitPosition"
                             class="vertical-bottom"
@@ -100,13 +101,26 @@
                             />
                     </div>
 
-                    <div class="col-md-4 q-pa-sm">
+                    <div class="col-sm-4 q-pa-sm">
                         <q-btn color="green" label="Send Position" @click="sendPacket()" v-if="isDisableSendPosition == false" />
                     </div>
                 </div>
 
                 <div class="row justify-between">
-                    <div class="col-md-6 q-pa-sm">
+                    <div class="col-sm-6 q-pa-sm">
+                        <q-select
+                                v-model="settings.aprsPath"
+                                :options="aprsPaths"
+                                :option-value="opt => Object(opt) === opt && 'value' in opt ? opt.value : null"
+                                :option-label="opt => Object(opt) === opt && 'label' in opt ? opt.label : null"
+                                label="Path"
+                                emit-value
+                                map-options
+                                dense
+                                >
+                        </q-select>
+                    </div>
+                    <div class="col-sm-6 q-pa-sm">
                         <q-input label="Comment"
                                 v-model="settings.comment"
                                 :rules="[ rules.commentChars, rules.commentLength ]"
@@ -126,7 +140,7 @@
                 </static-location-settings>
 
                 <div class="row">
-                    <div class="q-gutter-sm col-md-6 q-pa-sm">
+                    <div class="q-gutter-sm col-sm-6 q-pa-sm">
                         <q-btn color="primary" label="Save" type="submit" />
                         <q-btn label="Reset" type="reset" />
                     </div>
@@ -142,6 +156,7 @@
     import _ from 'lodash'
     import { BuildPositionModel, PacketFactory } from 'js-aprs-fap'
 
+    import { AprsPathEnum } from "../../../src-electron/enums";
     import { LocationTypes } from '../../enums'
 
     import { Mapper } from '../../utils/mappers'
@@ -186,7 +201,20 @@
             StaticLocationSettings
         }
         , computed: {
-            aprsSymbols() {
+            aprsPaths() {
+                return _.map(
+                    Object.keys(AprsPathEnum)
+                    , key => {
+                        console.log(`label: ${AprsPathEnum[key]}`)
+                        console.log(`value: ${key}`)
+                        return {
+                            label: AprsPathEnum[key]
+                            , value: key
+                        }
+                    }
+                );
+            }
+            , aprsSymbols() {
                 return this.symbolSvc.GetSymbols()
             }
             , aprsSymbolOverlays() {
