@@ -3,6 +3,8 @@ import _ from 'lodash';
 import { EventEmitter } from 'events';
 import { filter, fromEvent, groupBy, map, mergeMap, throttleTime, window } from 'rxjs';
 
+import { AprsPathEnum } from '../../enums';
+
 import { ISSocket } from 'js-aprs-is';
 import { TerminalSocket } from '../../tnc/connections/TerminalSocket';
 
@@ -215,8 +217,7 @@ export class ConnectionService extends EventEmitter {
                     }
                 } else if(c instanceof ISSocket) {
                     // header TCPIP*
-                    c.send(`${this._callsign}>APZ678,TCIP*:${packet}`)
-                    console.log(`${this._callsign}>APZ678,TCIP*:${packet}`)
+                    c.send(`${this._callsign}>APZ678,TCIP*:${packet}`);
                 } else if(c instanceof TerminalSocket) {
                     /*
                     console.log("Terminal Socket!!!!!");

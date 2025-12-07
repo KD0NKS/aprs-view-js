@@ -205,8 +205,6 @@
                 return _.map(
                     Object.keys(AprsPathEnum)
                     , key => {
-                        console.log(`label: ${AprsPathEnum[key]}`)
-                        console.log(`value: ${key}`)
                         return {
                             label: AprsPathEnum[key]
                             , value: key
