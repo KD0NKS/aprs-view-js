@@ -1,0 +1,6 @@
+export enum AprsPathEnum {
+    WIDE1_1_WIDE2_1 = "WIDE1-1,WIDE2-1"     // (Will produce two hops and will take advantage of home fill-in digis. Use in busy urban and suburban areas.)   Recommended for the majority of mobile operations!
+    , WIDE1_1_WIDE2_2 = "WIDE1-1,WIDE2-2"   // (Will produce three hops and will take advantage of home fill-in digis. Use for mobile operation in rural areas with low APRS activity only!)
+    , WIDE2_2 = "WIDE2-2"                   // (Shortest path string. Produces two hops by directly using two high-level digis. Will work almost anywhere but especially recommended in the American west where high-level digipeaters are really high-level; i.e. on mountain tops thousands and thousands of feet above users that can easily be reached directly, without the help of home stations.) Note that WIDE2-2 is the ONLY path that works with digipeaters in southern California.
+    , WIDE2_1 = "WIDE2-1"                   // (This should be used by fixed stations, and will produce only one digipeater hop.  In most cases, fixed stations already have the advantage of a better antenna and elevation than a mobile, and should be able to reach a true wide-area digipeater without the aid of another home station.)
+}

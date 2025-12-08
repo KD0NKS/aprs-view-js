@@ -55,6 +55,9 @@
                     <p v-if="packet.wx.wind_gust">
                         <label class="label">Wind Gust:</label> {{ windGust }}
                     </p>
+                    <p v-if="packet.wx.snow_24h">
+                        <label class="label">Snow 24h:</label> {{ snow24Hour }}
+                    </p>
                 </div>
             </div>
             <div v-else>
@@ -115,6 +118,9 @@
                 } else {
                     return null
                 }
+            }
+            , snow24Hour() {
+                return this.packet.wx?.snow_24h;
             }
             , speed() {
                 return ConversionUtil.kmhMphWithLabel(this.packet.speed, this.softwareSettings.distanceUnitType)

@@ -5,107 +5,145 @@
         </div>
 
         <q-card class="q-pa-md">
-            <q-form class="q-gutter-md"
+            <q-form
                     :greedy="false"
                     @reset="onReset"
                     @submit="onSubmit">
-                <div class="q-gutter-md row">
-                    <q-input label="Callsign" v-model="settings.callsign" :rules="[ rules.required ]" class="col-5" dense />
-                    <q-input label="SSID" v-model="settings.ssid" class="col-2" dense />
-                    <q-input label="Passcode" v-model="settings.passcode" class="col-4" dense />
+                <div class="row justify-between">
+                    <div class="col-sm-5 q-pa-sm"><q-input label="Callsign" v-model="settings.callsign" :rules="[ rules.required ]" dense /></div>
+                    <div class="col-sm-2 q-pa-sm"><q-input label="SSID" v-model="settings.ssid" dense /></div>
+                    <div class="col-sm-5 q-pa-sm"><q-input label="Passcode" v-model="settings.passcode" dense /></div>
                 </div>
 
-                <div class="q-gutter-md row">
-                    <q-select
-                            v-model="settings.symbol"
-                            :options="aprsSymbols"
-                            :option-value="opt => Object(opt) === opt && 'key' in opt ? opt.key : null"
-                            :option-label="opt => Object(opt) === opt && 'name' in opt ? opt.name : null"
-                            @update:model-value="symbolChanged"
-                            label="Station Symbol"
-                            clearable
-                            emit-value
-                            map-options
-                            class="col-6"
-                            dense
-                            >
-                        <template v-slot:prepend v-if="stationSymbol && stationSymbol != null">
-                            <q-avatar>
-                                <img :src="stationSymbol.value" />
-                            </q-avatar>
-                        </template>
-                        <template v-slot:option="scope">
-                            <q-item v-bind="scope.itemProps">
-                                <q-item-section avatar square>
-                                    <q-img height="24px" width="24px" :src="scope.opt.value" />
-                                </q-item-section>
-                                <q-item-section>
-                                    <q-item-label>{{ scope.opt.name }}</q-item-label>
-                                </q-item-section>
-                            </q-item>
-                        </template>
-                    </q-select>
+                <div class="row justify-between">
+                    <div class="col-sm-6 q-pa-sm">
+                        <q-select v-model="settings.symbol"
+                                :options="aprsSymbols"
+                                :option-value="opt => Object(opt) === opt && 'key' in opt ? opt.key : null"
+                                :option-label="opt => Object(opt) === opt && 'name' in opt ? opt.name : null"
+                                @update:model-value="symbolChanged"
+                                label="Station Symbol"
+                                clearable
+                                emit-value
+                                map-options
+                                dense
+                                >
+                            <template v-slot:prepend v-if="stationSymbol && stationSymbol != null">
+                                <q-avatar>
+                                    <img :src="stationSymbol.value" />
+                                </q-avatar>
+                            </template>
+                            <template v-slot:option="scope">
+                                <q-item v-bind="scope.itemProps">
+                                    <q-item-section avatar square>
+                                        <q-img height="24px" width="24px" :src="scope.opt.value" />
+                                    </q-item-section>
+                                    <q-item-section>
+                                        <q-item-label>{{ scope.opt.name }}</q-item-label>
+                                    </q-item-section>
+                                </q-item>
+                            </template>
+                        </q-select>
+                    </div>
 
-                    <q-select
-                            v-model="settings.symbolOverlay"
-                            :disable="isDisableOverlay"
-                            :options="aprsSymbolOverlays"
-                            :option-value="opt => Object(opt) === opt && 'key' in opt ? opt.key : null"
-                            :option-label="opt => Object(opt) === opt && 'name' in opt ? opt.name : null"
-                            label="Symbol Overlay"
-                            clearable
-                            emit-value
-                            map-options
-                            class="col-5"
-                            dense
-                            >
-                        <template v-slot:prepend v-if="overlaySymbol && overlaySymbol != null">
-                            <q-avatar>
-                                <img :src="overlaySymbol.value" />
-                            </q-avatar>
-                        </template>
-                        <template v-slot:option="scope">
-                            <q-item v-bind="scope.itemProps">
-                                <q-item-section avatar square>
-                                    <q-img height="24px" width="24px" :src="scope.opt.value" />
-                                </q-item-section>
-                                <q-item-section>
-                                    <q-item-label>{{ scope.opt.name }}</q-item-label>
-                                </q-item-section>
-                            </q-item>
-                        </template>
-                    </q-select>
+                    <div class="col-sm-6 q-pa-sm">
+                        <q-select
+                                v-model="settings.symbolOverlay"
+                                :disable="isDisableOverlay"
+                                :options="aprsSymbolOverlays"
+                                :option-value="opt => Object(opt) === opt && 'key' in opt ? opt.key : null"
+                                :option-label="opt => Object(opt) === opt && 'name' in opt ? opt.name : null"
+                                label="Symbol Overlay"
+                                clearable
+                                emit-value
+                                map-options
+                                dense
+                                >
+                            <template v-slot:prepend v-if="overlaySymbol && overlaySymbol != null">
+                                <q-avatar>
+                                    <img :src="overlaySymbol.value" />
+                                </q-avatar>
+                            </template>
+                            <template v-slot:option="scope">
+                                <q-item v-bind="scope.itemProps">
+                                    <q-item-section avatar square>
+                                        <q-img height="24px" width="24px" :src="scope.opt.value" />
+                                    </q-item-section>
+                                    <q-item-section>
+                                        <q-item-label>{{ scope.opt.name }}</q-item-label>
+                                    </q-item-section>
+                                </q-item>
+                            </template>
+                        </q-select>
+                    </div>
                 </div>
-                <div class="q-gutter-md row">
-                    <q-select label="Location Type"
-                            v-model="settings.locationType"
-                            :options="locationTypeOptions"
-                            :option-value="opt => Object(opt) === opt && 'value' in opt ? opt.value : null"
-                            :option-label="opt => Object(opt) === opt && 'label' in opt ? opt.label : null"
-                            emit-value
-                            map-options
-                            disable
-                            class="col-4"
-                            dense>
-                    </q-select>
 
-                    <q-toggle label="Transmit position"
+                <div class="row justify-between">
+                    <div class="col-sm-6 q-pa-sm">
+                        <q-select label="Location Type"
+                                v-model="settings.locationType"
+                                :options="locationTypeOptions"
+                                :option-value="opt => Object(opt) === opt && 'value' in opt ? opt.value : null"
+                                :option-label="opt => Object(opt) === opt && 'label' in opt ? opt.label : null"
+                                @update:model-value="updateLocationType()"
+                                emit-value
+                                map-options
+                                dense
+                                >
+                        </q-select>
+                    </div>
+
+                    <div class="col-sm-2 q-pa-sm">
+                        <q-toggle label="Transmit position"
                             v-model="settings.isTransmitPosition"
-                            class="col-2"
-                            dense
+                            class="vertical-bottom"
+                            :disable="isDisableTransmitPostion"
                             />
+                    </div>
+
+                    <div class="col-sm-4 q-pa-sm">
+                        <q-btn color="green" label="Send Position" @click="sendPacket()" v-if="isDisableSendPosition == false" />
+                    </div>
                 </div>
 
-                <StaticLocationSettings v-if="settings.locationType == 'Fixed'"
+                <div class="row justify-between">
+                    <div class="col-sm-6 q-pa-sm">
+                        <q-select
+                                v-model="settings.aprsPath"
+                                :options="aprsPaths"
+                                :option-value="opt => Object(opt) === opt && 'value' in opt ? opt.value : null"
+                                :option-label="opt => Object(opt) === opt && 'label' in opt ? opt.label : null"
+                                label="Path"
+                                emit-value
+                                map-options
+                                dense
+                                >
+                        </q-select>
+                    </div>
+                    <div class="col-sm-6 q-pa-sm">
+                        <q-input label="Comment"
+                                v-model="settings.comment"
+                                :rules="[ rules.commentChars, rules.commentLength ]"
+                                v-if="settings.locationType != 'None'"
+                                dense />
+                    </div>
+                </div>
+
+                <static-location-settings v-if="settings.locationType == 'Fixed'"
                         :latitude="settings.latitude"
                         :longitude="settings.longitude"
+                        :transmit-interval="settings.transmitInterval"
                         @updateLatitude="updateLatitude"
                         @updateLongitude="updateLongitude"
-                        />
+                        @updateTransmitInterval="updateTransmitInterval"
+                        >
+                </static-location-settings>
 
-                <div class="q-gutter-md row">
-                    <q-btn color="primary" label="Save" type="submit" />
-                    <q-btn label="Reset" type="reset" />
+                <div class="row">
+                    <div class="q-gutter-sm col-sm-6 q-pa-sm">
+                        <q-btn color="primary" label="Save" type="submit" />
+                        <q-btn label="Reset" type="reset" />
+                    </div>
                 </div>
             </q-form>
         </q-card>
@@ -116,7 +154,9 @@
     import { defineComponent, ref } from 'vue'
     import { useStationSettingsStore } from "../../stores/stationSettingsStore"
     import _ from 'lodash'
+    import { BuildPositionModel, PacketFactory } from 'js-aprs-fap'
 
+    import { AprsPathEnum } from "../../../src-electron/enums";
     import { LocationTypes } from '../../enums'
 
     import { Mapper } from '../../utils/mappers'
@@ -132,23 +172,28 @@
         name: 'StationSettings'
         , setup() {
             const mapper = new Mapper()
+            const packetFactory = new PacketFactory()
             const settings = ref(new StationSettings())
             const symbolSvc = new APRSSymbolService()
             const store = useStationSettingsStore()
 
-            mapper.CopyInto<StationSettings, StationSettings>(store.stationSettings, settings.value)
+            mapper.CopyInto<StationSettings, StationSettings>(store.getStationSettings, settings.value)
 
             return {
-                settings
+                packetFactory
+                , settings
                 , symbolSvc
                 , rules: {
                     required: value => !!value || 'Required.'
+                    // TODO: This probably needs adjusting as it's a made up number.  Packets cannot exceed a certain length, but there is no actual limit to comment length.
+                    , commentLength: value => value.length <= 80 || "Must be less than 80 characters."
+                    , commentChars: value => !(value.indexOf('~') > -1 || value.indexOf('|') > -1) || "Cannot contain special chars '~' or '|'."
                 }
                 , onSubmit() {
                     store.setStationSettings(settings.value)
                 }
                 , onReset() {
-                    mapper.CopyInto<StationSettings, StationSettings>(store.stationSettings, settings.value)
+                    mapper.CopyInto<StationSettings, StationSettings>(store.getStationSettings, settings.value)
                 }
             }
         }
@@ -156,7 +201,18 @@
             StaticLocationSettings
         }
         , computed: {
-            aprsSymbols() {
+            aprsPaths() {
+                return _.map(
+                    Object.keys(AprsPathEnum)
+                    , key => {
+                        return {
+                            label: AprsPathEnum[key]
+                            , value: key
+                        }
+                    }
+                );
+            }
+            , aprsSymbols() {
                 return this.symbolSvc.GetSymbols()
             }
             , aprsSymbolOverlays() {
@@ -165,6 +221,13 @@
             , isDisableOverlay(): boolean {
                 return !this.symbolSvc.GetSymbolByKey(this.settings.symbol).isAllowOverlay
 
+            }
+            , isDisableTransmitPostion(): boolean {
+                return (this.settings?.locationType == null || this.settings?.locationType == LocationTypes.NONE)
+            }
+            , isDisableSendPosition() {
+                // duplicate code for isDisableTransmitPostion condition because of a warning on render
+                return this.settings?.locationType == null || this.settings?.locationType == LocationTypes.NONE || this.settings?.isTransmitPosition == false
             }
             , locationTypeOptions() {
                 return _.map(
@@ -204,6 +267,35 @@
             , updateLongitude(longitude) {
                 this.settings.longitude = Number(longitude)
             }
+            , updateTransmitInterval(interval) {
+                this.settings.transmitInterval = Number(interval)
+            }
+            , updateLocationType() {
+                if(this.settings.locationType == null || this.settings.locationType == LocationTypes.NONE) {
+                    this.settings.isTransmitPosition = ref(false)
+                }
+            }
+            , sendPacket() {
+                if(this.settings.locationType == LocationTypes.FIXED
+                        && this.settings.isTransmitPosition == true
+                        && this.settings.latitude && this.settings.latitude != null
+                        && this.settings.longitude && this.settings.longitude != null
+                        ) {
+                    const packet = this.packetFactory.makePosition(
+                        new BuildPositionModel({
+                            comment: this.settings.comment
+                            , latitude: this.settings.latitude
+                            , longitude: this.settings.longitude
+                            , symbols: (this.settings.overlaySymbol && this.settings.overlaySymbol != null && this.settings.overlaySymbol != '')
+                                    ? `${this.settings.symbol}${this.settings.overlaySymbol}`
+                                    : this.settings.symbol
+                        })
+                    )
+
+                    window.connectionService.sendPacket(packet)
+                }
+            }
         }
     })
 </script>
+

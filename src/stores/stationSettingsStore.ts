@@ -5,6 +5,7 @@ import _ from "lodash";
 
 import { LocationTypes, StorageKeys } from "../enums";
 import { IStationSettings, StationSettings } from "../models/settings";
+import { AprsPathEnum } from "../../src-electron/enums";
 
 export const useStationSettingsStore = defineStore('stationSettings', {
     state: () => ({
@@ -14,13 +15,13 @@ export const useStationSettingsStore = defineStore('stationSettings', {
         getStationSettings: state => state.stationSettings
     },
     actions: {
-        setStationLocation(latLong) {
+        setStationLocation(latLong: { latitude: number; longitude: number }) {
             if(latLong && latLong.latitude && latLong.longitude) {
                 this.stationSettings.latitude = latLong.latitude.toFixed(4)
                 this.stationSettings.longitude = latLong.longitude.toFixed(4)
             }
 
-            window.connectionService.updateStationSettings(_.clone(this.settings))
+            window.connectionService.updateStationSettings(_.clone(this.stationSettings))
         }
         , setStationSettings(settings: IStationSettings) {
             // state.stationSettings.propname = settings.propname doesn't work here
@@ -30,11 +31,21 @@ export const useStationSettingsStore = defineStore('stationSettings', {
             this.stationSettings.symbol = settings.symbol
             this.stationSettings.symbolOverlay = settings.symbolOverlay
             this.stationSettings.isTransmitPosition = settings.isTransmitPosition ?? false
-            this.stationSettings.locationType = settings.locationType ?? LocationTypes.FIXED
-            this.stationSettings.latitude = settings.latitude
-            this.stationSettings.longitude = settings.longitude
+            this.stationSettings.aprsPath = settings.aprsPath ?? AprsPathEnum.WIDE2_2;
+            this.stationSettings.locationType = settings.locationType ?? LocationTypes.NONE
 
-            //LocalStorage.set(StorageKeys.STATION_SETTINGS, _mapper.Map<StationSettings>(this.stationSettings, StationSettings))
+            if(settings.locationType == LocationTypes.FIXED) {
+                this.stationSettings.comment = settings.comment
+                this.stationSettings.latitude = settings.latitude
+                this.stationSettings.longitude = settings.longitude
+                this.stationSettings.transmitInterval = settings.transmitInterval ?? 15
+            } else {
+                this.stationSettings.comment = null;
+                this.stationSettings.latitude = null
+                this.stationSettings.longitude = null
+                this.stationSettings.isTransmitPosition = false
+                // TODO: Kill anything trying to send position packets
+            }
 
             window.connectionService.updateStationSettings(_.clone(settings))
         }

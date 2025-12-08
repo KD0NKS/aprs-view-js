@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, nativeTheme } from "electron";
-import { enable } from "@electron/remote/main"
+import { enable } from "@electron/remote/main/index.js"
 import path from 'path';
+import { fileURLToPath } from "url";
 import os from 'os';
 
 import { IpcEventTypes } from './enums/IpcEventTypes'
@@ -12,36 +13,36 @@ import _ from 'lodash'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
-const connectionService = new ConnectionService()
+const connectionService = new ConnectionService();
+const currentDir = fileURLToPath(new URL('.', import.meta.url));
 
-try {
-  if (platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
-    require('fs').unlinkSync(
-      path.join(app.getPath('userData'), 'DevTools Extensions')
-    );
-  }
-} catch (_) {}
+app.setName("aprs-view-js")
 
 let mainWindow: BrowserWindow | undefined;
 
-function createWindow() {
+async function createWindow() {
   /**
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    icon: path.resolve(__dirname, 'icons/icon.png'), // tray icon
+    icon: path.resolve(currentDir, 'icons/icon.png'), // tray icon
     width: 1000,
     height: 600,
     useContentSize: true,
     webPreferences: {
       contextIsolation: true,
-      // More info: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
-      preload: path.resolve(__dirname, process.env.QUASAR_ELECTRON_PRELOAD),
       sandbox: false,
+      nodeIntegrationInWorker: true,
+      // More info: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
+      preload: path.resolve(
+        currentDir,
+        path.join(process.env.QUASAR_ELECTRON_PRELOAD_FOLDER, 'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION),
+      ),
     },
   });
 
-  mainWindow.loadURL(process.env.APP_URL);
+  enable(mainWindow.webContents);
+  await mainWindow.loadURL(process.env.APP_URL);
 
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled
@@ -56,8 +57,6 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = undefined;
   });
-
-  enable(mainWindow.webContents);
 }
 
 app.whenReady().then(createWindow);
@@ -82,6 +81,11 @@ ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_ADD_CONNECTION, async (event, se
 // deleteConnection
 ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_DELETE_CONNECTION, async (event, connectionId) => {
     connectionService.deleteConnection(connectionId)
+})
+
+// sendPacket
+ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_SEND_PACKET, async (event, packet) => {
+    connectionService.sendPacket(packet)
 })
 
 // setConnectionStatus
@@ -123,18 +127,18 @@ ipcMain.handle(IpcEventTypes.CONNECTION_SERVICE_GET_CONNECTION_STATUS, async(eve
 })
 
 // Connection Events
-connectionService.on(ConnectionEventTypes.CONNECTED, id => {
+connectionService.on(ConnectionEventTypes.CONNECTED, async id => {
     mainWindow?.webContents.send(ConnectionEventTypes.CONNECTED, id)
 })
 
-connectionService.on(ConnectionEventTypes.DISCONNECTED, id => {
+connectionService.on(ConnectionEventTypes.DISCONNECTED, async id => {
     mainWindow?.webContents.send(ConnectionEventTypes.DISCONNECTED, id)
 })
 
-connectionService.on(DataEventTypes.DATA, data => {
+connectionService.on(DataEventTypes.DATA, async data => {
     mainWindow?.webContents.send(DataEventTypes.DATA, data)
 })
 
-connectionService.on(DataEventTypes.PACKET, packet => {
+connectionService.on(DataEventTypes.PACKET, async packet => {
     mainWindow?.webContents.send(DataEventTypes.PACKET, packet)
 })

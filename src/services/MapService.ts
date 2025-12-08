@@ -8,15 +8,14 @@ import Style from "ol/style/Style"
 export class MapService {
     private _trailStyleIndex = 0
     private _trailStyles: Style[] = _.map([
-            "rgba(125 , 0     , 255   , 0.5)" // purple
-            , "rgba(0   , 0     , 255   , 0.5)" // blue
-            , "rgba(255 , 0     , 255   , 0.5)" // hot pink-ish
-            , "rgba(255 , 0     , 0     , 0.5)" // red
-            , "rgba(0   , 225   , 255   , 0.5)" // teal
-            , "rgba(255 , 64    , 0     , 0.5)" // orange
-            , "rgba(0   , 0     , 102   , 0.5)" // navy
-            , "rgba(128 , 0     , 0     , 0.5)" // maroon
-            , "rgba(0   , 0     , 0     , 0.5)" // black
+          "rgba(0   , 255   , 255   , 0.8)" // aqua
+        , "rgba(138 , 43    , 226   , 0.8)" // blue violet
+        , "rgba(248 , 131   , 121   , 0.8)" // coral pink
+        , "rgba(255 , 29    , 206   , 0.8)" // Hot Magenta
+        , "rgba(255 , 247   , 0     , 0.8)" // Lemon
+        , "rgba(124 , 252   , 0     , 0.8)" // Lawn Green
+        , "rgba(0   , 0     , 205   , 0.8)" // MediumBlue
+        , "rgba(255 , 79    , 0     , 0.8)" // International Orange
         ], c =>
             new Style({
                 stroke: new Stroke({
@@ -46,82 +45,81 @@ export class MapService {
      * @returns {Stroke} The stroke with the proper color for the text border.
      */
 
-    public static getLabelTextStroke(packet: aprsPacket): Stroke {
+    public getLabelTextStroke(packet: aprsPacket): Stroke {
         if(packet.type == PacketTypeEnum.OBJECT || packet.type == PacketTypeEnum.ITEM) {
             // TODO: YELLOW: Your own active OBJECTS you are transmitting to the net
-            return MapService.violetTextStroke
+            return this.violetTextStroke
         } else if(packet.course && packet.speed) {
-            return MapService.cyanTextStroke
+            return this.cyanTextStroke
         } else if(packet.messaging && packet.messaging == true) {
-            return MapService.whiteTextStroke
+            return this.whiteTextStroke
         } else if(packet.messaging == null || packet.messaging == false) {
             // TODO: This may not be entirely accurate.  Check js-aprs-fap to make sure the messaging value is always set where appropriate
-            return MapService.grayTextStroke
+            return this.grayTextStroke
         }
 
         // TODO: Dark Gray
         // TODO: Black
 
-        return MapService.redTextStroke
-
+        return this.redTextStroke
     }
 
-    public static oldPositionStyle: Style = new Style({
+    public readonly oldPositionStyle: Style = new Style({
         image: new CircleStyle({
             radius: 3
             , fill: new Fill({ color: "red" })
         })
     })
 
-    public static whiteTextFill: Fill = new Fill({
+    public readonly whiteTextFill: Fill = new Fill({
         color: 'white'
     })
 
-    public static blackTextFill: Fill = new Fill({
+    public readonly blackTextFill: Fill = new Fill({
         color: 'black'
     })
 
-    public static blackTextStroke: Stroke = new Stroke({
+    public readonly blackTextStroke: Stroke = new Stroke({
         color: 'black'
         , width: 2
     })
 
-    public static whiteTextStroke: Stroke = new Stroke({
+    public readonly whiteTextStroke: Stroke = new Stroke({
         color: 'white'
         , width: 4
     })
 
-    public static grayTextStroke: Stroke = new Stroke({
+    public readonly grayTextStroke: Stroke = new Stroke({
         color: 'silver'
         , width: 4
     })
 
-    public static cyanTextStroke: Stroke = new Stroke({
+    public readonly cyanTextStroke: Stroke = new Stroke({
         color: "rgba(0, 255, 255, 0.7)"
         , width: 4
     })
 
-    public static darkBlueTextStroke: Stroke = new Stroke({
+    public readonly darkBlueTextStroke: Stroke = new Stroke({
         color: "navy"
         , width: 4
     })
 
-    public static yellowTextStroke: Stroke = new Stroke({
+    public readonly yellowTextStroke: Stroke = new Stroke({
         color: "yellow"
         , width: 4
     })
 
-    public static violetTextStroke: Stroke = new Stroke({
+    public readonly violetTextStroke: Stroke = new Stroke({
         color: "rgba(238, 130, 238, 0.7)"
         , width: 4
     })
 
-    public static darkGrayTextStroke: Stroke = new Stroke({
+    public readonly darkGrayTextStroke: Stroke = new Stroke({
         color: "charcoal"
         , width: 4
     })
 
-    public static redTextStroke: Stroke = new Stroke({
+    public readonly redTextStroke: Stroke = new Stroke({
         color: "rgba(255, 0, 0, 0.7)"
         , width: 4
     })

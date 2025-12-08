@@ -5,47 +5,54 @@
         </div>
 
         <q-card class="q-pa-md">
-            <q-form class="q-gutter-md"
+            <q-form
                     :greedy="false"
                     @reset="onReset"
                     @submit="onSubmit">
-                <div class="q-gutter-md row items-start">
-                    <q-input label="Point Lifetime (in minutes)"
-                            v-model="settings.pointLifetime"
-                            :rules="[ rules.positiveNum ]"
-                            type="number"
-                            class="col-6"
-                            delse
-                            />
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-input label="Point Lifetime (in minutes)"
+                                v-model="settings.pointLifetime"
+                                :rules="[ rules.positiveNum ]"
+                                type="number"
+                                delse
+                                />
+                    </div>
                 </div>
 
-                <div class="q-gutter-md row items-start">
-                    <q-toggle label="Show Ambiguity"
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-toggle label="Show Ambiguity"
                             v-model="settings.isShowAmbiguity"
                             class="col-6"
                             dense
                             />
+                    </div>
                 </div>
 
-                <div class="q-gutter-md row items-start">
-                    <q-toggle label="Show Labels"
-                            v-model="settings.isShowLabels"
-                            class="col-6"
-                            dense
-                            />
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-toggle label="Show Labels"
+                                v-model="settings.isShowLabels"
+                                dense
+                                />
+                    </div>
                 </div>
 
-                <div class="q-gutter-md row items-start">
-                    <q-toggle label="Show Trails"
-                            v-model="settings.isShowTrails"
-                            class="col-6"
-                            dense
-                            />
+                <div class="row justify-between">
+                    <div class="col-md-6 q-pa-sm">
+                        <q-toggle label="Show Trails"
+                                v-model="settings.isShowTrails"
+                                dense
+                                />
+                    </div>
                 </div>
 
-                <div class="q-gutter-md row items-start">
-                    <q-btn label="Save" type="submit" color="primary" />
-                    <q-btn label="Reset" type="reset" />
+                <div class="row">
+                    <div class="q-gutter-sm col-md-6 q-pa-sm">
+                        <q-btn color="primary" label="Save" type="submit" />
+                        <q-btn label="Reset" type="reset" />
+                    </div>
                 </div>
             </q-form>
         </q-card>

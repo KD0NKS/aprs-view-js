@@ -1,4 +1,4 @@
-import { IMapSettings } from "@/models/settings/IMapSettings";
+import { IMapSettings } from ".";
 
 export class MapSettings implements IMapSettings {
     public pointLifetime: number = 30

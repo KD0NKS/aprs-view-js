@@ -4,23 +4,25 @@ import { useStorage } from "@vueuse/core";
 import _ from "lodash";
 
 import { ConnectionEventTypes, StorageKeys } from "../enums";
-import { AbstractConnection, IConnection, ISConnection, KissTcipConnection, TNCConnection } from "../models/connections";
+import { AbstractConnection, IConnection, ISConnection, KissSerialConnection, KissTcipConnection, TNCConnection } from "../models/connections";
 import { Mapper } from "../utils/mappers";
 
 const _mapper = new Mapper()
 
 export const useConectionStore = defineStore('connection', {
     state: () => ({
-        connections: useStorage(StorageKeys.CONNECTION_SETTINGS, new Array<ISConnection | KissTcipConnection | TNCConnection>(), undefined, {
+        connections: useStorage(StorageKeys.CONNECTION_SETTINGS, new Array<ISConnection | KissSerialConnection | KissTcipConnection | TNCConnection>(), undefined, {
                 serializer: {
                     read: (v: any) => {
-                        let retVal = new Array<ISConnection | KissTcipConnection | TNCConnection>()
+                        let retVal = new Array<ISConnection | KissSerialConnection | KissTcipConnection | TNCConnection>()
 
                         const obj = JSON.parse(v)
 
                         for(let c of obj) {
                             if(c.connectionType == 'IS_SOCKET') {
                                 retVal.push(new ISConnection(c))
+                            } else if(c.connectionType == 'KISS_TNC') {
+                                retVal.push(new KissSerialConnection(c));
                             } else if(c.connectionType == 'KISS_TCIP') {
                                 retVal.push(new KissTcipConnection(c))
                             } else if(c.connectionType == 'SERIAL_TNC') {
@@ -38,6 +40,7 @@ export const useConectionStore = defineStore('connection', {
     }),
     getters: {
         getConnections: state => state.connections
+        , getConnectionName: (state) => { return (connectionId: string | number) => state.connections.find((c) => c.id == connectionId)?.name }
     },
     actions: {
         addConnection(settings: IConnection) {
@@ -56,7 +59,6 @@ export const useConectionStore = defineStore('connection', {
 
             if(index > -1) {
                 this.connections.splice(index, 1)
-                //LocalStorage.remove(`connections.${connectionId}`)
 
                 window.connectionService.deleteConnection(connectionId)
             }
@@ -97,7 +99,7 @@ export const useConectionStore = defineStore('connection', {
                 connection.isConnected = status == ConnectionEventTypes.CONNECTED
 
                 // Make sure the connection shows it's enabled on the front end
-                if(connection.isConnected) {
+                if(connection.isConnected == true) {
                     connection.isEnabled = true
                 }
             }

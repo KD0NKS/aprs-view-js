@@ -19,8 +19,6 @@ export const useSoftwareSettingsStore = defineStore('softwareSettings', {
     actions: {
         setSoftwareSettings(settings: ISoftwareSettings) {
             _mapper.CopyInto<ISoftwareSettings, SoftwareSettings>(settings, this.softwareSettings)
-
-            //LocalStorage.set(StorageKeys.SOFTWARE_SETTINGS, state.softwareSettings)
         }
     },
 });

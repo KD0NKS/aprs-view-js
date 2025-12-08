@@ -1,55 +1,129 @@
-import { uid } from 'quasar'
-import _ from 'lodash'
-import { EventEmitter } from 'events'
+import { uid } from 'quasar';
+import _ from 'lodash';
+import { EventEmitter } from 'events';
+import { filter, fromEvent, groupBy, map, mergeMap, throttleTime, window } from 'rxjs';
 
-import { ISSocket } from 'js-aprs-is'
-import { TerminalSocket } from '../../tnc/connections/TerminalSocket'
+import { AprsPathEnum } from '../../enums';
 
-import { StringUtil } from '../../../src/utils/StringUtil'
+import { ISSocket } from 'js-aprs-is';
+import { TerminalSocket } from '../../tnc/connections/TerminalSocket';
 
-import { IConnection } from '../../../src/models/connections/IConnection'
-import { IStationSettings } from '../../../src/models/settings/IStationSettings'
-import { ConnectionEventTypes } from '../../../src/enums/ConnectionEventTypes'
-import { DataEventTypes } from '../../enums/DataEventTypes'
-import { aprsParser, KissUtil } from 'js-aprs-fap'
-import { TerminalSettings } from '../../tnc/configurations/TerminalSettings'
-import { KissTcipSocket } from '../../tnc/connections/KissTcipSocket'
+import { StringUtil } from '../../../src/utils/StringUtil';
+
+import { IConnection } from '../../../src/models/connections/IConnection';
+import { IStationSettings } from '../../../src/models/settings/IStationSettings';
+import { ConnectionEventTypes } from '../../../src/enums/ConnectionEventTypes';
+import { DataEventTypes } from '../../enums/DataEventTypes';
+import { aprsParser, KissUtil } from 'js-aprs-fap';
+import { TerminalSettings } from '../../tnc/configurations/TerminalSettings';
+import { KissTcipSocket } from '../../tnc/connections/KissTcipSocket';
+import { KissSerialSocket } from '../../tnc/connections/KissSerialSocket';
 
 export class ConnectionService extends EventEmitter {
-    private _callsign = ''
-    private _connections: Array<ISSocket | KissTcipSocket | TerminalSocket>
-    private _kissUtil = new KissUtil()
-    private _parser = new aprsParser()
-    private _passcode = -1
-    private _ssid: string | null = null
-    private SOCKET_DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout']
-    private SOCKET_CONNECT_EVENTS: string[] = ['open', 'connect', 'ready']
+    private _aprsPath: AprsPathEnum = null;
+    private _callsign = '';
+    private _connections: Array<ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket>;
+    private _kissUtil = new KissUtil();
+    private _parser = new aprsParser();
+    private _passcode = -1;
+    private _ssid: string | null = null;
+    private SOCKET_DISCONNECT_EVENTS: string[] = ['destroy', 'end', 'close', 'error', 'timeout'];
+    private SOCKET_CONNECT_EVENTS: string[] = ['open', 'connect', 'ready'];
 
-    private readonly appId = 'js-aprs-view 0.0.1'
+    private readonly appId = 'js-aprs-view 0.0.1';
 
     public constructor() {
-        super()
+        super();
 
-        this._connections = new Array<ISSocket | TerminalSocket>()
+        this._connections = new Array<ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket>();
+
+        const dataEvent = fromEvent(this, DataEventTypes.DATA);
+        //const filteredPackets =
+        dataEvent.pipe(
+            filter((event) => event[1].trim() != ''),
+            groupBy((event) => {
+                var data = event[1];
+
+                if(data.indexOf('>') > -1 && data.indexOf(':') > -1) {
+                    let [name, body] = data.split('>');
+                    body = body.split(':')[1].trim()
+
+                    console.log(`Name: ${name}`)
+                    console.log(`Body: ${body}`)
+
+                    return `${name} > ${body}`
+                }
+
+                return event[1];
+            }),
+            mergeMap((eventGroup) => eventGroup.pipe(throttleTime(10000, undefined, { leading: true, trailing: false })))
+        ).subscribe(console.log)
+
+        /*
+        const filteredPackets = dataEvent.pipe(
+            window(
+                1000
+                ,
+            )
+        );
+        */
     }
 
+    /*
+    map((data: any[]) => {
+                    return data.filter((item, index, packets) => {
+                        //index === self.findIndex((x) => x.name === item.name)
+                        index === packets.findIndex((x) => x[1].split(":") === item[1].split(":")[1])
+                    })
+                })
+                    */
+
     // NOTE: This expects the front end is always creating an IS Socket.  To change it to any other type, you have to update the connection.
-    public addConnection(setting: IConnection): ISSocket | KissTcipSocket | TerminalSocket {
+    public addConnection(setting: IConnection): ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket {
         let connection
 
         if(setting.connectionType == 'IS_SOCKET') {
-            connection = new ISSocket(setting["host"], setting["port"], this._callsign, this._passcode, setting["filter"], this.appId, setting["id"] ?? uid())
-            this._connections.push(connection)
+            connection = new ISSocket(this.appId
+                    , setting["host"]
+                    , setting["port"]
+                    , this._callsign
+                    , this._passcode
+                    , setting.isAllowTransmit
+                    , setting["id"] ?? uid()
+                    , setting["filter"]
+                    )
 
+            this._connections.push(connection)
             this.attachListeners(connection)
 
             if(setting.isEnabled === true) {
                 (connection as ISSocket).connect()
             }
+        } else if(setting.connectionType == 'KISS_TNC') {
+            const terminalSettings: TerminalSettings = new TerminalSettings()
+
+            terminalSettings.id = setting.id
+            terminalSettings.path = setting["comPort"]
+            // For whatever reason, setting the datatype on the input to number isn't enough and passes it as a string.
+            terminalSettings.baudRate = setting["baudRate"] ? parseInt(setting["baudRate"]) : 9600
+            terminalSettings.charset = setting["charset"]
+            terminalSettings.dataBits = setting["dataBits"]
+            terminalSettings.parity = setting["parity"]
+            terminalSettings.rtscts = setting["rtscts"]
+            terminalSettings.stopBits = setting["stopBits"]
+            terminalSettings.messageDelimeter = setting["messageDelimeter"]
+            terminalSettings.callsign = this._callsign
+
+            connection = new KissSerialSocket(terminalSettings, setting["isAllowTransmit"])
+            this._connections.push(connection)
+            this.attachListeners(connection)
+
+            if(setting.isEnabled === true) {
+                (connection as KissSerialSocket).open()
+            }
         } else if(setting.connectionType == 'KISS_TCIP') {
             connection = new KissTcipSocket(setting["host"], setting["port"], setting["id"] ?? uid(), setting["isAllowTransmit"])
             this._connections.push(connection)
-
             this.attachListeners(connection)
 
             if(setting.isEnabled === true) {
@@ -59,10 +133,12 @@ export class ConnectionService extends EventEmitter {
             const terminalSettings: TerminalSettings = new TerminalSettings()
 
             terminalSettings.id = setting.id
+            terminalSettings.isTransmitEnabled = false // setting.isAllowTransmit
             terminalSettings.path = setting["comPort"]
             // For whatever reason, setting the datatype on the input to number isn't enough and passes it as a string.
             terminalSettings.baudRate = setting["baudRate"] ? parseInt(setting["baudRate"]) : 9600
             terminalSettings.charset = setting["charset"]
+            terminalSettings.converseCommand = setting["converseCommand"];
             terminalSettings.dataBits = setting["dataBits"]
             terminalSettings.myCallCommand = setting["myCallCommand"] ?? ""
             terminalSettings.parity = setting["parity"]
@@ -79,7 +155,6 @@ export class ConnectionService extends EventEmitter {
 
             connection = new TerminalSocket(terminalSettings)
             this._connections.push(connection)
-
             this.attachListeners(connection)
 
             if(setting.isEnabled === true) {
@@ -98,17 +173,19 @@ export class ConnectionService extends EventEmitter {
             return
         }
 
+        connection.removeAllListeners();
+
         if(connection instanceof ISSocket || connection instanceof KissTcipSocket) {
-            (connection as ISSocket).removeAllListeners();
-            (connection as ISSocket).disconnect();
-            connection.destroy()
+            connection.disconnect();
+        } else if(connection instanceof KissSerialSocket) {
+            (connection as KissSerialSocket).close();
         } else if(connection instanceof TerminalSocket) {
-            (connection as TerminalSocket).removeAllListeners();
             (connection as TerminalSocket).close();
-            (connection as TerminalSocket).destroy()
         }
 
-        _.remove(this._connections, { id: (connection as ISSocket).id })
+        connection.destroy();
+
+        _.remove(this._connections, { id: connection.id })
 
         return
     }
@@ -117,11 +194,7 @@ export class ConnectionService extends EventEmitter {
         const connection = this.findConnection(id)
 
         if(connection && connection != null) {
-            if(connection instanceof ISSocket || connection instanceof KissTcipSocket) {
-                return (connection as ISSocket).isConnected()
-            } else if(connection instanceof TerminalSocket) {
-                return connection.isOpen && connection.readable && connection.writable
-            }
+            return connection.isConnected();
         }
 
         return false
@@ -130,27 +203,37 @@ export class ConnectionService extends EventEmitter {
     // TODO: Accept a destination,
     public sendPacket(packet: string) {
         _.each(_.filter(this._connections, (c) => {
-                return ((c instanceof KissTcipSocket) && c.isTransmitEnabled == true)
-                    || ((c instanceof ISSocket) && c.isConnected() == true)
+                return ((c instanceof KissTcipSocket) && c.isConnected() && c.isTransmitEnabled == true)
+                    || ((c instanceof KissSerialSocket) && c.isConnected() && c.isTransmitEnabled == true)
+                    || ((c instanceof ISSocket) && c.isConnected() == true && c.isTransmitEnabled == true)
+                    || ((c instanceof TerminalSocket) && c.isConnected() == true && c.isTransmitEnabled == true)
             })
             , c => {
-                if(c instanceof KissTcipSocket) {
-                    let path = "WIDE2-2"
-                    let toSend = this._kissUtil.tnc2ToKiss(`${this._callsign}>APZ678,${path}:${packet}`)
+                if(c instanceof KissTcipSocket || c instanceof KissSerialSocket) {
+                    let toSend = this._kissUtil.tnc2ToKiss(`${this._callsign}>APZ678,${AprsPathEnum[this._aprsPath]}:${packet}`)
 
                     if(!!toSend) {
                         c.send(toSend)
                     }
                 } else if(c instanceof ISSocket) {
-                    c.sendLine(`${this._callsign}>APZ678,TCIP*:${packet}`)
-                    console.log(`${this._callsign}>APZ678,TCIP*:${packet}`)
+                    // header TCPIP*
+                    c.send(`${this._callsign}>APZ678,TCIP*:${packet}`);
+                } else if(c instanceof TerminalSocket) {
+                    /*
+                    console.log("Terminal Socket!!!!!");
+
+                    // TODO: TESTING ONLY!!!
+                    packet = '!0000.00N/00000.00W>aprs-view-js'
+                    c.send(packet)
+                    console.log(packet)
+                    */
                 }
             }
         )
     }
 
     public updateConnection(setting: IConnection): void {
-        let connection = this.findConnection(setting.id)
+        let connection: ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket | undefined | null = this.findConnection(setting.id)
 
         if(connection instanceof ISSocket && setting.connectionType == 'IS_SOCKET') {
             connection.filter = setting["filter"]
@@ -161,7 +244,7 @@ export class ConnectionService extends EventEmitter {
                 connection = this.addConnection(setting)
             } else {
                 try {
-                    connection.sendLine(`# filter ${setting["filter"]}`)
+                    connection.send(`# filter ${setting["filter"]}`)
                 } catch {
                     console.log('Connection not enabled, nothing to do.')
                 }
@@ -178,6 +261,7 @@ export class ConnectionService extends EventEmitter {
             // It is easier to delete and re-add a TNC connection than to try and update it.  This else also applies for switching connection types.
             this.deleteConnection(setting.id)
             connection = this.addConnection(setting)
+            // TODO: If connected
         }
     }
 
@@ -191,8 +275,8 @@ export class ConnectionService extends EventEmitter {
                 } else {
                     connection.disconnect()
                 }
-            } else if(connection instanceof TerminalSocket) {
-                if(isEnabled) {
+            } else if(connection instanceof KissSerialSocket || connection instanceof TerminalSocket) {
+                if(isEnabled == true) {
                     connection.open()
                 } else {
                     connection.close()
@@ -224,6 +308,12 @@ export class ConnectionService extends EventEmitter {
             isUpdated = true
         }
 
+        if(this._aprsPath != settings.aprsPath) {
+            this._aprsPath = settings.aprsPath;
+
+            isUpdated = true;
+        }
+
         if(isUpdated == true) {
             let fullCall = this._callsign
 
@@ -237,7 +327,7 @@ export class ConnectionService extends EventEmitter {
                     conn.passcode = this._passcode
 
                     if(conn.writable == true && conn.isConnected() == true) {
-                        conn.sendLine(conn.userLogin)
+                        conn.sendLogin();
                     }
                 } else if(conn instanceof TerminalSocket) {
                     if(conn.writable == true && conn.isOpen == true) {
@@ -251,7 +341,7 @@ export class ConnectionService extends EventEmitter {
         }
     }
 
-    private attachListeners(connection: ISSocket | KissTcipSocket | TerminalSocket): void {
+    private attachListeners(connection: ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket): void {
         if(connection instanceof ISSocket) {
             connection.on(DataEventTypes.PACKET, (data: string) => {
                 const cleanData = data.trim()
@@ -260,8 +350,11 @@ export class ConnectionService extends EventEmitter {
                     if(data.charAt(0) != '#') {
                         try {
                             const msg = this._parser.parseaprs(data.trim(), { accept_broken_mice: true })
-                            msg.id = uid()
-                            this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
+
+                            if(!!msg) {
+                                msg.id = uid()
+                                this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
+                            }
                         } catch (err) {
                             this.emit(DataEventTypes.ERROR, [ connection.id, err ])
                         }
@@ -282,7 +375,7 @@ export class ConnectionService extends EventEmitter {
                     this.emit(ConnectionEventTypes.CONNECTED, connection.id)
 
                     if(e == 'ready') {
-                        (connection as ISSocket).sendLine((connection as ISSocket).userLogin)
+                        (connection as ISSocket).sendLogin()
                     }
                 })
             }
@@ -290,16 +383,17 @@ export class ConnectionService extends EventEmitter {
             connection.on(DataEventTypes.DATA, (data: string) => {
                 this.emit(DataEventTypes.DATA, [ connection.id, data.toString() ])
             })
-        } else if(connection instanceof KissTcipSocket) {
-            for(const e of this.SOCKET_DISCONNECT_EVENTS) {
-                connection.on(e, () => {
-                    this.emit(ConnectionEventTypes.DISCONNECTED, connection.id)
-                })
-            }
-
+        } else if(connection instanceof KissSerialSocket
+                || connection instanceof KissTcipSocket) {
             for(const e of this.SOCKET_CONNECT_EVENTS) {
                 connection.on(e, () => {
                     this.emit(ConnectionEventTypes.CONNECTED, connection.id)
+                })
+            }
+
+            for(const e of this.SOCKET_DISCONNECT_EVENTS) {
+                connection.on(e, () => {
+                    this.emit(ConnectionEventTypes.DISCONNECTED, connection.id)
                 })
             }
 
@@ -315,8 +409,10 @@ export class ConnectionService extends EventEmitter {
                         this.emit(DataEventTypes.DATA, [ connection.id, packet ])
 
                         let msg = this._parser.parseaprs(packet.toString())
-                        msg.id = uid()
-                        this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
+                        if(!!msg) {
+                            msg.id = uid()
+                            this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
+                        }
                     }
                 } catch (err) {
                     this.emit(DataEventTypes.ERROR, [ connection.id, err ])
@@ -334,15 +430,23 @@ export class ConnectionService extends EventEmitter {
                     // TODO: The command should be a parameter set by the user to strip off the beginning of the packet
                     data = data.trim().replace(/^[cmd:]*/, '')
                     let msg = this._parser.parseaprs(data)
-                    msg.id = uid()
-                    this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
 
-                    // Serial port on data event will emit character at a time.
-                    this.emit(DataEventTypes.DATA, [ connection.id, data ])
+                    if(!!msg) {
+                        msg.id = uid()
+                        this.emit(DataEventTypes.PACKET, [ connection.id, msg ])
+
+                        // Serial port on data event will emit character at a time.
+                        this.emit(DataEventTypes.DATA, [ connection.id, data ])
+                    }
                 } catch (err) {
                     this.emit(DataEventTypes.ERROR, [ connection.id, err ])
                 }
             })
+
+            connection.on(DataEventTypes.SENT, (data: string) => {
+                console.log(`${connection.id}: ${data}`)
+                this.emit(DataEventTypes.SENT, [ connection.id, data ])
+            });
 
             for(const e of this.SOCKET_DISCONNECT_EVENTS) {
                 connection.on(e, () => {
@@ -356,7 +460,8 @@ export class ConnectionService extends EventEmitter {
         })
     }
 
-    private findConnection(id: string | number ): ISSocket | KissTcipSocket | TerminalSocket | null | undefined {
+    private findConnection(id: string | number ): ISSocket | KissSerialSocket | KissTcipSocket | TerminalSocket | null | undefined {
         return _.find(this._connections, { id: id })
     }
 }
+

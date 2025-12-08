@@ -20,32 +20,45 @@
                     :greedy="false"
                     @reset="onReset"
                     @submit="onSubmit">
-                <div class="q-gutter-md row" dense>
-                    <q-input label="Name" v-model="model.name" :rules="[ rules.required ]" class="col-8" dense />
-                    <q-select label="Connection Type"
-                            v-model="model.connectionType"
-                            :options="connectionTypeOptions"
-                            @update:model-value="changeConnectionType"
-                            class="col-3"
-                            emit-value
-                            map-options
-                            dense
-                            >
-                    </q-select>
+                <div class="row justify-between">
+                    <div class="col-sm-8 q-pa-sm">
+                        <q-input label="Name" v-model="model.name" :rules="[ rules.required ]" dense />
+                    </div>
+
+                    <div class="col-sm-4 q-pa-sm">
+                        <q-select label="Connection Type"
+                                v-model="model.connectionType"
+                                :options="connectionTypeOptions"
+                                @update:model-value="changeConnectionType"
+                                emit-value
+                                map-options
+                                dense
+                                >
+                        </q-select>
+                    </div>
                 </div>
 
-                <div class="q-gutter-md row" style="margin-bottom: 10px;">
-                    <q-toggle v-model="model.isAllowTransmit" label="Allow Transmit" />
+                <div class="row justify-between" >
+                    <div class="col-sm-6 q-pa-sm">
+                        <q-toggle v-model="model.isAllowTransmit"
+                                label="Allow Transmit"
+                                :disable="model.connectionType == 'SERIAL_TNC'"
+                                dense
+                                />
+                    </div>
                 </div>
 
                 <ISConnectionItem :model="model" v-if="model.connectionType == 'IS_SOCKET'" />
                 <KissTcipConnectionItem :model="model" v-if="model.connectionType == 'KISS_TCIP'" />
+                <KissTncConnectionItem :model="model" v-if="model.connectionType == 'KISS_TNC'" />
                 <TNCConnectionItem :model="model" v-if="model.connectionType == 'SERIAL_TNC'" />
 
-                <div class="q-gutter-md row">
-                    <q-btn label="Save" type="submit" color="primary" />
-                    <q-btn label="Reset" type="reset" />
-                    <q-btn label="Delete" @click="deleteConnection" color="red" />
+                <div class="row">
+                    <div class="q-gutter-sm col-sm-6 q-pa-sm">
+                        <q-btn label="Save" type="submit" color="primary" />
+                        <q-btn label="Reset" type="reset" />
+                        <q-btn label="Delete" @click="deleteConnection" color="red" />
+                    </div>
                 </div>
             </q-form>
         </q-card>
@@ -57,24 +70,26 @@
     import { useConectionStore } from '../../stores/connectionStore'
     import _ from "lodash"
 
-    import { ConnectionTypes } from "../../enums"
+    import { ConnectionEventTypes, ConnectionTypes } from "../../enums"
     import { Mapper } from "../../utils/mappers"
-    import { ISConnection, KissTcipConnection, TNCConnection } from "../../models/connections"
+    import { ISConnection, KissSerialConnection, KissTcipConnection, TNCConnection } from "../../models/connections"
 
     import ISConnectionItem from "./ISConnectionItem.vue"
+    import KissTncConnectionItem from './KissTncConnectionItem.vue'
     import KissTcipConnectionItem from "./KissTcipConnectionItem.vue"
     import TNCConnectionItem from "./TNCConnectionItem.vue"
 
     export default defineComponent({
         props: {
             connection: {
-                type: [ ISConnection, KissTcipConnection, TNCConnection ],
+                type: [ ISConnection, KissSerialConnection, KissTcipConnection, TNCConnection ],
                 required: true
             }
 
         }
         , components: {
             ISConnectionItem
+            , KissTncConnectionItem
             , KissTcipConnectionItem
             , TNCConnectionItem
         }
@@ -86,6 +101,9 @@
             if(props.connection.connectionType == 'IS_SOCKET') {
                 temp = new ISConnection()
                 mapper.CopyInto<ISConnection, ISConnection>(_.cloneDeep(props.connection) as ISConnection, temp)
+            } else if(props.connection.connectionType == 'KISS_TNC') {
+                temp = new KissSerialConnection();
+                mapper.CopyInto<KissSerialConnection, KissSerialConnection>(_.cloneDeep(props.connection) as KissSerialConnection, temp);
             } else if(props.connection.connectionType == 'KISS_TCIP') {
                 temp = new KissTcipConnection()
                 mapper.CopyInto<KissTcipConnection, KissTcipConnection>(_.cloneDeep(props.connection) as KissTcipConnection, temp)
@@ -108,6 +126,8 @@
                 , onReset() {
                     if(props.connection.connectionType == 'IS_SOCKET') {
                         mapper.CopyInto<ISConnection, ISConnection>(_.cloneDeep(props.connection) as ISConnection, model.value)
+                    } else if(props.connection.connectionType == 'KISS_TNC') {
+                        mapper.CopyInto<KissSerialConnection, KissSerialConnection>(_.cloneDeep(props.connection) as KissSerialConnection, model.value);
                     } else if(props.connection.connectionType == 'KISS_TCIP') {
                         mapper.CopyInto<KissTcipConnection, KissTcipConnection>(_.cloneDeep(props.connection) as KissTcipConnection, model.value)
                     } else if(props.connection.connectionType == 'SERIAL_TNC') {
@@ -146,6 +166,21 @@
                     conn.port = this.model['port'] ?? null
 
                     this.model = conn
+                } else if(value == 'KISS_TNC') {
+                    let conn = new KissSerialConnection();
+
+                    conn.id = this.model.id;
+                    conn.name = this.model['name'] ?? '';
+                    conn.connectionType = 'KISS_TNC';
+                    conn.comPort = this.model['comPort'] ?? '';
+                    conn.baudRate = this.model["baudRate"];
+                    conn.charset = this.model["charset"];
+                    conn.dataBits = this.model["dataBits"];
+                    conn.stopBits = this.model["stopBits"];
+                    conn.parity = this.model["parity"];
+                    conn.messageDelimeter = this.model["messageDelimeter"] = '\r';
+
+                    this.model = conn;
                 } else if(value == 'KISS_TCIP') {
                     let conn = new KissTcipConnection()
 
@@ -170,6 +205,7 @@
                     conn.charset = this.model["charset"]
                     conn.dataBits = this.model["dataBits"]
                     conn.stopBits = this.model["stopBits"]
+                    conn.parity = this.model["parity"]
                     conn.messageDelimeter = this.model["messageDelimeter"] = '\r'
 
                     this.model = conn
