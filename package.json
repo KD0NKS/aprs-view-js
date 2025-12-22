@@ -29,7 +29,7 @@
     "quasar": "^2.18.6",
     "serialport": "^13.0.0",
     "uuid": "^13.0.0",
-    "vue": "^3.5.25",
+    "vue": "^3.5.26",
     "vue-router": "^4.6.3",
     "vuedraggable": "^4.1.0"
   },
