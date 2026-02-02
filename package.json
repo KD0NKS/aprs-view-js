@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
-    "@vueuse/core": "^14.1.0",
+    "@vueuse/core": "^14.2.0",
     "js-aprs-fap": "^2.0.1",
     "js-aprs-is": "^2.0.1",
     "lodash": "^4.17.21",
